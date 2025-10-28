@@ -73,7 +73,7 @@ export default function RegionAccordion({
                   return (
                     <Link
                       key={district.id}
-                      to={`/${district.slug}`}
+                      to={`/${state.state.slug}/${district.slug}`}
                       onClick={onNavigate}
                       ref={isDistrictActive ? activeItemRef : null}
                       className={cn(

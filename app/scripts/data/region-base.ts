@@ -23,7 +23,7 @@ export const data = [
     id: "at-burgenland-eisenstadt-stadt",
     name: "Eisenstadt(Stadt)",
     parent_id: "at-burgenland",
-    slug: "burgenland/eisenstadt-stadt",
+    slug: "eisenstadt-stadt",
     type: "district",
   },
   {
@@ -32,7 +32,7 @@ export const data = [
     id: "at-burgenland-eisenstadt-umgebung",
     name: "Eisenstadt-Umgebung",
     parent_id: "at-burgenland",
-    slug: "burgenland/eisenstadt-umgebung",
+    slug: "eisenstadt-umgebung",
     type: "district",
   },
   {
@@ -41,7 +41,7 @@ export const data = [
     id: "at-burgenland-gussing",
     name: "Güssing",
     parent_id: "at-burgenland",
-    slug: "burgenland/gussing",
+    slug: "gussing",
     type: "district",
   },
   {
@@ -50,7 +50,7 @@ export const data = [
     id: "at-burgenland-jennersdorf",
     name: "Jennersdorf",
     parent_id: "at-burgenland",
-    slug: "burgenland/jennersdorf",
+    slug: "jennersdorf",
     type: "district",
   },
   {
@@ -59,7 +59,7 @@ export const data = [
     id: "at-burgenland-mattersburg",
     name: "Mattersburg",
     parent_id: "at-burgenland",
-    slug: "burgenland/mattersburg",
+    slug: "mattersburg",
     type: "district",
   },
   {
@@ -68,7 +68,7 @@ export const data = [
     id: "at-burgenland-neusiedl-am-see",
     name: "Neusiedl am See",
     parent_id: "at-burgenland",
-    slug: "burgenland/neusiedl-am-see",
+    slug: "neusiedl-am-see",
     type: "district",
   },
   {
@@ -77,7 +77,7 @@ export const data = [
     id: "at-burgenland-oberpullendorf",
     name: "Oberpullendorf",
     parent_id: "at-burgenland",
-    slug: "burgenland/oberpullendorf",
+    slug: "oberpullendorf",
     type: "district",
   },
   {
@@ -86,7 +86,7 @@ export const data = [
     id: "at-burgenland-oberwart",
     name: "Oberwart",
     parent_id: "at-burgenland",
-    slug: "burgenland/oberwart",
+    slug: "oberwart",
     type: "district",
   },
   {
@@ -95,7 +95,7 @@ export const data = [
     id: "at-burgenland-rust-stadt",
     name: "Rust(Stadt)",
     parent_id: "at-burgenland",
-    slug: "burgenland/rust-stadt",
+    slug: "rust-stadt",
     type: "district",
   },
   {
@@ -113,7 +113,7 @@ export const data = [
     id: "at-karnten-feldkirchen",
     name: "Feldkirchen",
     parent_id: "at-karnten",
-    slug: "kaernten/feldkirchen",
+    slug: "feldkirchen",
     type: "district",
   },
   {
@@ -122,7 +122,7 @@ export const data = [
     id: "at-karnten-hermagor",
     name: "Hermagor",
     parent_id: "at-karnten",
-    slug: "kaernten/hermagor",
+    slug: "hermagor",
     type: "district",
   },
   {
@@ -131,7 +131,7 @@ export const data = [
     id: "at-karnten-klagenfurt-land",
     name: "Klagenfurt Land",
     parent_id: "at-karnten",
-    slug: "kaernten/klagenfurt-land",
+    slug: "klagenfurt-land",
     type: "district",
   },
   {
@@ -140,7 +140,7 @@ export const data = [
     id: "at-karnten-klagenfurt-stadt",
     name: "Klagenfurt Stadt",
     parent_id: "at-karnten",
-    slug: "kaernten/klagenfurt-stadt",
+    slug: "klagenfurt-stadt",
     type: "district",
   },
   {
@@ -149,7 +149,7 @@ export const data = [
     id: "at-karnten-sankt-veit-an-der-glan",
     name: "Sankt Veit an der Glan",
     parent_id: "at-karnten",
-    slug: "kaernten/sankt-veit-an-der-glan",
+    slug: "sankt-veit-an-der-glan",
     type: "district",
   },
   {
@@ -158,7 +158,7 @@ export const data = [
     id: "at-karnten-spittal-an-der-drau",
     name: "Spittal an der Drau",
     parent_id: "at-karnten",
-    slug: "kaernten/spittal-an-der-drau",
+    slug: "spittal-an-der-drau",
     type: "district",
   },
   {
@@ -167,7 +167,7 @@ export const data = [
     id: "at-karnten-villach",
     name: "Villach",
     parent_id: "at-karnten",
-    slug: "kaernten/villach",
+    slug: "villach",
     type: "city",
   },
   {
@@ -176,7 +176,7 @@ export const data = [
     id: "at-karnten-villach-land",
     name: "Villach Land",
     parent_id: "at-karnten",
-    slug: "kaernten/villach-land",
+    slug: "villach-land",
     type: "district",
   },
   {
@@ -185,7 +185,7 @@ export const data = [
     id: "at-karnten-villach-stadt",
     name: "Villach Stadt",
     parent_id: "at-karnten",
-    slug: "kaernten/villach-stadt",
+    slug: "villach-stadt",
     type: "district",
   },
   {
@@ -194,7 +194,7 @@ export const data = [
     id: "at-karnten-volkermarkt",
     name: "Völkermarkt",
     parent_id: "at-karnten",
-    slug: "kaernten/volkermarkt",
+    slug: "volkermarkt",
     type: "district",
   },
   {
@@ -203,7 +203,7 @@ export const data = [
     id: "at-karnten-wolfsberg",
     name: "Wolfsberg",
     parent_id: "at-karnten",
-    slug: "kaernten/wolfsberg",
+    slug: "wolfsberg",
     type: "city",
   },
   {
@@ -221,7 +221,7 @@ export const data = [
     id: "at-niederosterreich-amstetten",
     name: "Amstetten",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/amstetten",
+    slug: "amstetten",
     type: "district",
   },
   {
@@ -230,7 +230,7 @@ export const data = [
     id: "at-niederosterreich-baden",
     name: "Baden",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/baden",
+    slug: "baden",
     type: "city",
   },
   {
@@ -239,7 +239,7 @@ export const data = [
     id: "at-niederosterreich-bruck-an-der-leitha",
     name: "Bruck an der Leitha",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/bruck-an-der-leitha",
+    slug: "bruck-an-der-leitha",
     type: "district",
   },
   {
@@ -248,7 +248,7 @@ export const data = [
     id: "at-niederosterreich-ganserndorf",
     name: "Gänserndorf",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/ganserndorf",
+    slug: "ganserndorf",
     type: "district",
   },
   {
@@ -257,7 +257,7 @@ export const data = [
     id: "at-niederosterreich-gmund",
     name: "Gmünd",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/gmund",
+    slug: "gmund",
     type: "district",
   },
   {
@@ -266,7 +266,7 @@ export const data = [
     id: "at-niederosterreich-hollabrunn",
     name: "Hollabrunn",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/hollabrunn",
+    slug: "hollabrunn",
     type: "district",
   },
   {
@@ -275,7 +275,7 @@ export const data = [
     id: "at-niederosterreich-horn",
     name: "Horn",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/horn",
+    slug: "horn",
     type: "district",
   },
   {
@@ -284,7 +284,7 @@ export const data = [
     id: "at-niederosterreich-klosterneuburg",
     name: "Klosterneuburg",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/klosterneuburg",
+    slug: "klosterneuburg",
     type: "city",
   },
   {
@@ -293,7 +293,7 @@ export const data = [
     id: "at-niederosterreich-korneuburg",
     name: "Korneuburg",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/korneuburg",
+    slug: "korneuburg",
     type: "district",
   },
   {
@@ -302,7 +302,7 @@ export const data = [
     id: "at-niederosterreich-krems-an-der-donau",
     name: "Krems an der Donau",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/krems-an-der-donau",
+    slug: "krems-an-der-donau",
     type: "city",
   },
   {
@@ -311,7 +311,7 @@ export const data = [
     id: "at-niederosterreich-krems-an-der-donau-stadt",
     name: "Krems an der Donau(Stadt)",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/krems-an-der-donau-stadt",
+    slug: "krems-an-der-donau-stadt",
     type: "district",
   },
   {
@@ -320,7 +320,7 @@ export const data = [
     id: "at-niederosterreich-krems-land",
     name: "Krems(Land)",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/krems-land",
+    slug: "krems-land",
     type: "district",
   },
   {
@@ -329,7 +329,7 @@ export const data = [
     id: "at-niederosterreich-lilienfeld",
     name: "Lilienfeld",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/lilienfeld",
+    slug: "lilienfeld",
     type: "district",
   },
   {
@@ -338,7 +338,7 @@ export const data = [
     id: "at-niederosterreich-melk",
     name: "Melk",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/melk",
+    slug: "melk",
     type: "district",
   },
   {
@@ -347,7 +347,7 @@ export const data = [
     id: "at-niederosterreich-mistelbach",
     name: "Mistelbach",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/mistelbach",
+    slug: "mistelbach",
     type: "district",
   },
   {
@@ -356,7 +356,7 @@ export const data = [
     id: "at-niederosterreich-modling",
     name: "Mödling",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/modling",
+    slug: "modling",
     type: "district",
   },
   {
@@ -365,7 +365,7 @@ export const data = [
     id: "at-niederosterreich-neunkirchen",
     name: "Neunkirchen",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/neunkirchen",
+    slug: "neunkirchen",
     type: "district",
   },
   {
@@ -374,7 +374,7 @@ export const data = [
     id: "at-niederosterreich-sankt-polten-land",
     name: "Sankt Pölten(Land)",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/sankt-polten-land",
+    slug: "sankt-polten-land",
     type: "district",
   },
   {
@@ -383,7 +383,7 @@ export const data = [
     id: "at-niederosterreich-sankt-polten-stadt",
     name: "Sankt Pölten(Stadt)",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/sankt-polten-stadt",
+    slug: "sankt-polten-stadt",
     type: "district",
   },
   {
@@ -392,7 +392,7 @@ export const data = [
     id: "at-niederosterreich-scheibbs",
     name: "Scheibbs",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/scheibbs",
+    slug: "scheibbs",
     type: "district",
   },
   {
@@ -401,7 +401,7 @@ export const data = [
     id: "at-niederosterreich-tulln",
     name: "Tulln",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/tulln",
+    slug: "tulln",
     type: "district",
   },
   {
@@ -410,7 +410,7 @@ export const data = [
     id: "at-niederosterreich-waidhofen-an-der-thaya",
     name: "Waidhofen an der Thaya",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/waidhofen-an-der-thaya",
+    slug: "waidhofen-an-der-thaya",
     type: "district",
   },
   {
@@ -419,7 +419,7 @@ export const data = [
     id: "at-niederosterreich-waidhofen-an-der-ybbs-stadt",
     name: "Waidhofen an der Ybbs(Stadt)",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/waidhofen-an-der-ybbs-stadt",
+    slug: "waidhofen-an-der-ybbs-stadt",
     type: "district",
   },
   {
@@ -428,7 +428,7 @@ export const data = [
     id: "at-niederosterreich-wiener-neustadt",
     name: "Wiener Neustadt",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/wiener-neustadt",
+    slug: "wiener-neustadt",
     type: "city",
   },
   {
@@ -437,7 +437,7 @@ export const data = [
     id: "at-niederosterreich-wiener-neustadt-land",
     name: "Wiener Neustadt(Land)",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/wiener-neustadt-land",
+    slug: "wiener-neustadt-land",
     type: "district",
   },
   {
@@ -446,7 +446,7 @@ export const data = [
     id: "at-niederosterreich-wiener-neustadt-stadt",
     name: "Wiener Neustadt(Stadt)",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/wiener-neustadt-stadt",
+    slug: "wiener-neustadt-stadt",
     type: "district",
   },
   {
@@ -455,7 +455,7 @@ export const data = [
     id: "at-niederosterreich-zwettl",
     name: "Zwettl",
     parent_id: "at-niederosterreich",
-    slug: "niederosterreich/zwettl",
+    slug: "zwettl",
     type: "district",
   },
   {
@@ -473,7 +473,7 @@ export const data = [
     id: "at-oberosterreich-braunau",
     name: "Braunau",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/braunau",
+    slug: "braunau",
     type: "district",
   },
   {
@@ -482,7 +482,7 @@ export const data = [
     id: "at-oberosterreich-eferding",
     name: "Eferding",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/eferding",
+    slug: "eferding",
     type: "district",
   },
   {
@@ -491,7 +491,7 @@ export const data = [
     id: "at-oberosterreich-freistadt",
     name: "Freistadt",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/freistadt",
+    slug: "freistadt",
     type: "district",
   },
   {
@@ -500,7 +500,7 @@ export const data = [
     id: "at-oberosterreich-gmunden",
     name: "Gmunden",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/gmunden",
+    slug: "gmunden",
     type: "district",
   },
   {
@@ -509,7 +509,7 @@ export const data = [
     id: "at-oberosterreich-grieskirchen",
     name: "Grieskirchen",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/grieskirchen",
+    slug: "grieskirchen",
     type: "district",
   },
   {
@@ -518,7 +518,7 @@ export const data = [
     id: "at-oberosterreich-kirchdorf",
     name: "Kirchdorf",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/kirchdorf",
+    slug: "kirchdorf",
     type: "district",
   },
   {
@@ -527,7 +527,7 @@ export const data = [
     id: "at-oberosterreich-leonding",
     name: "Leonding",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/leonding",
+    slug: "leonding",
     type: "city",
   },
   {
@@ -536,7 +536,7 @@ export const data = [
     id: "at-oberosterreich-linz",
     name: "Linz",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/linz",
+    slug: "linz",
     type: "city",
   },
   {
@@ -545,7 +545,7 @@ export const data = [
     id: "at-oberosterreich-linz-land",
     name: "Linz-Land",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/linz-land",
+    slug: "linz-land",
     type: "district",
   },
   {
@@ -554,7 +554,7 @@ export const data = [
     id: "at-oberosterreich-perg",
     name: "Perg",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/perg",
+    slug: "perg",
     type: "district",
   },
   {
@@ -563,7 +563,7 @@ export const data = [
     id: "at-oberosterreich-ried",
     name: "Ried",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/ried",
+    slug: "ried",
     type: "district",
   },
   {
@@ -572,7 +572,7 @@ export const data = [
     id: "at-oberosterreich-rohrbach",
     name: "Rohrbach",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/rohrbach",
+    slug: "rohrbach",
     type: "district",
   },
   {
@@ -581,7 +581,7 @@ export const data = [
     id: "at-oberosterreich-scharding",
     name: "Schärding",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/scharding",
+    slug: "scharding",
     type: "district",
   },
   {
@@ -590,7 +590,7 @@ export const data = [
     id: "at-oberosterreich-stadt-linz",
     name: "Stadt Linz",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/stadt-linz",
+    slug: "stadt-linz",
     type: "district",
   },
   {
@@ -599,7 +599,7 @@ export const data = [
     id: "at-oberosterreich-stadt-steyr",
     name: "Stadt Steyr",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/stadt-steyr",
+    slug: "stadt-steyr",
     type: "district",
   },
   {
@@ -608,7 +608,7 @@ export const data = [
     id: "at-oberosterreich-stadt-wels",
     name: "Stadt Wels",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/stadt-wels",
+    slug: "stadt-wels",
     type: "district",
   },
   {
@@ -617,7 +617,7 @@ export const data = [
     id: "at-oberosterreich-steyr",
     name: "Steyr",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/steyr",
+    slug: "steyr",
     type: "city",
   },
   {
@@ -626,7 +626,7 @@ export const data = [
     id: "at-oberosterreich-steyr-land",
     name: "Steyr-Land",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/steyr-land",
+    slug: "steyr-land",
     type: "district",
   },
   {
@@ -635,7 +635,7 @@ export const data = [
     id: "at-oberosterreich-urfahr-umgebung",
     name: "Urfahr-Umgebung",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/urfahr-umgebung",
+    slug: "urfahr-umgebung",
     type: "district",
   },
   {
@@ -644,7 +644,7 @@ export const data = [
     id: "at-oberosterreich-vocklabruck",
     name: "Vöcklabruck",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/vocklabruck",
+    slug: "vocklabruck",
     type: "district",
   },
   {
@@ -653,7 +653,7 @@ export const data = [
     id: "at-oberosterreich-wels",
     name: "Wels",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/wels",
+    slug: "wels",
     type: "city",
   },
   {
@@ -662,7 +662,7 @@ export const data = [
     id: "at-oberosterreich-wels-land",
     name: "Wels-Land",
     parent_id: "at-oberosterreich",
-    slug: "oberosterreich/wels-land",
+    slug: "wels-land",
     type: "district",
   },
   {
@@ -680,17 +680,8 @@ export const data = [
     id: "at-salzburg-hallein",
     name: "Hallein",
     parent_id: "at-salzburg",
-    slug: "salzburg/hallein",
+    slug: "hallein",
     type: "district",
-  },
-  {
-    center_lat: 47.79959106172732,
-    center_lng: 13.049873274543804,
-    id: "at-salzburg-salzburg",
-    name: "Salzburg",
-    parent_id: "at-salzburg",
-    slug: "salzburg/salzburg",
-    type: "city",
   },
   {
     center_lat: 47.80543014268365,
@@ -698,7 +689,7 @@ export const data = [
     id: "at-salzburg-salzburg-stadt",
     name: "Salzburg(Stadt)",
     parent_id: "at-salzburg",
-    slug: "salzburg/salzburg-stadt",
+    slug: "salzburg-stadt",
     type: "district",
   },
   {
@@ -707,7 +698,7 @@ export const data = [
     id: "at-salzburg-salzburg-umgebung",
     name: "Salzburg-Umgebung",
     parent_id: "at-salzburg",
-    slug: "salzburg/salzburg-umgebung",
+    slug: "salzburg-umgebung",
     type: "district",
   },
   {
@@ -716,7 +707,7 @@ export const data = [
     id: "at-salzburg-sankt-johann-im-pongau",
     name: "Sankt Johann im Pongau",
     parent_id: "at-salzburg",
-    slug: "salzburg/sankt-johann-im-pongau",
+    slug: "sankt-johann-im-pongau",
     type: "district",
   },
   {
@@ -725,7 +716,7 @@ export const data = [
     id: "at-salzburg-tamsweg",
     name: "Tamsweg",
     parent_id: "at-salzburg",
-    slug: "salzburg/tamsweg",
+    slug: "tamsweg",
     type: "district",
   },
   {
@@ -734,7 +725,7 @@ export const data = [
     id: "at-salzburg-zell-am-see",
     name: "Zell am See",
     parent_id: "at-salzburg",
-    slug: "salzburg/zell-am-see",
+    slug: "zell-am-see",
     type: "district",
   },
   {
@@ -752,7 +743,7 @@ export const data = [
     id: "at-steiermark-bruck-murzzuschlag",
     name: "Bruck-Mürzzuschlag",
     parent_id: "at-steiermark",
-    slug: "steiermark/bruck-murzzuschlag",
+    slug: "bruck-murzzuschlag",
     type: "district",
   },
   {
@@ -761,7 +752,7 @@ export const data = [
     id: "at-steiermark-deutschlandsberg",
     name: "Deutschlandsberg",
     parent_id: "at-steiermark",
-    slug: "steiermark/deutschlandsberg",
+    slug: "deutschlandsberg",
     type: "district",
   },
   {
@@ -770,7 +761,7 @@ export const data = [
     id: "at-steiermark-graz",
     name: "Graz",
     parent_id: "at-steiermark",
-    slug: "steiermark/graz",
+    slug: "graz",
     type: "city",
   },
   {
@@ -779,7 +770,7 @@ export const data = [
     id: "at-steiermark-graz-stadt",
     name: "Graz(Stadt)",
     parent_id: "at-steiermark",
-    slug: "steiermark/graz-stadt",
+    slug: "graz-stadt",
     type: "district",
   },
   {
@@ -788,7 +779,7 @@ export const data = [
     id: "at-steiermark-graz-umgebung",
     name: "Graz-Umgebung",
     parent_id: "at-steiermark",
-    slug: "steiermark/graz-umgebung",
+    slug: "graz-umgebung",
     type: "district",
   },
   {
@@ -797,7 +788,7 @@ export const data = [
     id: "at-steiermark-hartberg-furstenfeld",
     name: "Hartberg-Fürstenfeld",
     parent_id: "at-steiermark",
-    slug: "steiermark/hartberg-furstenfeld",
+    slug: "hartberg-furstenfeld",
     type: "district",
   },
   {
@@ -806,7 +797,7 @@ export const data = [
     id: "at-steiermark-leibnitz",
     name: "Leibnitz",
     parent_id: "at-steiermark",
-    slug: "steiermark/leibnitz",
+    slug: "leibnitz",
     type: "district",
   },
   {
@@ -815,7 +806,7 @@ export const data = [
     id: "at-steiermark-leoben",
     name: "Leoben",
     parent_id: "at-steiermark",
-    slug: "steiermark/leoben",
+    slug: "leoben",
     type: "city",
   },
   {
@@ -824,7 +815,7 @@ export const data = [
     id: "at-steiermark-liezen",
     name: "Liezen",
     parent_id: "at-steiermark",
-    slug: "steiermark/liezen",
+    slug: "liezen",
     type: "district",
   },
   {
@@ -833,7 +824,7 @@ export const data = [
     id: "at-steiermark-murau",
     name: "Murau",
     parent_id: "at-steiermark",
-    slug: "steiermark/murau",
+    slug: "murau",
     type: "district",
   },
   {
@@ -842,7 +833,7 @@ export const data = [
     id: "at-steiermark-murtal",
     name: "Murtal",
     parent_id: "at-steiermark",
-    slug: "steiermark/murtal",
+    slug: "murtal",
     type: "district",
   },
   {
@@ -851,7 +842,7 @@ export const data = [
     id: "at-steiermark-sudoststeiermark",
     name: "Südoststeiermark",
     parent_id: "at-steiermark",
-    slug: "steiermark/sudoststeiermark",
+    slug: "sudoststeiermark",
     type: "district",
   },
   {
@@ -860,7 +851,7 @@ export const data = [
     id: "at-steiermark-voitsberg",
     name: "Voitsberg",
     parent_id: "at-steiermark",
-    slug: "steiermark/voitsberg",
+    slug: "voitsberg",
     type: "district",
   },
   {
@@ -869,7 +860,7 @@ export const data = [
     id: "at-steiermark-weiz",
     name: "Weiz",
     parent_id: "at-steiermark",
-    slug: "steiermark/weiz",
+    slug: "weiz",
     type: "district",
   },
   {
@@ -887,7 +878,7 @@ export const data = [
     id: "at-tirol-imst",
     name: "Imst",
     parent_id: "at-tirol",
-    slug: "tirol/imst",
+    slug: "imst",
     type: "district",
   },
   {
@@ -896,7 +887,7 @@ export const data = [
     id: "at-tirol-innsbruck",
     name: "Innsbruck",
     parent_id: "at-tirol",
-    slug: "tirol/innsbruck",
+    slug: "innsbruck",
     type: "city",
   },
   {
@@ -905,7 +896,7 @@ export const data = [
     id: "at-tirol-innsbruck-land",
     name: "Innsbruck-Land",
     parent_id: "at-tirol",
-    slug: "tirol/innsbruck-land",
+    slug: "innsbruck-land",
     type: "district",
   },
   {
@@ -914,7 +905,7 @@ export const data = [
     id: "at-tirol-innsbruck-stadt",
     name: "Innsbruck-Stadt",
     parent_id: "at-tirol",
-    slug: "tirol/innsbruck-stadt",
+    slug: "innsbruck-stadt",
     type: "district",
   },
   {
@@ -923,7 +914,7 @@ export const data = [
     id: "at-tirol-kitzbuhel",
     name: "Kitzbühel",
     parent_id: "at-tirol",
-    slug: "tirol/kitzbuhel",
+    slug: "kitzbuhel",
     type: "district",
   },
   {
@@ -932,7 +923,7 @@ export const data = [
     id: "at-tirol-kufstein",
     name: "Kufstein",
     parent_id: "at-tirol",
-    slug: "tirol/kufstein",
+    slug: "kufstein",
     type: "district",
   },
   {
@@ -941,7 +932,7 @@ export const data = [
     id: "at-tirol-landeck",
     name: "Landeck",
     parent_id: "at-tirol",
-    slug: "tirol/landeck",
+    slug: "landeck",
     type: "district",
   },
   {
@@ -950,7 +941,7 @@ export const data = [
     id: "at-tirol-lienz",
     name: "Lienz",
     parent_id: "at-tirol",
-    slug: "tirol/lienz",
+    slug: "lienz",
     type: "district",
   },
   {
@@ -959,7 +950,7 @@ export const data = [
     id: "at-tirol-reutte",
     name: "Reutte",
     parent_id: "at-tirol",
-    slug: "tirol/reutte",
+    slug: "reutte",
     type: "district",
   },
   {
@@ -968,7 +959,7 @@ export const data = [
     id: "at-tirol-schwaz",
     name: "Schwaz",
     parent_id: "at-tirol",
-    slug: "tirol/schwaz",
+    slug: "schwaz",
     type: "district",
   },
   {
@@ -986,7 +977,7 @@ export const data = [
     id: "at-vorarlberg-bludenz",
     name: "Bludenz",
     parent_id: "at-vorarlberg",
-    slug: "vorarlberg/bludenz",
+    slug: "bludenz",
     type: "district",
   },
   {
@@ -995,7 +986,7 @@ export const data = [
     id: "at-vorarlberg-bregenz",
     name: "Bregenz",
     parent_id: "at-vorarlberg",
-    slug: "vorarlberg/bregenz",
+    slug: "bregenz",
     type: "city",
   },
   {
@@ -1004,7 +995,7 @@ export const data = [
     id: "at-vorarlberg-dornbirn",
     name: "Dornbirn",
     parent_id: "at-vorarlberg",
-    slug: "vorarlberg/dornbirn",
+    slug: "dornbirn",
     type: "city",
   },
   {
@@ -1013,7 +1004,7 @@ export const data = [
     id: "at-vorarlberg-feldkirch",
     name: "Feldkirch",
     parent_id: "at-vorarlberg",
-    slug: "vorarlberg/feldkirch",
+    slug: "feldkirch",
     type: "city",
   },
   {
@@ -1026,21 +1017,12 @@ export const data = [
     type: "state",
   },
   {
-    center_lat: 48.194243783819765,
-    center_lng: 16.36952949626135,
-    id: "at-wien-wien",
-    name: "Wien",
-    parent_id: "at-wien",
-    slug: "wien/wien",
-    type: "city",
-  },
-  {
     center_lat: 48.209783193507135,
     center_lng: 16.36761447303203,
     id: "at-wien-wien-1-innere-stadt",
     name: "Wien  1.,Innere Stadt",
     parent_id: "at-wien",
-    slug: "wien/wien-1-innere-stadt",
+    slug: "wien-1-innere-stadt",
     type: "district",
   },
   {
@@ -1049,7 +1031,7 @@ export const data = [
     id: "at-wien-wien-10-favoriten",
     name: "Wien 10.,Favoriten",
     parent_id: "at-wien",
-    slug: "wien/wien-10-favoriten",
+    slug: "wien-10-favoriten",
     type: "district",
   },
   {
@@ -1058,7 +1040,7 @@ export const data = [
     id: "at-wien-wien-11-simmering",
     name: "Wien 11.,Simmering",
     parent_id: "at-wien",
-    slug: "wien/wien-11-simmering",
+    slug: "wien-11-simmering",
     type: "district",
   },
   {
@@ -1067,7 +1049,7 @@ export const data = [
     id: "at-wien-wien-12-meidling",
     name: "Wien 12.,Meidling",
     parent_id: "at-wien",
-    slug: "wien/wien-12-meidling",
+    slug: "wien-12-meidling",
     type: "district",
   },
   {
@@ -1076,7 +1058,7 @@ export const data = [
     id: "at-wien-wien-13-hietzing",
     name: "Wien 13.,Hietzing",
     parent_id: "at-wien",
-    slug: "wien/wien-13-hietzing",
+    slug: "wien-13-hietzing",
     type: "district",
   },
   {
@@ -1085,7 +1067,7 @@ export const data = [
     id: "at-wien-wien-14-penzing",
     name: "Wien 14.,Penzing",
     parent_id: "at-wien",
-    slug: "wien/wien-14-penzing",
+    slug: "wien-14-penzing",
     type: "district",
   },
   {
@@ -1094,7 +1076,7 @@ export const data = [
     id: "at-wien-wien-15-rudolfsheim-funfhaus",
     name: "Wien 15.,Rudolfsheim-Fünfhaus",
     parent_id: "at-wien",
-    slug: "wien/wien-15-rudolfsheim-funfhaus",
+    slug: "wien-15-rudolfsheim-funfhaus",
     type: "district",
   },
   {
@@ -1103,7 +1085,7 @@ export const data = [
     id: "at-wien-wien-16-ottakring",
     name: "Wien 16.,Ottakring",
     parent_id: "at-wien",
-    slug: "wien/wien-16-ottakring",
+    slug: "wien-16-ottakring",
     type: "district",
   },
   {
@@ -1112,7 +1094,7 @@ export const data = [
     id: "at-wien-wien-17-hernals",
     name: "Wien 17.,Hernals",
     parent_id: "at-wien",
-    slug: "wien/wien-17-hernals",
+    slug: "wien-17-hernals",
     type: "district",
   },
   {
@@ -1121,7 +1103,7 @@ export const data = [
     id: "at-wien-wien-18-wahring",
     name: "Wien 18.,Währing",
     parent_id: "at-wien",
-    slug: "wien/wien-18-wahring",
+    slug: "wien-18-wahring",
     type: "district",
   },
   {
@@ -1130,7 +1112,7 @@ export const data = [
     id: "at-wien-wien-19-dobling",
     name: "Wien 19.,Döbling",
     parent_id: "at-wien",
-    slug: "wien/wien-19-dobling",
+    slug: "wien-19-dobling",
     type: "district",
   },
   {
@@ -1139,7 +1121,7 @@ export const data = [
     id: "at-wien-wien-2-leopoldstadt",
     name: "Wien  2.,Leopoldstadt",
     parent_id: "at-wien",
-    slug: "wien/wien-2-leopoldstadt",
+    slug: "wien-2-leopoldstadt",
     type: "district",
   },
   {
@@ -1148,7 +1130,7 @@ export const data = [
     id: "at-wien-wien-20-brigittenau",
     name: "Wien 20.,Brigittenau",
     parent_id: "at-wien",
-    slug: "wien/wien-20-brigittenau",
+    slug: "wien-20-brigittenau",
     type: "district",
   },
   {
@@ -1157,7 +1139,7 @@ export const data = [
     id: "at-wien-wien-21-floridsdorf",
     name: "Wien 21.,Floridsdorf",
     parent_id: "at-wien",
-    slug: "wien/wien-21-floridsdorf",
+    slug: "wien-21-floridsdorf",
     type: "district",
   },
   {
@@ -1166,7 +1148,7 @@ export const data = [
     id: "at-wien-wien-22-donaustadt",
     name: "Wien 22.,Donaustadt",
     parent_id: "at-wien",
-    slug: "wien/wien-22-donaustadt",
+    slug: "wien-22-donaustadt",
     type: "district",
   },
   {
@@ -1175,7 +1157,7 @@ export const data = [
     id: "at-wien-wien-23-liesing",
     name: "Wien 23.,Liesing",
     parent_id: "at-wien",
-    slug: "wien/wien-23-liesing",
+    slug: "wien-23-liesing",
     type: "district",
   },
   {
@@ -1184,7 +1166,7 @@ export const data = [
     id: "at-wien-wien-3-landstra-e",
     name: "Wien  3.,Landstraße",
     parent_id: "at-wien",
-    slug: "wien/wien-3-landstra-e",
+    slug: "wien-3-landstra-e",
     type: "district",
   },
   {
@@ -1193,7 +1175,7 @@ export const data = [
     id: "at-wien-wien-4-wieden",
     name: "Wien  4.,Wieden",
     parent_id: "at-wien",
-    slug: "wien/wien-4-wieden",
+    slug: "wien-4-wieden",
     type: "district",
   },
   {
@@ -1202,7 +1184,7 @@ export const data = [
     id: "at-wien-wien-5-margareten",
     name: "Wien  5.,Margareten",
     parent_id: "at-wien",
-    slug: "wien/wien-5-margareten",
+    slug: "wien-5-margareten",
     type: "district",
   },
   {
@@ -1211,7 +1193,7 @@ export const data = [
     id: "at-wien-wien-6-mariahilf",
     name: "Wien  6.,Mariahilf",
     parent_id: "at-wien",
-    slug: "wien/wien-6-mariahilf",
+    slug: "wien-6-mariahilf",
     type: "district",
   },
   {
@@ -1220,7 +1202,7 @@ export const data = [
     id: "at-wien-wien-7-neubau",
     name: "Wien  7.,Neubau",
     parent_id: "at-wien",
-    slug: "wien/wien-7-neubau",
+    slug: "wien-7-neubau",
     type: "district",
   },
   {
@@ -1229,7 +1211,7 @@ export const data = [
     id: "at-wien-wien-8-josefstadt",
     name: "Wien  8.,Josefstadt",
     parent_id: "at-wien",
-    slug: "wien/wien-8-josefstadt",
+    slug: "wien-8-josefstadt",
     type: "district",
   },
   {
@@ -1238,7 +1220,7 @@ export const data = [
     id: "at-wien-wien-9-alsergrund",
     name: "Wien  9.,Alsergrund",
     parent_id: "at-wien",
-    slug: "wien/wien-9-alsergrund",
+    slug: "wien-9-alsergrund",
     type: "district",
   },
   {
@@ -1247,7 +1229,7 @@ export const data = [
     id: "at-wien-wien-stadt",
     name: "Wien(Stadt)",
     parent_id: "at-wien",
-    slug: "wien/wien-stadt",
+    slug: "wien-stadt",
     type: "district",
   },
 ];

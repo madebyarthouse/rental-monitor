@@ -12,6 +12,8 @@ export async function loader({ params, context }: Route.LoaderArgs) {
   const stateData = await regionService.getStateWithDistricts(stateSlug);
   if (!stateData) throw new Response("Not Found", { status: 404 });
 
+  console.log(stateData);
+
   // Fetch district independently for chart/statistics context
   const district = await regionService.getRegionBySlug(districtSlug);
   if (!district || district.parentId !== String(stateData.state.id)) {
