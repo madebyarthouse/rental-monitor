@@ -3,6 +3,21 @@ import { BaseService } from "./base";
 import { regions } from "@/db/schema";
 import { alias } from "drizzle-orm/sqlite-core";
 
+type BoundsTuple = [[number, number], [number, number]];
+type BoundsObject = {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+};
+export type RegionDTO = {
+  id: number;
+  name: string;
+  slug: string;
+  geojson?: unknown;
+  bounds?: BoundsTuple;
+};
+
 type Region = typeof regions.$inferSelect;
 export type RegionHierarchy = Array<{
   state: Region;
@@ -12,6 +27,81 @@ export type RegionHierarchy = Array<{
 export class RegionService extends BaseService {
   constructor(d1Database: D1Database) {
     super(d1Database);
+  }
+
+  private parseJsonColumn<T>(value: unknown): T | undefined {
+    if (value == null) return undefined;
+    if (typeof value === "string") {
+      try {
+        return JSON.parse(value) as T;
+      } catch {
+        return undefined;
+      }
+    }
+    return value as T;
+  }
+
+  private isBoundsTuple(value: unknown): value is BoundsTuple {
+    if (!Array.isArray(value) || value.length !== 2) return false;
+    const [min, max] = value;
+    if (!Array.isArray(min) || !Array.isArray(max)) return false;
+    if (min.length !== 2 || max.length !== 2) return false;
+    const [minLng, minLat] = min;
+    const [maxLng, maxLat] = max;
+    return (
+      typeof minLng === "number" &&
+      typeof minLat === "number" &&
+      typeof maxLng === "number" &&
+      typeof maxLat === "number" &&
+      Number.isFinite(minLng) &&
+      Number.isFinite(minLat) &&
+      Number.isFinite(maxLng) &&
+      Number.isFinite(maxLat)
+    );
+  }
+
+  private isBoundsObject(value: unknown): value is BoundsObject {
+    if (typeof value !== "object" || value == null) return false;
+    const v = value as Record<string, unknown>;
+    return (
+      typeof v.north === "number" &&
+      typeof v.south === "number" &&
+      typeof v.east === "number" &&
+      typeof v.west === "number" &&
+      Number.isFinite(v.north) &&
+      Number.isFinite(v.south) &&
+      Number.isFinite(v.east) &&
+      Number.isFinite(v.west)
+    );
+  }
+
+  private normalizeBounds(raw: unknown): BoundsTuple | undefined {
+    const parsed = this.parseJsonColumn<unknown>(raw);
+    if (parsed == null) return undefined;
+
+    if (this.isBoundsTuple(parsed)) {
+      return parsed;
+    }
+
+    if (this.isBoundsObject(parsed)) {
+      // Convert { west, south, east, north } -> [[south, west], [north, east]] (Leaflet expects [lat, lng])
+      return [
+        [parsed.south, parsed.west],
+        [parsed.north, parsed.east],
+      ];
+    }
+
+    return undefined;
+  }
+
+  private mapRegionToDTO(r: Region): RegionDTO {
+    return {
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      geojson: this.parseJsonColumn<unknown>(r.geojson),
+      bounds: this.normalizeBounds(r.bounds),
+    };
   }
 
   async getRegions() {
@@ -41,11 +131,16 @@ export class RegionService extends BaseService {
     });
   }
 
-  async getStateWithDistricts(stateSlug: string) {
+  async getStateWithDistricts(
+    stateSlug: string
+  ): Promise<{ state: RegionDTO; districts: RegionDTO[] } | null> {
     const state = await this.getRegionBySlug(stateSlug);
     if (!state) return null;
     const districts = await this.getDistrictsByStateId(state.id);
-    return { state, districts };
+    return {
+      state: this.mapRegionToDTO(state),
+      districts: districts.map((d) => this.mapRegionToDTO(d)),
+    };
   }
 
   async getStatesWithDistricts() {
@@ -109,5 +204,21 @@ export class RegionService extends BaseService {
     }
 
     return hierarchy;
+  }
+
+  async getCountry(): Promise<RegionDTO | null> {
+    const country = await this.db.query.regions.findFirst({
+      where: eq(regions.type, "country"),
+    });
+    if (!country) return null;
+    return this.mapRegionToDTO(country);
+  }
+
+  async getAllDistricts(): Promise<RegionDTO[]> {
+    const rows = await this.db.query.regions.findMany({
+      where: eq(regions.type, "district"),
+      orderBy: asc(regions.name),
+    });
+    return rows.map((r) => this.mapRegionToDTO(r));
   }
 }

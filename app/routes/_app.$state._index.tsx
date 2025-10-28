@@ -1,6 +1,16 @@
 import type { Route } from "./+types/_app.$state._index";
 import { RegionService } from "@/services/region-service";
-import MapViewBasic from "@/components/features/map/map-view";
+import MapView from "@/components/features/map/map-view.client";
+import { ClientOnly } from "@/components/client-only";
+
+type BoundsTuple = [[number, number], [number, number]];
+type RegionDTO = {
+  id: number;
+  name: string;
+  slug: string;
+  geojson?: unknown;
+  bounds?: BoundsTuple;
+};
 
 export async function loader({ params, context }: Route.LoaderArgs) {
   const regionService = new RegionService(
@@ -11,20 +21,31 @@ export async function loader({ params, context }: Route.LoaderArgs) {
   const stateData = await regionService.getStateWithDistricts(stateSlug);
   if (!stateData) throw new Response("Not Found", { status: 404 });
 
-  // State level: return state + districts
   return {
-    level: "state" as const,
-    state: stateData.state,
-    districts: stateData.districts,
+    state: {
+      name: stateData.state.name,
+      slug: stateData.state.slug,
+      bounds: stateData.state.bounds,
+    },
+    districts: stateData.districts.map((d) => ({
+      id: d.id,
+      name: d.name,
+      slug: d.slug,
+      geojson: d.geojson,
+    })),
   };
 }
 
-export default function StateMapView({ loaderData }: Route.ComponentProps) {
+export default function StateMapView(props: Route.ComponentProps) {
   return (
-    <MapViewBasic>
-      <p>Level: {loaderData.level}</p>
-      <p>State: {loaderData.state.name}</p>
-      <p>Districts: {loaderData.districts.length}</p>
-    </MapViewBasic>
+    <ClientOnly>
+      {() => (
+        <MapView
+          context="state"
+          state={props.loaderData.state}
+          districts={props.loaderData.districts}
+        />
+      )}
+    </ClientOnly>
   );
 }

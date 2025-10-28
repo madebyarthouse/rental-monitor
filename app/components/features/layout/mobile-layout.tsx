@@ -29,7 +29,7 @@ export default function MobileLayout({
       <div className="flex flex-col min-h-screen pb-32">
         <main className="flex-1">{children}</main>
       </div>
-      <div className="md:hidden fixed bottom-16 left-0 right-0 bg-background border-t border-border z-40">
+      <div className="md:hidden fixed bottom-20 left-0 right-0 bg-background border-t border-border z-40">
         <div className="flex">
           <Link
             to={getTabUrl("map", location.pathname)}
@@ -55,15 +55,15 @@ export default function MobileLayout({
           </Link>
         </div>
       </div>
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-40">
-        <div className="flex items-center justify-between px-4 py-3 w-full gap-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-40 px-4 justify-between">
+        <div className="flex items-center justify-between px-4 py-3 w-full gap-5">
           <Link to="/">
             <img
               src="/momentum-institut-logo.png"
               alt="Momentum Institut"
               width={1700}
               height={441}
-              className="w-auto grow"
+              className="max-w-[250px] grow"
             />
           </Link>
           <Button
@@ -72,7 +72,7 @@ export default function MobileLayout({
             onClick={() => setDrawerOpen(true)}
             className="shrink-0 block"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="size-10" strokeWidth={2} />
           </Button>
         </div>
       </div>
