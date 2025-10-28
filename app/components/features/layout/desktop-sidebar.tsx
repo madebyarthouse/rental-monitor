@@ -10,6 +10,7 @@ import RegionAccordion from "./region-accordion";
 import type { RegionHierarchy } from "@/services/region-service";
 import { SocialBar } from "./social-bar";
 import { Credits } from "./credits";
+import { Link } from "react-router";
 
 export default function DesktopSidebar({
   statesWithDistricts,
@@ -20,15 +21,16 @@ export default function DesktopSidebar({
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center w-full gap-2 px-2 py-2">
-          <img
-            src="/momentum-institut-logo.png"
-            alt="Momentum Institut"
-            width={1700}
-            height={441}
-            className="max-w-[300px] w-full grow group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:h-auto"
-          />
-          <Separator orientation="vertical" className="h-6" />
-          <SidebarTrigger className="shrink-0 w-4 h-4" />
+          <Link to="/" className="group-data-[collapsible=icon]:hidden">
+            <img
+              src="/momentum-institut-logo.png"
+              alt="Momentum Institut"
+              width={1700}
+              height={441}
+              className="max-w-[300px] w-full grow"
+            />
+          </Link>
+          <SidebarTrigger className="shrink-0 size-8" />
         </div>
       </SidebarHeader>
       <SidebarContent>

@@ -44,11 +44,7 @@ export default function RegionAccordion({
       {statesWithDistricts.map((state) => {
         const isActive = state.state.slug === currentStateSlug;
         return (
-          <AccordionItem
-            key={state.state.id}
-            value={state.state.slug}
-            className="mb-2"
-          >
+          <AccordionItem key={state.state.id} value={state.state.slug}>
             <AccordionTrigger className="px-4 py-2 text-sm">
               {state.state.name}
             </AccordionTrigger>

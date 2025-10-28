@@ -1,4 +1,4 @@
-import { data } from "./data/region-base";
+import { regionBase } from "./data/region-base";
 
 interface RegionData {
   center_lat: number;
@@ -8,6 +8,8 @@ interface RegionData {
   parent_id: string | null;
   slug: string;
   type: string;
+  bounds: string | null;
+  geojson: string | null;
 }
 
 interface TransformedRegion {
@@ -18,6 +20,8 @@ interface TransformedRegion {
   parentId: number | null;
   centerLat: number;
   centerLng: number;
+  bounds: string | null;
+  geojson: string | null;
 }
 
 function escapeString(str: string): string {
@@ -41,6 +45,8 @@ function transformRegions(regions: RegionData[]): TransformedRegion[] {
     parentId: region.parent_id ? idMap.get(region.parent_id) ?? null : null,
     centerLat: region.center_lat,
     centerLng: region.center_lng,
+    bounds: region.bounds ?? null,
+    geojson: region.geojson ?? null,
   }));
 }
 
@@ -49,14 +55,18 @@ function generateInsertStatements(regions: TransformedRegion[]): string {
 
   for (const region of regions) {
     const parentIdValue = region.parentId === null ? "NULL" : region.parentId;
+    const boundsValue =
+      region.bounds === null ? "NULL" : `'${escapeString(region.bounds)}'`;
+    const geojsonValue =
+      region.geojson === null ? "NULL" : `'${escapeString(region.geojson)}'`;
 
-    const sql = `INSERT INTO regions (id, name, slug, type, parentId, centerLat, centerLng, createdAt, updatedAt) VALUES (${
+    const sql = `INSERT INTO regions (id, name, slug, type, parentId, centerLat, centerLng, bounds, geojson, createdAt, updatedAt) VALUES (${
       region.id
     }, '${escapeString(region.name)}', '${escapeString(region.slug)}', '${
       region.type
     }', ${parentIdValue}, ${region.centerLat}, ${
       region.centerLng
-    }, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);`;
+    }, ${boundsValue}, ${geojsonValue}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);`;
 
     statements.push(sql);
   }
@@ -65,7 +75,7 @@ function generateInsertStatements(regions: TransformedRegion[]): string {
 }
 
 // Main execution
-const transformedRegions = transformRegions(data);
+const transformedRegions = transformRegions(regionBase);
 const sql = generateInsertStatements(transformedRegions);
 
 console.log("-- Region Import SQL");

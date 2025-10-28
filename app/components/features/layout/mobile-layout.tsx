@@ -56,14 +56,16 @@ export default function MobileLayout({
         </div>
       </div>
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-40">
-        <div className="flex items-center justify-between px-4 py-3 w-full">
-          <img
-            src="/momentum-institut-logo.png"
-            alt="Momentum Institut"
-            width={1700}
-            height={441}
-            className="w-auto grow"
-          />
+        <div className="flex items-center justify-between px-4 py-3 w-full gap-2">
+          <Link to="/">
+            <img
+              src="/momentum-institut-logo.png"
+              alt="Momentum Institut"
+              width={1700}
+              height={441}
+              className="w-auto grow"
+            />
+          </Link>
           <Button
             variant="ghost"
             size="icon"
