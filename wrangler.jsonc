@@ -7,6 +7,10 @@
   "name": "rental-monitor",
   "compatibility_date": "2025-04-04",
   "main": "./workers/app.ts",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env"
+  ],
   "vars": {
     "VALUE_FROM_CLOUDFLARE": "Hello from Cloudflare"
   },
@@ -15,17 +19,16 @@
   },
   "d1_databases": [
     {
-      "binding": "BINDING_NAME",
-      "database_name": "YOUR_DB_NAME",
-      "database_id": "YOUR_DB_ID",
-      "migrations_dir": "drizzle/migrations"
+      "binding": "rental_monitor",
+      "database_name": "rental-monitor",
+      "database_id": "761dca52-680e-4026-9933-4716cce94260"
     }
-  ]
+  ],
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
    */
-  // "placement": { "mode": "smart" }
+  "placement": { "mode": "smart" }
   /**
    * Bindings
    * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including

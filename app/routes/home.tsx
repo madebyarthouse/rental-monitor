@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { RegionService } from "~/services/region-service";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -8,10 +8,25 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export function loader({ context }: Route.LoaderArgs) {
-  return { message: context.cloudflare.env.VALUE_FROM_CLOUDFLARE };
+export async function loader({ context }: Route.LoaderArgs) {
+  const regionService = new RegionService(
+    context.cloudflare.env.rental_monitor
+  );
+
+  const regions = await regionService.getRegions();
+
+  return { regions };
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  return <Welcome message={loaderData.message} />;
+  return (
+    <section>
+      <h1>Regions</h1>
+      <ul>
+        {loaderData.regions.map((region) => (
+          <li key={region.id}>{region.name}</li>
+        ))}
+      </ul>
+    </section>
+  );
 }

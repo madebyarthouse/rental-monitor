@@ -9,7 +9,10 @@
 		"dev": "react-router dev",
 		"postinstall": "npm run cf-typegen",
 		"preview": "pnpm run build && vite preview",
-		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b"
+		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:studio": "drizzle-kit studio"
 	},
 	"dependencies": {
 		"drizzle-orm": "^0.44.7",
@@ -25,6 +28,7 @@
 		"@types/node": "^22",
 		"@types/react": "^19.1.13",
 		"@types/react-dom": "^19.1.9",
+		"dotenv": "^17.2.3",
 		"drizzle-kit": "^0.31.5",
 		"tailwindcss": "^4.1.13",
 		"typescript": "^5.9.2",
