@@ -21,7 +21,8 @@
     {
       "binding": "rental_monitor",
       "database_name": "rental-monitor",
-      "database_id": "761dca52-680e-4026-9933-4716cce94260"
+      "database_id": "761dca52-680e-4026-9933-4716cce94260",
+      "migrations_dir": "./drizzle"
     }
   ],
   /**

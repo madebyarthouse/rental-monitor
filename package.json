@@ -12,7 +12,9 @@
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
+		"db:migrate:remote": "wrangler d1 migrations apply rental_monitor",
+		"db:studio": "drizzle-kit studio",
+		"db:studio:remote": "NODE_ENV=production drizzle-kit studio"
 	},
 	"dependencies": {
 		"drizzle-orm": "^0.44.7",
