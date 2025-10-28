@@ -1,5 +1,6 @@
 import type { Route } from "./+types/_app._index";
 import { RegionService } from "@/services/region-service";
+import type { DistrictWithStateDTO } from "@/services/region-service";
 import MapView from "@/components/features/map/map-view.client";
 import { ClientOnly } from "@/components/client-only";
 
@@ -18,7 +19,7 @@ export async function loader({ context }: Route.LoaderArgs) {
   );
   const [country, districts] = await Promise.all([
     regionService.getCountry(),
-    regionService.getAllDistricts(),
+    regionService.getAllDistrictsWithStateSlug(),
   ]);
   if (!country) throw new Response("Not Found", { status: 404 });
   return {
@@ -27,6 +28,7 @@ export async function loader({ context }: Route.LoaderArgs) {
       id: d.id,
       name: d.name,
       slug: d.slug,
+      stateSlug: d.stateSlug,
       geojson: d.geojson,
     })),
   };

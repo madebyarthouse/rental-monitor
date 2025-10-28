@@ -6,6 +6,7 @@ alwaysApply: true
 
 - Prefer descriptive names; avoid 1–2 character identifiers.
 - Exported functions and public APIs must have explicit types; no `any`.
+- Never use as any type casting for escaping type errors.
 - always use kebab-case for file names and folder names.
 - Keep edits minimal and localized; do not reformat unrelated code.
 - Preserve existing indentation and whitespace.

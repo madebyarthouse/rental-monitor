@@ -24,6 +24,14 @@ export type RegionHierarchy = Array<{
   districts: Region[];
 }>;
 
+export type DistrictWithStateDTO = {
+  id: number;
+  name: string;
+  slug: string;
+  stateSlug: string;
+  geojson?: unknown;
+};
+
 export class RegionService extends BaseService {
   constructor(d1Database: D1Database) {
     super(d1Database);
@@ -220,5 +228,50 @@ export class RegionService extends BaseService {
       orderBy: asc(regions.name),
     });
     return rows.map((r) => this.mapRegionToDTO(r));
+  }
+
+  async getAllDistrictsWithStateSlug(): Promise<DistrictWithStateDTO[]> {
+    const d = alias(regions, "d");
+    const s = alias(regions, "s");
+
+    const rows = await this.db
+      .select({
+        district: {
+          id: d.id,
+          name: d.name,
+          slug: d.slug,
+          geojson: d.geojson,
+          parentId: d.parentId,
+          type: d.type,
+        },
+        state: {
+          id: s.id,
+          slug: s.slug,
+          type: s.type,
+        },
+      })
+      .from(d)
+      .leftJoin(
+        s,
+        and(
+          eq(s.type, "state"),
+          eq(d.parentId, sql<string>`cast(${s.id} as text)`)
+        )
+      )
+      .where(eq(d.type, "district"))
+      .orderBy(asc(d.name));
+
+    const out: DistrictWithStateDTO[] = [];
+    for (const row of rows) {
+      if (!row.state) continue;
+      out.push({
+        id: row.district.id,
+        name: row.district.name,
+        slug: row.district.slug,
+        stateSlug: row.state.slug,
+        geojson: this.parseJsonColumn<unknown>(row.district.geojson),
+      });
+    }
+    return out;
   }
 }

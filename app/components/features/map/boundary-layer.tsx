@@ -3,16 +3,24 @@ import { GeoJSON } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-type Item = { slug: string; geojson?: any };
+type Item = { slug: string; name: string; stateSlug?: string; geojson?: any };
+type HoverInfo = {
+  slug: string;
+  name: string;
+  stateSlug?: string;
+  bounds: L.LatLngBounds;
+};
 
 export default function BoundaryLayer({
   items,
   activeSlug,
   onSelect,
+  onHover,
 }: {
   items: Item[];
   activeSlug?: string;
-  onSelect?: (slug: string) => void;
+  onSelect?: (slug: string, stateSlug?: string) => void;
+  onHover?: (info?: HoverInfo) => void;
 }) {
   if (typeof window === "undefined") return null;
 
@@ -30,23 +38,32 @@ export default function BoundaryLayer({
 
   const onEachFeature = React.useCallback(
     (feature: any, layer: any) => {
-      const slug = (feature?.properties as any)?.slug as string | undefined;
+      const props = (feature?.properties as any) ?? {};
+      const slug = props.slug as string | undefined;
+      const name = props.name as string | undefined;
+      const stateSlug = props.stateSlug as string | undefined;
       const isActive = slug && slug === activeSlug;
       layer.setStyle(isActive ? highlightStyle : baseStyle);
 
       layer.on({
         mouseover: () => {
+          if (onHover && slug && name) {
+            const b = (layer as L.Polygon).getBounds();
+            onHover({ slug, name, stateSlug, bounds: b });
+          }
           if (!isActive) layer.setStyle({ weight: 2, fillOpacity: 0.3 });
         },
         mouseout: () => {
+          if (onHover) onHover(undefined);
           if (!isActive) layer.setStyle(baseStyle);
         },
         click: () => {
-          if (slug && onSelect) onSelect(slug);
+          if (slug && onSelect)
+            onSelect(slug, props.stateSlug as string | undefined);
         },
       });
     },
-    [activeSlug]
+    [activeSlug, onHover, onSelect]
   );
 
   // Merge features; ensure each feature has properties.slug for interaction
@@ -57,6 +74,8 @@ export default function BoundaryLayer({
       const f = item.geojson;
       if (!f.properties) f.properties = {};
       (f.properties as any).slug = item.slug;
+      (f.properties as any).name = item.name;
+      (f.properties as any).stateSlug = item.stateSlug;
       features.push(f);
     }
     return {
