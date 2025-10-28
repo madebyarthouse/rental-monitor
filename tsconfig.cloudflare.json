@@ -11,16 +11,17 @@
   "compilerOptions": {
     "composite": true,
     "strict": true,
+    "noEmit": false,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["vite/client"],
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "rootDirs": [".", "./.react-router/types"],
+    "baseUrl": ".",
     "paths": {
-      "~/*": ["./app/*"]
+      "@/*": ["./app/*"]
     },
     "esModuleInterop": true,
     "resolveJsonModule": true

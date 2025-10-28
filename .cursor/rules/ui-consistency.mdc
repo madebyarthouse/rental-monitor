@@ -1,0 +1,10 @@
+---
+description: UI patterns with shadcn/ui and Radix
+globs: ["app/**/*.tsx", "components/**/*.tsx"]
+alwaysApply: true
+---
+
+- Prefer shadcn/ui primitives and Radix components.
+- Respect existing variants and props; do not invent new variants without reason.
+- Ensure accessible labels, roles, and keyboard interaction.
+- Follow patterns from `docs/FRONTEND-ARCHITECTURE.md` (sidebar, tabs, drawers).

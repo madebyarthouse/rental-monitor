@@ -1,0 +1,11 @@
+---
+description: Code style, naming, and TypeScript safety
+globs: ["app/**/*.ts", "app/**/*.tsx", "workers/**/*.ts", "workers/**/*.tsx"]
+alwaysApply: true
+---
+
+- Prefer descriptive names; avoid 1–2 character identifiers.
+- Exported functions and public APIs must have explicit types; no `any`.
+- Keep edits minimal and localized; do not reformat unrelated code.
+- Preserve existing indentation and whitespace.
+- Use early returns; avoid deep nesting; avoid broad try/catch that swallow errors.

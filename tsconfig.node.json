@@ -4,6 +4,7 @@
   "compilerOptions": {
     "composite": true,
     "strict": true,
+    "noEmit": false,
     "types": ["node"],
     "lib": ["ES2022"],
     "target": "ES2022",

@@ -1,0 +1,9 @@
+---
+description: Route patterns and loader expectations
+globs: ["app/routes/**/*.tsx"]
+alwaysApply: true
+---
+
+- Route patterns allowed: `/`, `/:state`, `/:state/:district`, `/inserate`, `/:state/inserate`, `/:state/:district/inserate`.
+- Loaders must validate params, call services, and set appropriate cache headers.
+- Components should rely on loader data; avoid client-side fetching.
