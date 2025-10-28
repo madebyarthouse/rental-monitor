@@ -1,0 +1,74 @@
+import { data } from "./data/region-base";
+
+interface RegionData {
+  center_lat: number;
+  center_lng: number;
+  id: string;
+  name: string;
+  parent_id: string | null;
+  slug: string;
+  type: string;
+}
+
+interface TransformedRegion {
+  id: number;
+  name: string;
+  slug: string;
+  type: string;
+  parentId: number | null;
+  centerLat: number;
+  centerLng: number;
+}
+
+function escapeString(str: string): string {
+  return str.replace(/'/g, "''");
+}
+
+function transformRegions(regions: RegionData[]): TransformedRegion[] {
+  // Create a mapping from string ID to integer ID
+  const idMap = new Map<string, number>();
+
+  regions.forEach((region, index) => {
+    idMap.set(region.id, index + 1);
+  });
+
+  // Transform regions with integer IDs
+  return regions.map((region, index) => ({
+    id: index + 1,
+    name: region.name,
+    slug: region.slug,
+    type: region.type,
+    parentId: region.parent_id ? idMap.get(region.parent_id) ?? null : null,
+    centerLat: region.center_lat,
+    centerLng: region.center_lng,
+  }));
+}
+
+function generateInsertStatements(regions: TransformedRegion[]): string {
+  const statements: string[] = [];
+
+  for (const region of regions) {
+    const parentIdValue = region.parentId === null ? "NULL" : region.parentId;
+
+    const sql = `INSERT INTO regions (id, name, slug, type, parentId, centerLat, centerLng, createdAt, updatedAt) VALUES (${
+      region.id
+    }, '${escapeString(region.name)}', '${escapeString(region.slug)}', '${
+      region.type
+    }', ${parentIdValue}, ${region.centerLat}, ${
+      region.centerLng
+    }, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);`;
+
+    statements.push(sql);
+  }
+
+  return statements.join("\n");
+}
+
+// Main execution
+const transformedRegions = transformRegions(data);
+const sql = generateInsertStatements(transformedRegions);
+
+console.log("-- Region Import SQL");
+console.log("-- Total regions:", transformedRegions.length);
+console.log();
+console.log(sql);
