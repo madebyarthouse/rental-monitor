@@ -76,6 +76,31 @@ export default function MapView(props: MapViewProps) {
     bounds: BoundsTuple;
   } | null>(null);
 
+  const handleBoundaryHover = (
+    info?: {
+      slug: string;
+      name: string;
+      stateSlug?: string;
+      bounds: L.LatLngBounds;
+    } | null
+  ) => {
+    if (!info) {
+      setHoverRect(null);
+      return;
+    }
+    const b = info.bounds;
+    const tuple: BoundsTuple = [
+      [b.getSouth(), b.getWest()],
+      [b.getNorth(), b.getEast()],
+    ];
+    setHoverRect({
+      slug: info.slug,
+      name: info.name,
+      stateSlug: info.stateSlug,
+      bounds: tuple,
+    });
+  };
+
   const activePopup = useMemo(() => {
     if (!props.activeDistrictSlug) return null;
     if (!(props.context === "state" || props.context === "district"))
@@ -110,12 +135,12 @@ export default function MapView(props: MapViewProps) {
   };
 
   return (
-    <div className="w-full h-[70vh]">
+    <div className="w-full h-[500px]">
       <MapContainer
         key={location.key}
         style={{ height: "100%", width: "100%" }}
         center={[47.5162, 14.5501]}
-        zoom={7}
+        zoom={9}
         scrollWheelZoom
       >
         <FitToBounds bounds={bounds} />
@@ -129,23 +154,7 @@ export default function MapView(props: MapViewProps) {
           }))}
           activeSlug={props.activeDistrictSlug}
           onSelect={onSelectRegion}
-          onHover={(info) => {
-            if (!info) {
-              setHoverRect(null);
-              return;
-            }
-            const b = info.bounds;
-            const tuple: BoundsTuple = [
-              [b.getSouth(), b.getWest()],
-              [b.getNorth(), b.getEast()],
-            ];
-            setHoverRect({
-              slug: info.slug,
-              name: info.name,
-              stateSlug: info.stateSlug,
-              bounds: tuple,
-            });
-          }}
+          onHover={handleBoundaryHover}
         />
         {hoverRect && (
           <Popup
@@ -155,10 +164,21 @@ export default function MapView(props: MapViewProps) {
             ]}
             closeButton={false}
             autoPan={false}
-            interactive={false}
+            interactive={true}
             autoClose={false}
             closeOnClick={false}
-            className="no-tip"
+            className="no-tip p-0"
+            eventHandlers={{
+              mouseover: () => {
+                if (hoverRect) {
+                  // Re-emit hover while pointer is over the popup
+                  setHoverRect(hoverRect);
+                }
+              },
+              mouseout: () => {
+                handleBoundaryHover(null);
+              },
+            }}
           >
             <div className="px-2 py-1 text-xs font-medium bg-background/90 rounded-md shadow">
               {hoverRect.name}

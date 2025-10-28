@@ -77,7 +77,7 @@ export default function MobileLayout({
         </div>
       </div>
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent>
+        <DrawerContent className="z-[1000]">
           <DrawerHeader>
             <DrawerTitle>Regionen & Filter</DrawerTitle>
           </DrawerHeader>
