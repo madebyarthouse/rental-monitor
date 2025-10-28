@@ -1,5 +1,6 @@
 import type { Route } from "./+types/_app.$state._index";
 import { RegionService } from "@/services/region-service";
+import MapViewBasic from "@/components/features/map/map-view";
 
 export async function loader({ params, context }: Route.LoaderArgs) {
   const regionService = new RegionService(
@@ -20,13 +21,10 @@ export async function loader({ params, context }: Route.LoaderArgs) {
 
 export default function StateMapView({ loaderData }: Route.ComponentProps) {
   return (
-    <div className="p-8">
-      <div className="text-2xl font-bold mb-4">MAP</div>
-      <div className="text-sm text-muted-foreground">
-        <p>Level: {loaderData.level}</p>
-        <p>State: {loaderData.state.name}</p>
-        <p>Districts: {loaderData.districts.length}</p>
-      </div>
-    </div>
+    <MapViewBasic>
+      <p>Level: {loaderData.level}</p>
+      <p>State: {loaderData.state.name}</p>
+      <p>Districts: {loaderData.districts.length}</p>
+    </MapViewBasic>
   );
 }

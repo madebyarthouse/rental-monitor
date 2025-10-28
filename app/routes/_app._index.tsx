@@ -1,11 +1,64 @@
 import type { Route } from "./+types/_app._index";
 import { RegionService } from "@/services/region-service";
+import MapViewBasic from "@/components/features/map/map-view";
+
+type RegionPreview = { name: string };
+type CountryData = { level: "country"; regions: unknown[] };
+type StateData = {
+  level: "state";
+  state: RegionPreview;
+  districts: unknown[];
+};
+type DistrictData = {
+  level: "district";
+  state: RegionPreview;
+  district: RegionPreview;
+  districts: unknown[];
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isCountryData(value: unknown): value is CountryData {
+  return (
+    isObject(value) && value.level === "country" && Array.isArray(value.regions)
+  );
+}
+
+function isStateData(value: unknown): value is StateData {
+  if (!isObject(value) || value.level !== "state") return false;
+  const state = (value as Record<string, unknown>).state;
+  return (
+    isObject(state) &&
+    "name" in state &&
+    typeof (state as Record<string, unknown>).name === "string" &&
+    Array.isArray((value as Record<string, unknown>).districts)
+  );
+}
+
+function isDistrictData(value: unknown): value is DistrictData {
+  if (!isObject(value) || value.level !== "district") return false;
+  const state = (value as Record<string, unknown>).state;
+  const district = (value as Record<string, unknown>).district;
+  return (
+    isObject(state) &&
+    "name" in state &&
+    typeof (state as Record<string, unknown>).name === "string" &&
+    isObject(district) &&
+    "name" in district &&
+    typeof (district as Record<string, unknown>).name === "string" &&
+    Array.isArray((value as Record<string, unknown>).districts)
+  );
+}
 
 export async function loader({ params, context }: Route.LoaderArgs) {
   const regionService = new RegionService(
     context.cloudflare.env.rental_monitor
   );
-  const { state: stateSlug, district: districtSlug } = params;
+  const p = params as unknown as { state?: string; district?: string };
+  const stateSlug = p.state;
+  const districtSlug = p.district;
 
   if (!stateSlug) {
     // Austria level: fetch all states
@@ -39,26 +92,23 @@ export async function loader({ params, context }: Route.LoaderArgs) {
 
 export default function MapView({ loaderData }: Route.ComponentProps) {
   return (
-    <div className="p-8">
-      <div className="text-2xl font-bold mb-4">MAP</div>
-      <div className="text-sm text-muted-foreground">
-        <p>Level: {loaderData.level}</p>
-        {loaderData.level === "country" && (
-          <p>Regions: {loaderData.regions.length} states</p>
-        )}
-        {loaderData.level === "state" && (
-          <>
-            <p>State: {loaderData.state.name}</p>
-            <p>Districts: {loaderData.districts.length}</p>
-          </>
-        )}
-        {loaderData.level === "district" && (
-          <>
-            <p>State: {loaderData.state.name}</p>
-            <p>District: {loaderData.district.name}</p>
-          </>
-        )}
-      </div>
-    </div>
+    <MapViewBasic>
+      <p>Level: {loaderData.level}</p>
+      {isCountryData(loaderData) && (
+        <p>Regions: {(loaderData as CountryData).regions.length} states</p>
+      )}
+      {isStateData(loaderData) && (
+        <>
+          <p>State: {(loaderData as StateData).state.name}</p>
+          <p>Districts: {(loaderData as StateData).districts.length}</p>
+        </>
+      )}
+      {isDistrictData(loaderData) && (
+        <>
+          <p>State: {(loaderData as DistrictData).state.name}</p>
+          <p>District: {(loaderData as DistrictData).district.name}</p>
+        </>
+      )}
+    </MapViewBasic>
   );
 }

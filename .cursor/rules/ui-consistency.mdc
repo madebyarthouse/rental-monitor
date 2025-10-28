@@ -5,6 +5,7 @@ alwaysApply: true
 ---
 
 - Prefer shadcn/ui primitives and Radix components.
+- Install new components from shadcn/ui or Radix UI using the `pnpm dlx shadcn@latest add` command.
 - Respect existing variants and props; do not invent new variants without reason.
 - Ensure accessible labels, roles, and keyboard interaction.
 - Follow patterns from `docs/FRONTEND-ARCHITECTURE.md` (sidebar, tabs, drawers).

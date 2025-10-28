@@ -16,6 +16,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de">
       <head>
+        <meta charSet="utf-8" />
         <link rel="icon" type="favicon" href="/favicon.ico" />
         <link
           rel="icon"

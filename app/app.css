@@ -168,3 +168,20 @@ body {
   --sidebar-border: hsl(240 3.7% 15.9%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
+
+/* Thin primary-colored scrollbar utility */
+.scroll-thin-primary {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--color-primary) transparent; /* Firefox */
+}
+.scroll-thin-primary::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin-primary::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 9999px;
+}
+.scroll-thin-primary::-webkit-scrollbar-track {
+  background: transparent;
+}
