@@ -131,13 +131,10 @@ export function FiltersAccordion({ className }: { className?: string }) {
             <div className="grid gap-3 px-2">
               <div className="grid grid-cols-1 gap-2">
                 <label className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Min. Preis (€)
-                  </span>
                   <input
                     type="number"
                     inputMode="numeric"
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-9 border-b border-black bg-background px-3 text-sm rounded-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0"
                     value={local.minPrice ?? ""}
                     onChange={(e) =>
                       setLocal((s) => ({
@@ -148,15 +145,15 @@ export function FiltersAccordion({ className }: { className?: string }) {
                       }))
                     }
                   />
+                  <span className="text-xs text-muted-foreground">
+                    Min. Preis (€)
+                  </span>
                 </label>
                 <label className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Max. Preis (€)
-                  </span>
                   <input
                     type="number"
                     inputMode="numeric"
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-9 border-b border-black bg-background px-3 text-sm rounded-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0"
                     value={local.maxPrice ?? ""}
                     onChange={(e) =>
                       setLocal((s) => ({
@@ -167,18 +164,18 @@ export function FiltersAccordion({ className }: { className?: string }) {
                       }))
                     }
                   />
+                  <span className="text-xs text-muted-foreground">
+                    Max. Preis (€)
+                  </span>
                 </label>
               </div>
 
               <div className="grid grid-cols-1 gap-2">
                 <label className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Min. Fläche (m²)
-                  </span>
                   <input
                     type="number"
                     inputMode="numeric"
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-9 border-b border-black bg-background px-3 text-sm rounded-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0"
                     value={local.minArea ?? ""}
                     onChange={(e) =>
                       setLocal((s) => ({
@@ -189,15 +186,15 @@ export function FiltersAccordion({ className }: { className?: string }) {
                       }))
                     }
                   />
+                  <span className="text-xs text-muted-foreground">
+                    Min. Fläche (m²)
+                  </span>
                 </label>
                 <label className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Max. Fläche (m²)
-                  </span>
                   <input
                     type="number"
                     inputMode="numeric"
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-9 border-b border-black bg-background px-3 text-sm rounded-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0"
                     value={local.maxArea ?? ""}
                     onChange={(e) =>
                       setLocal((s) => ({
@@ -208,36 +205,43 @@ export function FiltersAccordion({ className }: { className?: string }) {
                       }))
                     }
                   />
+                  <span className="text-xs text-muted-foreground">
+                    Max. Fläche (m²)
+                  </span>
                 </label>
               </div>
 
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(local.limited)}
-                    onChange={(e) =>
-                      setLocal((s) => ({
-                        ...s,
-                        limited: e.target.checked || undefined,
-                      }))
-                    }
-                  />
+              <div className="flex items-center gap-2" role="group" aria-label="Befristet / Unbefristet">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={local.limited ? "secondary" : "ghost"}
+                  aria-pressed={Boolean(local.limited)}
+                  onClick={() =>
+                    setLocal((s) => ({
+                      ...s,
+                      limited: s.limited ? undefined : true,
+                      unlimited: undefined,
+                    }))
+                  }
+                >
                   Befristet
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(local.unlimited)}
-                    onChange={(e) =>
-                      setLocal((s) => ({
-                        ...s,
-                        unlimited: e.target.checked || undefined,
-                      }))
-                    }
-                  />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={local.unlimited ? "secondary" : "ghost"}
+                  aria-pressed={Boolean(local.unlimited)}
+                  onClick={() =>
+                    setLocal((s) => ({
+                      ...s,
+                      unlimited: s.unlimited ? undefined : true,
+                      limited: undefined,
+                    }))
+                  }
+                >
                   Unbefristet
-                </label>
+                </Button>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
