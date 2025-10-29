@@ -1,8 +1,12 @@
 import type { Route } from "./+types/_app._index";
 import { RegionService } from "@/services/region-service";
 import type { DistrictWithStateDTO } from "@/services/region-service";
+import { MapService } from "@/services/map-service";
+import { StatisticsService } from "@/services/statistics-service";
+import { parseMapQuery } from "@/lib/params";
 import MapView from "@/components/features/map/map-view.client";
 import { ClientOnly } from "@/components/client-only";
+import { MapCharts } from "@/components/features/charts/map-charts";
 
 type BoundsTuple = [[number, number], [number, number]];
 type RegionDTO = {
@@ -13,8 +17,12 @@ type RegionDTO = {
   bounds?: BoundsTuple;
 };
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ context, request }: Route.LoaderArgs) {
   const regionService = new RegionService(
+    context.cloudflare.env.rental_monitor
+  );
+  const mapService = new MapService(context.cloudflare.env.rental_monitor);
+  const statisticsService = new StatisticsService(
     context.cloudflare.env.rental_monitor
   );
   const [country, districts] = await Promise.all([
@@ -22,6 +30,59 @@ export async function loader({ context }: Route.LoaderArgs) {
     regionService.getAllDistrictsWithStateSlug(),
   ]);
   if (!country) throw new Response("Not Found", { status: 404 });
+  const url = new URL(request.url);
+  const query = parseMapQuery(url.searchParams);
+  const heatmap = await mapService.getHeatmapData(
+    { level: "country" },
+    query.metric,
+    {
+      minPrice: query.minPrice,
+      maxPrice: query.maxPrice,
+      minArea: query.minArea,
+      maxArea: query.maxArea,
+      limited: query.limited,
+      unlimited: query.unlimited,
+      platforms: query.platforms,
+    }
+  );
+  const [stats, limitedCounts, priceHistogram] = await Promise.all([
+    statisticsService.getStatistics(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getLimitedCounts(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getPriceHistogram(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+  ]);
   return {
     country: { name: country.name, slug: country.slug, bounds: country.bounds },
     districts: districts.map((d) => ({
@@ -31,19 +92,31 @@ export async function loader({ context }: Route.LoaderArgs) {
       stateSlug: d.stateSlug,
       geojson: d.geojson,
     })),
+    heatmap,
+    stats,
+    limitedCounts,
+    priceHistogram,
   };
 }
 
 export default function RootMap(props: Route.ComponentProps) {
   return (
-    <ClientOnly>
-      {() => (
-        <MapView
-          context="country"
-          country={props.loaderData.country}
-          districts={props.loaderData.districts}
-        />
-      )}
-    </ClientOnly>
+    <>
+      <ClientOnly>
+        {() => (
+          <MapView
+            context="country"
+            country={props.loaderData.country}
+            districts={props.loaderData.districts}
+            heatmap={props.loaderData.heatmap}
+          />
+        )}
+      </ClientOnly>
+      <MapCharts
+        className="p-4 md:p-6 lg:p-8"
+        priceHistogram={props.loaderData.priceHistogram}
+        limitedCounts={props.loaderData.limitedCounts}
+      />
+    </>
   );
 }

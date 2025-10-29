@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import RegionAccordion from "./region-accordion";
 import type { RegionHierarchy } from "@/services/region-service";
 import { getTabUrl } from "./utils";
+import { FiltersAccordion } from "../filters/filters-accordion";
+import { StatsSummary } from "./stats-summary";
 
 export default function MobileLayout({
   statesWithDistricts,
@@ -26,7 +28,12 @@ export default function MobileLayout({
 
   return (
     <>
-      <div className="flex flex-col min-h-screen pb-32">
+      {/* Top header with title */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex h-12 items-center border-b border-border bg-background px-4">
+        <div className="text-sm font-semibold tracking-tight">Mietmonitor</div>
+      </div>
+      <div className="flex flex-col min-h-screen pt-12 pb-32">
+        <StatsSummary />
         <main className="flex-1">{children}</main>
       </div>
       <div className="md:hidden fixed bottom-20 left-0 right-0 bg-background border-t border-border z-40">
@@ -77,12 +84,13 @@ export default function MobileLayout({
         </div>
       </div>
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="z-[1000]">
+        <DrawerContent className="z-1000">
           <DrawerHeader>
             <DrawerTitle>Regionen & Filter</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4">
             <div className="max-h-[60vh] overflow-auto">
+              <FiltersAccordion className="mb-3" />
               <RegionAccordion
                 statesWithDistricts={statesWithDistricts}
                 onNavigate={() => setDrawerOpen(false)}

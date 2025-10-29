@@ -16,3 +16,5 @@ worker-configuration.d.ts
 
 !.dev.vars.example
 !.env.example
+
+old-data

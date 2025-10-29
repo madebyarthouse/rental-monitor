@@ -16,11 +16,13 @@ export default function BoundaryLayer({
   activeSlug,
   onSelect,
   onHover,
+  getFillColor,
 }: {
   items: Item[];
   activeSlug?: string;
   onSelect?: (slug: string, stateSlug?: string) => void;
   onHover?: (info?: HoverInfo) => void;
+  getFillColor?: (slug: string) => string | undefined;
 }) {
   if (typeof window === "undefined") return null;
 
@@ -43,7 +45,8 @@ export default function BoundaryLayer({
       const name = props.name as string | undefined;
       const stateSlug = props.stateSlug as string | undefined;
       const isActive = slug && slug === activeSlug;
-      layer.setStyle(isActive ? highlightStyle : baseStyle);
+      const fillColor = slug && getFillColor ? getFillColor(slug) : undefined;
+      layer.setStyle({ ...(isActive ? highlightStyle : baseStyle), fillColor });
 
       layer.on({
         mouseover: () => {
@@ -51,11 +54,12 @@ export default function BoundaryLayer({
             const b = (layer as L.Polygon).getBounds();
             onHover({ slug, name, stateSlug, bounds: b });
           }
-          if (!isActive) layer.setStyle({ weight: 2, fillOpacity: 0.3 });
+          if (!isActive)
+            layer.setStyle({ weight: 2, fillOpacity: 0.3, fillColor });
         },
         mouseout: () => {
           if (onHover) onHover(undefined);
-          if (!isActive) layer.setStyle(baseStyle);
+          if (!isActive) layer.setStyle({ ...baseStyle, fillColor });
         },
         click: () => {
           if (slug && onSelect)
@@ -63,7 +67,7 @@ export default function BoundaryLayer({
         },
       });
     },
-    [activeSlug, onHover, onSelect]
+    [activeSlug, onHover, onSelect, getFillColor]
   );
 
   // Merge features; ensure each feature has properties.slug for interaction

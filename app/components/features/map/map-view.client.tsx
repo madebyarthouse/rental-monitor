@@ -4,6 +4,10 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useLocation, useNavigate, useParams } from "react-router";
 import BoundaryLayer from "./boundary-layer";
+import { createColorScale } from "./color-scale";
+import type { HeatmapResult } from "@/services/map-service";
+import { HeatmapToggles } from "./heatmap-toggles";
+import { HeatmapLegend } from "./heatmap-legend";
 
 type BoundsTuple = [[number, number], [number, number]];
 type RegionDTO = {
@@ -24,6 +28,7 @@ type MapViewProps =
       >;
       state?: never;
       activeDistrictSlug?: string;
+      heatmap?: HeatmapResult;
     }
   | {
       context: "state" | "district";
@@ -33,6 +38,7 @@ type MapViewProps =
       >;
       country?: never;
       activeDistrictSlug?: string;
+      heatmap?: HeatmapResult;
     };
 
 function FitToBounds({ bounds }: { bounds?: BoundsTuple }) {
@@ -134,13 +140,58 @@ export default function MapView(props: MapViewProps) {
     }
   };
 
+  const getFillColor = useMemo(() => {
+    const h = props.heatmap;
+    if (!h) return undefined;
+    let values: Record<string, number | null> | undefined;
+    if ("values" in h) {
+      values = h.values as Record<string, number | null>;
+    } else if ("byRegion" in h && Array.isArray(h.byRegion)) {
+      values = Object.fromEntries(
+        h.byRegion.map((x) => [x.slug, x.value])
+      ) as Record<string, number | null>;
+    }
+    if (!values) return undefined;
+
+    if (h.metric === "limitedPercentage") {
+      const scale = createColorScale(0, 100);
+      // Discrete five bins with midpoints 10,30,50,70,90
+      return (slug: string) => {
+        const v = values![slug];
+        if (v == null || !Number.isFinite(v)) return "#B8C1CC";
+        if (v <= 20) return scale(10);
+        if (v <= 40) return scale(30);
+        if (v <= 60) return scale(50);
+        if (v <= 80) return scale(70);
+        return scale(90);
+      };
+    }
+    // For other metrics, use 5 equal steps across the range
+    const min = h.range?.min ?? null;
+    const max = h.range?.max ?? null;
+    if (min == null || max == null) return undefined;
+    const scale = createColorScale(min, max);
+    const step = (max - min) / 5;
+    return (slug: string) => {
+      const v = values![slug];
+      if (v == null || !Number.isFinite(v)) return "#B8C1CC";
+      if (v <= min + step * 1) return scale(min + step * 0.5);
+      if (v <= min + step * 2) return scale(min + step * 1.5);
+      if (v <= min + step * 3) return scale(min + step * 2.5);
+      if (v <= min + step * 4) return scale(min + step * 3.5);
+      return scale(min + step * 4.5);
+    };
+  }, [props.heatmap]);
+
   return (
-    <div className="w-full h-[500px]">
+    <div className="w-full h-[500px] relative">
       <MapContainer
         key={location.key}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "100%", width: "100%", backgroundColor: "#F8F5F2" }}
         center={[47.5162, 14.5501]}
         zoom={9}
+        minZoom={6}
+        maxZoom={14}
         scrollWheelZoom
       >
         <FitToBounds bounds={bounds} />
@@ -155,6 +206,7 @@ export default function MapView(props: MapViewProps) {
           activeSlug={props.activeDistrictSlug}
           onSelect={onSelectRegion}
           onHover={handleBoundaryHover}
+          getFillColor={getFillColor}
         />
         {hoverRect && (
           <Popup
@@ -181,7 +233,29 @@ export default function MapView(props: MapViewProps) {
             }}
           >
             <div className="px-2 py-1 text-xs font-medium bg-background/90 rounded-md shadow">
-              {hoverRect.name}
+              <div>{hoverRect.name}</div>
+              {props.heatmap && (
+                <div className="mt-1 text-[11px] text-muted-foreground">
+                  {(() => {
+                    const h = props.heatmap as any;
+                    const map: Record<string, number | null> =
+                      "byRegion" in h
+                        ? Object.fromEntries(
+                            h.byRegion.map((x: any) => [x.slug, x.value])
+                          )
+                        : h.values || {};
+                    const v = map?.[hoverRect.slug];
+                    if (v == null || !Number.isFinite(v)) return null;
+                    if (h.metric === "limitedPercentage")
+                      return `${Math.round(v)}% befristet`;
+                    if (h.metric === "avgPricePerSqm")
+                      return `${Math.round(v)} €/m²`;
+                    if (h.metric === "totalListings")
+                      return `${Math.round(v)} Inserate`;
+                    return null;
+                  })()}
+                </div>
+              )}
             </div>
           </Popup>
         )}
@@ -201,6 +275,24 @@ export default function MapView(props: MapViewProps) {
           ></Marker>
         )}
       </MapContainer>
+      {/* Overlays */}
+      <div className="pointer-events-none absolute left-2 bottom-2 z-10">
+        <div className="pointer-events-auto">
+          <HeatmapToggles />
+        </div>
+      </div>
+      {props.heatmap && (
+        <div className="pointer-events-none absolute right-2 bottom-2 z-10">
+          <div className="pointer-events-auto">
+            <HeatmapLegend
+              min={props.heatmap.range?.min ?? null}
+              max={props.heatmap.range?.max ?? null}
+              avg={props.heatmap.range?.avg ?? null}
+              metric={(props.heatmap as any).metric}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

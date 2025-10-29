@@ -14,6 +14,9 @@
 		"data:generate-regions": "tsx app/scripts/generate-regions.ts > ./app/scripts/data/regions.sql",
 		"data:import-regions:local": "pnpm run data:generate-regions && wrangler d1 execute rental_monitor --file ./app/scripts/data/regions.sql --local",
 		"data:import-regions:remote": "pnpm run data:generate-regions && wrangler d1 execute rental_monitor --file ./app/scripts/data/regions.sql --remote",
+		"data:generate-listings": "tsx app/scripts/generate-listings-sql.ts > ./app/scripts/data/listings.sql",
+		"data:import-listings:local": "pnpm run data:generate-listings && wrangler d1 execute rental_monitor --file ./app/scripts/data/listings.sql --local",
+		"data:import-listings:remote": "pnpm run data:generate-listings && wrangler d1 execute rental_monitor --file ./app/scripts/data/listings.sql --remote",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:migrate:remote": "wrangler d1 migrations apply rental_monitor",
@@ -40,8 +43,10 @@
 		"react-dom": "^19.1.1",
 		"react-leaflet": "^5.0.0",
 		"react-router": "^7.9.2",
+		"recharts": "2.15.4",
 		"tailwind-merge": "^3.3.1",
-		"vaul": "^1.1.2"
+		"vaul": "^1.1.2",
+		"zod": "^3.23.8"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.13.5",
