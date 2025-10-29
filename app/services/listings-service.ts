@@ -130,7 +130,10 @@ export class ListingsService extends BaseService {
         return [direction(listings.area)];
       case "pricePerSqm": {
         const pricePerSqm = sql<number>`CASE WHEN ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`;
-        return [direction(pricePerSqm.nullsLast())];
+        // Order by NULL first (0 if NULL, 1 if not NULL) to push NULLs to end,
+        // then by the actual value
+        const nullOrder = sql<number>`CASE WHEN ${pricePerSqm} IS NULL THEN 1 ELSE 0 END`;
+        return [asc(nullOrder), direction(pricePerSqm)];
       }
       case "lastSeenAt":
       default:
