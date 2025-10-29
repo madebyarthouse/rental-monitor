@@ -117,7 +117,6 @@ export default function StateMapView(props: Route.ComponentProps) {
         )}
       </ClientOnly>
       <MapCharts
-        className="p-4 md:p-6 lg:p-8"
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}
       />
