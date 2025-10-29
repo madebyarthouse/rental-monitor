@@ -12,6 +12,8 @@
 .wrangler
 .dev.vars*
 worker-configuration.d.ts
+/app/scripts/**/*.sql
+/app/scripts/debug/**/*.json
 
 
 !.dev.vars.example
