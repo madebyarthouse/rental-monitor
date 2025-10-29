@@ -57,7 +57,7 @@ export function StatsSummary() {
 
   return (
     <div className="border-b border-border bg-background">
-      <div className="mx-auto max-w-screen-2xl px-4 md:px-6 lg:px-8">
+      <div className="mx-auto max-w-screen-2xl px-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 py-2 text-xs">
           {items.map((it) => (
             <div key={it.label} className="flex flex-col">

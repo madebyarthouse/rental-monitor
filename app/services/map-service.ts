@@ -122,12 +122,19 @@ export class MapService extends BaseService {
     const ids = rows
       .map((r) => r.regionId)
       .filter((x): x is number => x != null);
-    const regionRows = ids.length
-      ? await this.db
-          .select({ id: regions.id, slug: regions.slug })
-          .from(regions)
-          .where(inArray(regions.id, ids))
-      : [];
+
+    // Batch region lookups to avoid exceeding SQL parameter limits (typically 100 for D1)
+    const regionRows: Array<{ id: number; slug: string }> = [];
+    const batchSize = 99;
+    for (let i = 0; i < ids.length; i += batchSize) {
+      const batch = ids.slice(i, i + batchSize);
+      const batchRows = await this.db
+        .select({ id: regions.id, slug: regions.slug })
+        .from(regions)
+        .where(inArray(regions.id, batch));
+      regionRows.push(...batchRows);
+    }
+
     const idToSlug = new Map(regionRows.map((r) => [r.id, r.slug] as const));
 
     const values = rows

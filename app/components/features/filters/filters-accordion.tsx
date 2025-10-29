@@ -12,7 +12,6 @@ import { FilterChips, type ActiveFilters } from "./filter-chips";
 
 function parseActiveFilters(search: string): ActiveFilters {
   const sp = new URLSearchParams(search);
-  const platforms = sp.get("platforms")?.split(",").filter(Boolean) ?? [];
   const num = (k: string) => {
     const v = sp.get(k);
     return v != null ? Number(v) : undefined;
@@ -24,10 +23,8 @@ function parseActiveFilters(search: string): ActiveFilters {
     maxPrice: num("maxPrice"),
     minArea: num("minArea"),
     maxArea: num("maxArea"),
-    rooms: num("rooms"),
     limited: bool("limited"),
     unlimited: bool("unlimited"),
-    platforms,
   };
 }
 
@@ -59,16 +56,8 @@ export function FiltersAccordion({ className }: { className?: string }) {
     setParams(sp, "maxPrice", local.maxPrice);
     setParams(sp, "minArea", local.minArea);
     setParams(sp, "maxArea", local.maxArea);
-    setParams(sp, "rooms", local.rooms);
     setParams(sp, "limited", local.limited);
     setParams(sp, "unlimited", local.unlimited);
-    setParams(
-      sp,
-      "platforms",
-      local.platforms && local.platforms.length
-        ? local.platforms.join(",")
-        : undefined
-    );
     navigate({ pathname: location.pathname, search: sp.toString() });
   };
 
@@ -81,10 +70,8 @@ export function FiltersAccordion({ className }: { className?: string }) {
       "maxPrice",
       "minArea",
       "maxArea",
-      "rooms",
       "limited",
       "unlimited",
-      "platforms",
     ].forEach((k) => sp.delete(k));
     navigate({ pathname: location.pathname, search: sp.toString() });
   };
@@ -106,9 +93,7 @@ export function FiltersAccordion({ className }: { className?: string }) {
       f.maxPrice != null ||
       f.minArea != null ||
       f.maxArea != null ||
-      f.rooms != null ||
-      (f.limited ?? false) !== (f.unlimited ?? false) ||
-      (f.platforms?.length ?? 0) > 0
+      (f.limited ?? false) !== (f.unlimited ?? false)
     );
   }, [location.search]);
 
@@ -123,7 +108,9 @@ export function FiltersAccordion({ className }: { className?: string }) {
         <AccordionItem value="filters">
           <AccordionTrigger>
             <div className="flex w-full flex-col gap-1">
-              <span className="text-sm">Filter</span>
+              <span className="px-2 pb-1 text-xl font-medium text-muted-foreground">
+                Filter
+              </span>
               {!open && hasAnyActive && (
                 <FilterChips
                   className="pt-0.5"
@@ -245,58 +232,6 @@ export function FiltersAccordion({ className }: { className?: string }) {
                   />
                   Unbefristet
                 </label>
-              </div>
-
-              <div className="grid grid-cols-1 gap-2">
-                <label className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">Zimmer</span>
-                  <select
-                    className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-                    value={local.rooms ?? ""}
-                    onChange={(e) =>
-                      setLocal((s) => ({
-                        ...s,
-                        rooms: e.target.value
-                          ? Number(e.target.value)
-                          : undefined,
-                      }))
-                    }
-                  >
-                    <option value="">Beliebig</option>
-                    {Array.from({ length: 6 }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Plattformen
-                  </span>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                    {[
-                      { key: "willhaben", label: "willhaben" },
-                      { key: "derstandard", label: "DER STANDARD" },
-                    ].map((p) => (
-                      <label key={p.key} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(local.platforms?.includes(p.key))}
-                          onChange={(e) =>
-                            setLocal((s) => {
-                              const set = new Set(s.platforms ?? []);
-                              if (e.target.checked) set.add(p.key);
-                              else set.delete(p.key);
-                              return { ...s, platforms: Array.from(set) };
-                            })
-                          }
-                        />
-                        {p.label}
-                      </label>
-                    ))}
-                  </div>
-                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

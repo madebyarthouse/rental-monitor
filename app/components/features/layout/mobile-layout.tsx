@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import RegionAccordion from "./region-accordion";
 import type { RegionHierarchy } from "@/services/region-service";
 import { getTabUrl } from "./utils";
+import { useFilteredUrl } from "@/hooks/use-filtered-url";
 import { FiltersAccordion } from "../filters/filters-accordion";
 import { StatsSummary } from "./stats-summary";
 
@@ -25,6 +26,7 @@ export default function MobileLayout({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
   const isListingsView = location.pathname.includes("/inserate");
+  const buildFilteredUrl = useFilteredUrl();
 
   return (
     <>
@@ -39,7 +41,9 @@ export default function MobileLayout({
       <div className="md:hidden fixed bottom-20 left-0 right-0 bg-background border-t border-border z-40">
         <div className="flex">
           <Link
-            to={getTabUrl("map", location.pathname)}
+            to={buildFilteredUrl(getTabUrl("map", location.pathname), {
+              target: "map",
+            })}
             className={cn(
               "flex-1 py-3 text-center text-sm font-medium transition-colors",
               !isListingsView
@@ -50,7 +54,9 @@ export default function MobileLayout({
             Karte
           </Link>
           <Link
-            to={getTabUrl("listings", location.pathname)}
+            to={buildFilteredUrl(getTabUrl("listings", location.pathname), {
+              target: "listings",
+            })}
             className={cn(
               "flex-1 py-3 text-center text-sm font-medium transition-colors",
               isListingsView

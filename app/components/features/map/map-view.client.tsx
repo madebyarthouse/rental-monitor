@@ -191,7 +191,7 @@ export default function MapView(props: MapViewProps) {
         center={[47.5162, 14.5501]}
         zoom={9}
         minZoom={6}
-        maxZoom={14}
+        maxZoom={13}
         scrollWheelZoom
       >
         <FitToBounds bounds={bounds} />
@@ -276,19 +276,19 @@ export default function MapView(props: MapViewProps) {
         )}
       </MapContainer>
       {/* Overlays */}
-      <div className="pointer-events-none absolute left-2 bottom-2 z-10">
+      <div className="pointer-events-none absolute left-0 bottom-2 z-10">
         <div className="pointer-events-auto">
           <HeatmapToggles />
         </div>
       </div>
       {props.heatmap && (
-        <div className="pointer-events-none absolute right-2 bottom-2 z-10">
+        <div className="pointer-events-none absolute right-0 bg-background bottom-10 z-50">
           <div className="pointer-events-auto">
             <HeatmapLegend
               min={props.heatmap.range?.min ?? null}
               max={props.heatmap.range?.max ?? null}
               avg={props.heatmap.range?.avg ?? null}
-              metric={(props.heatmap as any).metric}
+              metric={props.heatmap.metric}
             />
           </div>
         </div>

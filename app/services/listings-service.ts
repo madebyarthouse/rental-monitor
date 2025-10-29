@@ -89,13 +89,7 @@ export class ListingsService extends BaseService {
         ? (parts[0] as any)
         : (or(...(parts as any)) as any);
     }
-    if (
-      region.level === "country" &&
-      region.districtIds &&
-      region.districtIds.length
-    ) {
-      return inArray(listings.regionId, region.districtIds);
-    }
+    // Country level: no region filtering, fetch all
     return undefined;
   }
 

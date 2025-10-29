@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router";
+import { useFilteredUrl } from "@/hooks/use-filtered-url";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -21,6 +22,7 @@ export default function RegionAccordion({
   const currentStateSlug = pathParts[0] !== "inserate" ? pathParts[0] : null;
   const currentDistrictSlug =
     pathParts.length >= 2 && pathParts[1] !== "inserate" ? pathParts[1] : null;
+  const buildFilteredUrl = useFilteredUrl();
 
   const activeItemRef = useRef<HTMLAnchorElement>(null);
 
@@ -45,17 +47,19 @@ export default function RegionAccordion({
         const isActive = state.state.slug === currentStateSlug;
         return (
           <AccordionItem key={state.state.id} value={state.state.slug}>
-            <AccordionTrigger className="px-4 py-2 text-sm">
+            <AccordionTrigger className="py-2 text-base">
               {state.state.name}
             </AccordionTrigger>
             <AccordionContent>
-              <div className="flex flex-col gap-1 px-2 overflow-y-auto scroll-thin-primary">
+              <div className="flex flex-col gap-1 overflow-y-auto scroll-thin-primary">
                 <Link
-                  to={`/${state.state.slug}`}
+                  to={buildFilteredUrl(`/${state.state.slug}`, {
+                    target: "map",
+                  })}
                   onClick={onNavigate}
                   ref={isActive && !currentDistrictSlug ? activeItemRef : null}
                   className={cn(
-                    "rounded-md px-2 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                    "rounded-md px-2 py-2 hover:bg-sidebar-accent text-base hover:text-sidebar-accent-foreground transition-colors",
                     isActive &&
                       !currentDistrictSlug &&
                       "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
@@ -69,11 +73,14 @@ export default function RegionAccordion({
                   return (
                     <Link
                       key={district.id}
-                      to={`/${state.state.slug}/${district.slug}`}
+                      to={buildFilteredUrl(
+                        `/${state.state.slug}/${district.slug}`,
+                        { target: "map" }
+                      )}
                       onClick={onNavigate}
                       ref={isDistrictActive ? activeItemRef : null}
                       className={cn(
-                        "rounded-md px-2 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                        "rounded-md px-2 py-2 text-base hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
                         isDistrictActive &&
                           "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
                       )}

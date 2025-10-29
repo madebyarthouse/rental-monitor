@@ -9,6 +9,7 @@ import DesktopSidebar from "./desktop-sidebar";
 import { cn } from "@/lib/utils";
 import type { RegionHierarchy } from "@/services/region-service";
 import { getTabUrl } from "./utils";
+import { useFilteredUrl } from "@/hooks/use-filtered-url";
 import { useMemo } from "react";
 import { StatsSummary } from "./stats-summary";
 
@@ -21,6 +22,7 @@ export default function DesktopLayout({
 }) {
   const location = useLocation();
   const isListingsView = location.pathname.includes("/inserate");
+  const buildFilteredUrl = useFilteredUrl();
   const activeTitle = useMemo(() => {
     const path = location.pathname.replace(/^\/+|\/+$/g, "");
     if (!path || path === "inserate") return "Österreich";
@@ -43,13 +45,15 @@ export default function DesktopLayout({
     <SidebarProvider defaultOpen={true}>
       <DesktopSidebar statesWithDistricts={statesWithDistricts} />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border bg-background px-4">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background px-4">
           <div className="text-base md:text-lg font-semibold tracking-tight">
             {activeTitle}
           </div>
           <div className="flex gap-2">
             <Link
-              to={getTabUrl("map", location.pathname)}
+              to={buildFilteredUrl(getTabUrl("map", location.pathname), {
+                target: "map",
+              })}
               className={cn(
                 "px-3 py-2 text-sm font-medium transition-colors rounded-md",
                 !isListingsView
@@ -60,7 +64,9 @@ export default function DesktopLayout({
               Karte
             </Link>
             <Link
-              to={getTabUrl("listings", location.pathname)}
+              to={buildFilteredUrl(getTabUrl("listings", location.pathname), {
+                target: "listings",
+              })}
               className={cn(
                 "px-3 py-2 text-sm font-medium transition-colors rounded-md",
                 isListingsView

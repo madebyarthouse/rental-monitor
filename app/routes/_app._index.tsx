@@ -101,7 +101,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 export default function RootMap(props: Route.ComponentProps) {
   return (
-    <>
+    <div className="py-4 px-4 flex flex-col gap-10">
       <ClientOnly>
         {() => (
           <MapView
@@ -113,10 +113,9 @@ export default function RootMap(props: Route.ComponentProps) {
         )}
       </ClientOnly>
       <MapCharts
-        className="p-4 md:p-6 lg:p-8"
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}
       />
-    </>
+    </div>
   );
 }

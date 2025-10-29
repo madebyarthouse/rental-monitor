@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { regionBase } from "./data/region-base";
 
 type JsonListing = {
   id: string; // scraper-generated id
@@ -82,6 +83,150 @@ function derivePlatformSellerId(listing: JsonListing): string {
   // fall back to a stable identifier from listing id or url
   if (listing.id) return `listing:${listing.id}`;
   return `url:${listing.url}`;
+}
+
+type RegionBaseEntry = {
+  id: string;
+  name: string;
+  slug: string;
+  type: "country" | "state" | "district" | "city";
+  parent_id: string | null;
+  bounds: string | null;
+  center_lat: number;
+  center_lng: number;
+  geojson: string | null;
+  population: number | null;
+  postal_codes: string | null;
+};
+
+type UnmatchedListingRecord = {
+  id: string;
+  platform: string;
+  url: string;
+  state: string | null;
+  district: string | null;
+  city: string | null;
+  zipCode: string | null;
+  normalizedState: string | null;
+  normalizedDistrict: string | null;
+};
+
+function looseNormalize(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  let s = raw.toLowerCase();
+  s = s.replace(/st\.?\s+/g, "sankt ");
+  s = s
+    .replace(/ä/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/ü/g, "u")
+    .replace(/ß/g, "ss")
+    .replace(/ae/g, "a")
+    .replace(/oe/g, "o")
+    .replace(/ue/g, "u");
+  s = s.replace(/\(.*?\)/g, "");
+  s = s.replace(/[^a-z0-9]/g, "");
+  return s;
+}
+
+function buildRegionIndices() {
+  const idToRegion = new Map<string, RegionBaseEntry>();
+  for (const r of regionBase as RegionBaseEntry[]) {
+    idToRegion.set(r.id, r);
+  }
+
+  const stateKeyToSlug = new Map<string, string>();
+  for (const r of regionBase as RegionBaseEntry[]) {
+    if (r.type !== "state") continue;
+    const bySlug = looseNormalize(r.slug);
+    const byName = looseNormalize(r.name);
+    if (bySlug) stateKeyToSlug.set(bySlug, r.slug);
+    if (byName) stateKeyToSlug.set(byName, r.slug);
+  }
+
+  const compositeToDistrictSlug = new Map<string, string>();
+  for (const r of regionBase as RegionBaseEntry[]) {
+    if (r.type !== "district") continue;
+    const parent = r.parent_id ? idToRegion.get(r.parent_id) : undefined;
+    if (!parent) continue;
+
+    const stateKeys = new Set<string>();
+    const sk1 = looseNormalize(parent.slug);
+    const sk2 = looseNormalize(parent.name);
+    if (sk1) stateKeys.add(sk1);
+    if (sk2) stateKeys.add(sk2);
+
+    const districtCandidates = new Set<string>();
+    const d1 = looseNormalize(r.slug);
+    const d2 = looseNormalize(r.name);
+    if (d1) districtCandidates.add(d1);
+    if (d2) districtCandidates.add(d2);
+    const baseName = r.name.replace(/\(.*?\)/g, "").trim();
+    const d3 = looseNormalize(baseName);
+    if (d3) districtCandidates.add(d3);
+    const suffixBase = r.slug.replace(/-(stadt|land|umgebung)$/g, "");
+    const d4 = looseNormalize(suffixBase);
+    if (d4) districtCandidates.add(d4);
+    // Add last token of slug (e.g., 'wien-12-meidling' -> 'meidling')
+    const lastSlugToken = r.slug.split("-").pop();
+    const d5 = looseNormalize(lastSlugToken ?? null);
+    if (d5) districtCandidates.add(d5);
+    // Vienna-specific: add trailing name part after comma (e.g., 'Wien 12.,Meidling' -> 'Meidling')
+    const parentIsVienna =
+      looseNormalize(parent.slug) === "wien" ||
+      looseNormalize(parent.name) === "wien";
+    if (parentIsVienna) {
+      const m = r.name.match(/Wien\s*\d+\.,\s*(.+)$/i);
+      if (m && m[1]) {
+        const d6 = looseNormalize(m[1]);
+        if (d6) districtCandidates.add(d6);
+      }
+    }
+
+    for (const sk of stateKeys) {
+      for (const dk of districtCandidates) {
+        const key = `${sk}::${dk}`;
+        if (!compositeToDistrictSlug.has(key)) {
+          compositeToDistrictSlug.set(key, r.slug);
+        }
+      }
+    }
+  }
+
+  return { stateKeyToSlug, compositeToDistrictSlug };
+}
+
+function resolveRegionSlugForListing(
+  indices: ReturnType<typeof buildRegionIndices>,
+  location: JsonListing["location"] | null | undefined
+): string | null {
+  if (!location) return null;
+  const stateKey = looseNormalize(location.state);
+  if (!stateKey) return null;
+
+  const candidates: Array<string | null | undefined> = [
+    location.district,
+    location.city,
+  ];
+
+  // Vienna edge cases: extract district name from city string fragments
+  if (stateKey === "wien" && location.city) {
+    const parts = location.city.split(",");
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const seg = parts[i].trim().replace(/\bBezirk\b/gi, "");
+      if (seg) candidates.push(seg);
+    }
+  }
+
+  for (const cand of candidates) {
+    const districtKey = looseNormalize(cand);
+    if (!districtKey) continue;
+    const slug = indices.compositeToDistrictSlug.get(
+      `${stateKey}::${districtKey}`
+    );
+    if (slug) return slug;
+  }
+
+  return null;
 }
 
 function getFiles(dir: string, pattern: RegExp): string[] {
@@ -197,10 +342,57 @@ function main(): void {
     }
   }
 
+  const indices = buildRegionIndices();
+
+  const matched: Array<{ item: JsonListing; regionSlug: string }> = [];
+  const unmatched: UnmatchedListingRecord[] = [];
+  const usedSellerKeys = new Set<string>();
+
+  for (const item of listingRows) {
+    const regionSlug = resolveRegionSlugForListing(
+      indices,
+      item.location ?? null
+    );
+    if (regionSlug) {
+      matched.push({ item, regionSlug });
+      const platform = item.platform ?? "unknown";
+      const platformSellerId = derivePlatformSellerId(item);
+      usedSellerKeys.add(`${platform}::${platformSellerId}`);
+    } else {
+      unmatched.push({
+        id: item.id,
+        platform: item.platform ?? "unknown",
+        url: item.url,
+        state: item.location?.state ?? null,
+        district: item.location?.district ?? null,
+        city: item.location?.city ?? null,
+        zipCode: item.location?.zipCode ?? null,
+        normalizedState: looseNormalize(item.location?.state),
+        normalizedDistrict: looseNormalize(item.location?.district),
+      });
+    }
+  }
+
+  if (unmatched.length > 0) {
+    const debugDir = path.join(projectRoot, "app", "scripts", "debug");
+    fs.mkdirSync(debugDir, { recursive: true });
+    const debugPath = path.join(
+      debugDir,
+      `unmatched-listings-${new Date()
+        .toISOString()
+        .replace(/[:.]/g, "-")}.json`
+    );
+    fs.writeFileSync(debugPath, JSON.stringify(unmatched, null, 2), "utf-8");
+    console.error(
+      `Region matching: ${unmatched.length} listings without region. Details written to ${debugPath}`
+    );
+  }
+
   const statements: string[] = [];
 
-  // Sellers: conditional inserts to avoid duplicates
-  for (const s of sellersByKey.values()) {
+  // Sellers: conditional inserts to avoid duplicates (only those referenced by matched listings)
+  for (const [sellerKey, s] of sellersByKey.entries()) {
+    if (!usedSellerKeys.has(sellerKey)) continue;
     const nameValue = s.name === null ? "NULL" : `'${escapeString(s.name)}'`;
     const registerDateValue =
       s.registerDate === null ? "NULL" : `'${escapeString(s.registerDate)}'`;
@@ -245,8 +437,8 @@ WHERE NOT EXISTS (
     statements.push(sql);
   }
 
-  // Listings: insert or ignore by unique url
-  for (const item of listingRows) {
+  // Listings: insert or ignore by unique url (only matched to a known region)
+  for (const { item, regionSlug } of matched) {
     const platform = item.platform ?? "unknown";
     const platformSellerId = derivePlatformSellerId(item);
 
@@ -301,7 +493,7 @@ WHERE NOT EXISTS (
     )}', ${priceValue}, ${areaValue}, ${roomsValue}, ${zipValue}, ${cityValue}, ${districtValue}, ${stateValue}, ${latitudeValue}, ${longitudeValue},
   ${isLimitedValue}, ${durationMonthsValue},
   '${escapeString(platform)}', '${urlEscaped}', ${externalIdValue},
-  NULL,
+  (SELECT id FROM regions WHERE slug='${escapeString(regionSlug)}'),
   (SELECT id FROM sellers WHERE platformSellerId='${escapeString(
     platformSellerId
   )}' AND platform='${escapeString(platform)}'),
@@ -323,8 +515,8 @@ VALUES ((SELECT id FROM listings WHERE url='${urlEscaped}'), ${priceValue}, ${
   const header: string[] = [];
   header.push("-- Listings/Sellers Import SQL");
   header.push(`-- Source files: ${jsonFiles.length}`);
-  header.push(`-- Total listings: ${listingRows.length}`);
-  header.push(`-- Unique sellers: ${sellersByKey.size}`);
+  header.push(`-- Total listings (matched): ${matched.length}`);
+  header.push(`-- Unique sellers (matched): ${usedSellerKeys.size}`);
   header.push("");
   header.push("BEGIN TRANSACTION;");
 

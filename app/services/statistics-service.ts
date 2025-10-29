@@ -37,13 +37,7 @@ export class StatisticsService extends BaseService {
       if (!region.districtIds.length) return undefined;
       return inArray(listings.regionId, region.districtIds);
     }
-    if (
-      region.level === "country" &&
-      region.districtIds &&
-      region.districtIds.length
-    ) {
-      return inArray(listings.regionId, region.districtIds);
-    }
+    // Country level: no region filtering, fetch all
     return undefined;
   }
 

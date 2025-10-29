@@ -2,9 +2,8 @@ import type { Route } from "./+types/_app.inserate";
 import { RegionService } from "@/services/region-service";
 import { ListingsService } from "@/services/listings-service";
 import { parseListingsQuery } from "@/lib/params";
-import { ListingList } from "@/components/features/listings/listing-list";
+import { ListingsPage } from "@/components/features/listings/listings-page";
 import { StatisticsService } from "@/services/statistics-service";
-import { ListingsToolbar } from "../components/features/listings/listings-toolbar";
 
 export async function loader({ context, request }: Route.LoaderArgs) {
   const regionService = new RegionService(
@@ -59,14 +58,5 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 }
 
 export default function ListingsView({ loaderData }: Route.ComponentProps) {
-  return (
-    <div className="p-4 md:p-6 lg:p-8">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">Inserate</h1>
-        <p className="text-sm text-muted-foreground">Österreichweite Ansicht</p>
-      </div>
-      <ListingsToolbar />
-      <ListingList data={loaderData.listings} />
-    </div>
-  );
+  return <ListingsPage data={loaderData.listings} />;
 }

@@ -1219,7 +1219,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/bruck-murzzuschlag",
+    slug: "bruck-murzzuschlag",
     type: "district",
   },
   {
@@ -1234,7 +1234,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/deutschlandsberg",
+    slug: "deutschlandsberg",
     type: "district",
   },
   {
@@ -1247,7 +1247,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: '["60101"]',
-    slug: "steiermark/graz",
+    slug: "graz",
     type: "city",
   },
   {
@@ -1262,7 +1262,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/graz-stadt",
+    slug: "graz-stadt",
     type: "district",
   },
   {
@@ -1277,7 +1277,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/graz-umgebung",
+    slug: "graz-umgebung",
     type: "district",
   },
   {
@@ -1292,7 +1292,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/hartberg-furstenfeld",
+    slug: "hartberg-furstenfeld",
     type: "district",
   },
   {
@@ -1307,7 +1307,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/leibnitz",
+    slug: "leibnitz",
     type: "district",
   },
   {
@@ -1320,7 +1320,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: '["61108"]',
-    slug: "steiermark/leoben",
+    slug: "leoben",
     type: "city",
   },
   {
@@ -1335,7 +1335,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/liezen",
+    slug: "liezen",
     type: "district",
   },
   {
@@ -1350,7 +1350,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/murau",
+    slug: "murau",
     type: "district",
   },
   {
@@ -1365,7 +1365,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/murtal",
+    slug: "murtal",
     type: "district",
   },
   {
@@ -1380,7 +1380,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/sudoststeiermark",
+    slug: "sudoststeiermark",
     type: "district",
   },
   {
@@ -1395,7 +1395,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/voitsberg",
+    slug: "voitsberg",
     type: "district",
   },
   {
@@ -1410,7 +1410,7 @@ export const regionBase = [
     parent_id: "at-steiermark",
     population: null,
     postal_codes: null,
-    slug: "steiermark/weiz",
+    slug: "weiz",
     type: "district",
   },
   {

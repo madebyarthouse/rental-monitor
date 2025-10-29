@@ -111,7 +111,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
 export default function DistrictMapView(props: Route.ComponentProps) {
   return (
-    <>
+    <div className="py-4 px-4 flex flex-col gap-10">
       <ClientOnly>
         {() => (
           <MapView
@@ -128,6 +128,6 @@ export default function DistrictMapView(props: Route.ComponentProps) {
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}
       />
-    </>
+    </div>
   );
 }

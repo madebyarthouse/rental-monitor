@@ -12,6 +12,7 @@ import { SocialBar } from "./social-bar";
 import { Credits } from "./credits";
 import { Link } from "react-router";
 import { FiltersAccordion } from "../filters/filters-accordion";
+import { Separator } from "@/components/ui/separator";
 
 export default function DesktopSidebar({
   statesWithDistricts,
@@ -20,28 +21,28 @@ export default function DesktopSidebar({
 }) {
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="sticky top-0 z-50 bg-background border-b border-sidebar-border h-14">
-        <div className="flex h-full items-center w-full gap-2 px-2">
-          <Link to="/" className="group-data-[state=collapsed]:hidden">
+      <SidebarHeader className="sticky top-0 z-50 bg-background border-b border-sidebar-border h-16">
+        <div className="flex h-full items-center justify-between w-full gap-2 px-2">
+          <Link
+            to="/"
+            className="group-data-[state=collapsed]:hidden h-full block py-1"
+          >
             <img
               src="/momentum-institut-logo.png"
               alt="Momentum Institut"
               width={1700}
               height={441}
-              className="max-w-[300px] w-full grow"
+              className="h-full w-auto max-w-[250px] grow"
             />
           </Link>
-          <SidebarTrigger className="shrink-0 size-8" />
+          <SidebarTrigger className="size-8 shrink" />
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="bg-background">
         <div className="p-2">
           <div className="group-data-[state=collapsed]:hidden">
-            <div className="px-2 pb-1 text-xs font-medium text-muted-foreground">
-              Allgemeine Filter
-            </div>
-            <FiltersAccordion className="mb-3" />
-            <div className="px-2 pb-1 text-xs font-medium text-muted-foreground">
+            <FiltersAccordion />
+            <div className="px-2 pb-1 text-xl font-medium text-muted-foreground">
               Regionen
             </div>
             <div className="px-2">
