@@ -19,7 +19,7 @@
 		"data:import-listings:remote": "pnpm run data:generate-listings && wrangler d1 execute rental_monitor --file ./app/scripts/data/listings.sql --remote",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
-		"db:migrate:remote": "wrangler d1 migrations apply rental_monitor",
+		"db:migrate:remote": "wrangler d1 migrations apply rental_monitor --remote",
 		"db:studio": "drizzle-kit studio",
 		"db:studio:remote": "NODE_ENV=production drizzle-kit studio"
 	},

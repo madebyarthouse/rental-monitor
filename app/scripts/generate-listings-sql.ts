@@ -518,13 +518,9 @@ VALUES ((SELECT id FROM listings WHERE url='${urlEscaped}'), ${priceValue}, ${
   header.push(`-- Total listings (matched): ${matched.length}`);
   header.push(`-- Unique sellers (matched): ${usedSellerKeys.size}`);
   header.push("");
-  header.push("BEGIN TRANSACTION;");
-
-  const footer = "COMMIT;";
 
   console.log(header.join("\n"));
   console.log(statements.join("\n"));
-  console.log(footer);
 }
 
 main();
