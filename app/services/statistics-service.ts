@@ -100,14 +100,25 @@ export class StatisticsService extends BaseService {
     const limitedPct =
       total > 0 ? Math.round((limitedCount / total) * 1000) / 10 : null;
 
+    // Convert string averages to numbers (SQLite/Drizzle returns AVG() as strings)
+    const convertAvg = (val: unknown): number | null => {
+      if (val == null) return null;
+      if (typeof val === "number") return Number.isFinite(val) ? val : null;
+      if (typeof val === "string") {
+        const num = Number.parseFloat(val);
+        return Number.isFinite(num) ? num : null;
+      }
+      return null;
+    };
+
     return {
       total,
       limitedCount,
       activeCount: rows[0]?.activeCount ?? 0,
       limitedPct,
-      avgPrice: r?.avgPrice ?? null,
-      avgArea: r?.avgArea ?? null,
-      avgPricePerSqm: r?.avgPricePerSqm ?? null,
+      avgPrice: convertAvg(r?.avgPrice),
+      avgArea: convertAvg(r?.avgArea),
+      avgPricePerSqm: convertAvg(r?.avgPricePerSqm),
     };
   }
 
