@@ -40,7 +40,7 @@ function setParams(
 export function FiltersAccordion({ className }: { className?: string }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [open, setOpen] = React.useState(false);
+  const [accordionValue, setAccordionValue] = React.useState<string | undefined>(undefined);
   const [local, setLocal] = React.useState<ActiveFilters>(() =>
     parseActiveFilters(location.search)
   );
@@ -49,6 +49,12 @@ export function FiltersAccordion({ className }: { className?: string }) {
     // Sync when URL changes externally
     setLocal(parseActiveFilters(location.search));
   }, [location.search]);
+
+  const handleAccordionChange = React.useCallback((value: string | undefined) => {
+    setAccordionValue(value);
+  }, []);
+
+  const open = accordionValue === "filters";
 
   const apply = () => {
     const sp = new URLSearchParams(location.search);
@@ -102,8 +108,8 @@ export function FiltersAccordion({ className }: { className?: string }) {
       <Accordion
         type="single"
         collapsible
-        value={open ? "filters" : undefined}
-        onValueChange={(v) => setOpen(v === "filters")}
+        value={accordionValue}
+        onValueChange={handleAccordionChange}
       >
         <AccordionItem value="filters">
           <AccordionTrigger>

@@ -50,7 +50,10 @@ export function FilterChips({
         <button
           key={c.key}
           type="button"
-          onClick={() => onRemove && onRemove(c.key)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove && onRemove(c.key);
+          }}
           className={cn(
             "inline-flex items-center gap-1 rounded bg-secondary text-foreground hover:bg-secondary/80",
             size === "md" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-[11px]"
