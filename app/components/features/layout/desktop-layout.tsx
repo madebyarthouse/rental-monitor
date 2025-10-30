@@ -46,7 +46,7 @@ export default function DesktopLayout({
       <DesktopSidebar statesWithDistricts={statesWithDistricts} />
 
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background px-4">
+        <header className="sticky top-0 z-1000 flex h-16 items-center justify-between border-b border-border bg-background px-4">
           <div className="text-base md:text-lg font-semibold tracking-tight">
             {activeTitle}
           </div>

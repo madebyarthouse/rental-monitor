@@ -1,15 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, useMap, Popup, Marker } from "react-leaflet";
+import { MapContainer, useMap, Marker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useNavigate } from "react-router";
 import BoundaryLayer from "./boundary-layer";
 import { createColorScale } from "./color-scale";
 import type { HeatmapResult } from "@/services/map-service";
 import type { StatisticsSummary } from "@/services/statistics-service";
 import { HeatmapToggles } from "./heatmap-toggles";
 import { HeatmapLegend } from "./heatmap-legend";
+import { DistrictPopover } from "./district-popover";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useFilteredUrl } from "@/hooks/use-filtered-url";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type BoundsTuple = [[number, number], [number, number]];
 type RegionDTO = {
@@ -19,6 +28,9 @@ type RegionDTO = {
   geojson?: unknown;
   bounds?: BoundsTuple;
   stateSlug?: string;
+  stateName?: string;
+  centerLat?: number;
+  centerLng?: number;
 };
 
 type MapViewProps =
@@ -26,18 +38,28 @@ type MapViewProps =
       context: "country";
       country: Pick<RegionDTO, "name" | "slug" | "bounds">;
       districts: Array<
-        Pick<RegionDTO, "id" | "name" | "slug" | "geojson" | "stateSlug">
+        Pick<
+          RegionDTO,
+          "id" | "name" | "slug" | "geojson" | "stateSlug" | "stateName"
+        >
       >;
       state?: never;
       activeDistrictSlug?: string;
       heatmap?: HeatmapResult;
       districtStats?: Map<string, StatisticsSummary>;
+      states?: Array<Pick<RegionDTO, "name" | "slug">>;
     }
   | {
       context: "state" | "district";
-      state: Pick<RegionDTO, "name" | "slug" | "bounds">;
+      state: Pick<
+        RegionDTO,
+        "name" | "slug" | "bounds" | "centerLat" | "centerLng"
+      >;
       districts: Array<
-        Pick<RegionDTO, "id" | "name" | "slug" | "geojson" | "stateSlug">
+        Pick<
+          RegionDTO,
+          "id" | "name" | "slug" | "geojson" | "stateSlug" | "stateName"
+        >
       >;
       country?: never;
       activeDistrictSlug?: string;
@@ -45,7 +67,13 @@ type MapViewProps =
       districtStats?: Map<string, StatisticsSummary>;
     };
 
-function FitToBounds({ bounds }: { bounds?: BoundsTuple }) {
+function ChangeView({
+  bounds,
+  dragging,
+}: {
+  bounds?: BoundsTuple;
+  dragging?: boolean;
+}) {
   const map = useMap();
   useEffect(() => {
     if (!bounds) return;
@@ -53,8 +81,33 @@ function FitToBounds({ bounds }: { bounds?: BoundsTuple }) {
       [bounds[0][0], bounds[0][1]],
       [bounds[1][0], bounds[1][1]]
     );
-    map.fitBounds(b, { animate: false, padding: [16, 16] });
+    map.fitBounds(b, { animate: false });
+    map.setMaxBounds(b);
+
+    if (dragging !== undefined) {
+      if (dragging) {
+        map.dragging.enable();
+      } else {
+        map.dragging.disable();
+      }
+    }
+  }, [bounds, map, dragging]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (!bounds) return;
+      const b = L.latLngBounds(
+        [bounds[0][0], bounds[0][1]],
+        [bounds[1][0], bounds[1][1]]
+      );
+      map.invalidateSize();
+      map.fitBounds(b, { animate: false });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [bounds, map]);
+
   return null;
 }
 
@@ -67,36 +120,64 @@ function escapeHtml(input: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function formatNumber(
-  n: number | null | undefined,
-  opts?: Intl.NumberFormatOptions
-): string {
-  if (n == null || !Number.isFinite(n as number)) return "-";
-  return new Intl.NumberFormat("de-AT", opts).format(n as number);
-}
-
 export default function MapView(props: MapViewProps) {
   if (typeof window === "undefined") return null;
 
-  const location = useLocation();
   const navigate = useNavigate();
-  const params = useParams();
   const isMobile = useIsMobile();
   const bounds: BoundsTuple | undefined = useMemo(() => {
-    if (props.context === "country") return props.country.bounds;
-    return props.state.bounds;
+    // First try to get bounds from props (from database)
+    let calculatedBounds: BoundsTuple | undefined;
+    if (props.context === "country") {
+      calculatedBounds = props.country.bounds;
+    } else {
+      calculatedBounds = props.state.bounds;
+    }
+
+    // If bounds not available, calculate from GeoJSON features
+    if (!calculatedBounds && props.districts.length > 0) {
+      try {
+        const allBounds: L.LatLngBounds[] = [];
+        for (const district of props.districts) {
+          if (district.geojson) {
+            const layer = L.geoJSON(
+              district.geojson as unknown as GeoJSON.GeoJSON
+            );
+            const b = layer.getBounds();
+            if (b.isValid()) {
+              allBounds.push(b);
+            }
+          }
+        }
+        if (allBounds.length > 0) {
+          const combinedBounds = allBounds.reduce((acc, b) => {
+            return acc.extend(b);
+          }, allBounds[0]);
+          calculatedBounds = [
+            [combinedBounds.getSouth(), combinedBounds.getWest()],
+            [combinedBounds.getNorth(), combinedBounds.getEast()],
+          ];
+        }
+      } catch {
+        // If calculation fails, return undefined
+      }
+    }
+
+    return calculatedBounds;
   }, [props]);
 
   const [hoverRect, setHoverRect] = useState<{
     slug: string;
     name: string;
     stateSlug?: string;
+    stateName?: string;
     bounds: BoundsTuple;
   } | null>(null);
-  const [clickedDistrict, setClickedDistrict] = useState<{
+  const [lockedDistrict, setLockedDistrict] = useState<{
     slug: string;
     name: string;
     stateSlug?: string;
+    stateName?: string;
   } | null>(null);
 
   const handleBoundaryHover = (
@@ -104,13 +185,19 @@ export default function MapView(props: MapViewProps) {
       slug: string;
       name: string;
       stateSlug?: string;
+      stateName?: string;
       bounds: L.LatLngBounds;
     } | null
   ) => {
     if (!info) {
-      setHoverRect(null);
+      // Only clear hover if there's no locked district
+      if (!lockedDistrict) {
+        setHoverRect(null);
+      }
       return;
     }
+    // Don't show hover if there's a locked district
+    if (lockedDistrict) return;
     const b = info.bounds;
     const tuple: BoundsTuple = [
       [b.getSouth(), b.getWest()],
@@ -120,18 +207,33 @@ export default function MapView(props: MapViewProps) {
       slug: info.slug,
       name: info.name,
       stateSlug: info.stateSlug,
+      stateName: info.stateName,
       bounds: tuple,
     });
   };
 
   const handleBoundaryClick = (slug: string, stateSlug?: string) => {
+    const district = props.districts.find((d) => d.slug === slug);
+    if (!district) return;
+
     if (isMobile) {
-      const district = props.districts.find((d) => d.slug === slug);
-      if (district) {
-        setClickedDistrict({ slug, name: district.name, stateSlug });
-      }
+      // Mobile: lock the popover
+      setLockedDistrict({
+        slug,
+        name: district.name,
+        stateSlug,
+        stateName: district.stateName,
+      });
     } else {
-      onSelectRegion(slug, stateSlug);
+      // Desktop: lock the popover instead of navigating
+      setLockedDistrict({
+        slug,
+        name: district.name,
+        stateSlug,
+        stateName: district.stateName,
+      });
+      // Clear hover when locking
+      setHoverRect(null);
     }
   };
 
@@ -194,6 +296,19 @@ export default function MapView(props: MapViewProps) {
         return scale(90);
       };
     }
+    if (h.metric === "avgPricePerSqm") {
+      // Fixed bins for €/m²: 0-5, 5-10, 10-15, 15-20, 20+
+      const scale = createColorScale(0, 20);
+      return (slug: string) => {
+        const v = values![slug];
+        if (v == null || !Number.isFinite(v)) return "#B8C1CC";
+        if (v <= 5) return scale(2.5);
+        if (v <= 10) return scale(7.5);
+        if (v <= 15) return scale(12.5);
+        if (v <= 20) return scale(17.5);
+        return scale(20);
+      };
+    }
     // For other metrics, use 5 equal steps across the range
     const min = h.range?.min ?? null;
     const max = h.range?.max ?? null;
@@ -225,82 +340,56 @@ export default function MapView(props: MapViewProps) {
     return values?.[slug] ?? null;
   };
 
-  const renderPopupContent = (slug: string, name: string) => {
-    const stats = props.districtStats?.get(slug);
-    const heatmapValue = getHeatmapValue(slug);
-    const metric = props.heatmap?.metric;
+  const getFilteredUrl = useFilteredUrl();
 
-    return (
-      <div className="px-3 py-2 text-xs bg-background/95 rounded-md shadow-lg border border-border min-w-[180px]">
-        <div className="font-semibold mb-2 text-foreground">{name}</div>
-        {stats && (
-          <div className="space-y-1">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Inserate gesamt</span>
-              <span
-                className={`font-medium ${
-                  metric === "totalListings" ? "text-primary font-semibold" : ""
-                }`}
-              >
-                {formatNumber(stats.total)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Ø Preis</span>
-              <span className="font-medium">
-                {formatNumber(stats.avgPrice, { maximumFractionDigits: 0 })} €
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Ø Fläche</span>
-              <span className="font-medium">
-                {formatNumber(stats.avgArea, { maximumFractionDigits: 1 })} m²
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Ø €/m²</span>
-              <span
-                className={`font-medium ${
-                  metric === "avgPricePerSqm"
-                    ? "text-primary font-semibold"
-                    : ""
-                }`}
-              >
-                {formatNumber(stats.avgPricePerSqm, {
-                  maximumFractionDigits: 1,
-                })}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">% befristet</span>
-              <span
-                className={`font-medium ${
-                  metric === "limitedPercentage"
-                    ? "text-primary font-semibold"
-                    : ""
-                }`}
-              >
-                {stats.limitedPct == null
-                  ? "-"
-                  : `${formatNumber(stats.limitedPct, {
-                      maximumFractionDigits: 1,
-                    })}%`}
-              </span>
-            </div>
-          </div>
-        )}
-        {!stats && heatmapValue != null && Number.isFinite(heatmapValue) && (
-          <div className="mt-1 text-[11px] text-muted-foreground">
-            {metric === "limitedPercentage" &&
-              `${Math.round(heatmapValue)}% befristet`}
-            {metric === "avgPricePerSqm" && `${Math.round(heatmapValue)} €/m²`}
-            {metric === "totalListings" &&
-              `${Math.round(heatmapValue)} Inserate`}
-          </div>
-        )}
-      </div>
-    );
+  // Mobile select options
+  const mobileSelectOptions = useMemo(() => {
+    if (props.context === "country" && props.states) {
+      return props.states.map((s) => ({ value: s.slug, label: s.name }));
+    }
+    if (props.context === "state" || props.context === "district") {
+      return props.districts.map((d) => ({
+        value: d.slug,
+        label: d.name,
+      }));
+    }
+    return [];
+  }, [props]);
+
+  const mobileSelectValue = useMemo(() => {
+    if (props.context === "district" && props.activeDistrictSlug) {
+      return props.activeDistrictSlug;
+    }
+    return undefined;
+  }, [props.context, props.activeDistrictSlug]);
+
+  const handleMobileSelectChange = (value: string) => {
+    if (props.context === "country") {
+      navigate(getFilteredUrl(`/${value}`, { target: "map" }));
+    } else if (props.context === "state" || props.context === "district") {
+      const stateSlug = props.state.slug;
+      navigate(getFilteredUrl(`/${stateSlug}/${value}`, { target: "map" }));
+    }
   };
+
+  // Custom popover ref for animation
+  const [popoverRef, setPopoverRef] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (hoverRect && popoverRef && !isMobile && !lockedDistrict) {
+      // Simple fade-in animation using CSS
+      popoverRef.style.opacity = "0";
+      popoverRef.style.transform = "translateX(-20px)";
+      requestAnimationFrame(() => {
+        if (popoverRef) {
+          popoverRef.style.transition =
+            "opacity 0.2s ease-out, transform 0.2s ease-out";
+          popoverRef.style.opacity = "1";
+          popoverRef.style.transform = "translateX(0)";
+        }
+      });
+    }
+  }, [hoverRect, isMobile, popoverRef, lockedDistrict]);
 
   // Austria bounds: [[46.0, 9.0], [49.0, 17.0]]
   const austriaBounds: BoundsTuple = [
@@ -310,30 +399,80 @@ export default function MapView(props: MapViewProps) {
 
   return (
     <div className="w-full relative">
+      {/* Mobile select and toggle buttons */}
+      {isMobile && mobileSelectOptions.length > 0 && (
+        <>
+          <div className="flex items-center gap-2 mb-3 relative z-900">
+            <div className="flex-1">
+              <Select
+                value={mobileSelectValue}
+                onValueChange={handleMobileSelectChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Region auswählen" />
+                </SelectTrigger>
+                <SelectContent className="z-900">
+                  {mobileSelectOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="pointer-events-auto">
+              <HeatmapToggles />
+            </div>
+          </div>
+          {/* Legend - static positioned, full width beneath select/toggle row */}
+          {props.heatmap && (
+            <div className="w-full mb-3 relative md:z-700">
+              <HeatmapLegend
+                min={props.heatmap.range?.min ?? null}
+                max={props.heatmap.range?.max ?? null}
+                avg={props.heatmap.range?.avg ?? null}
+                metric={props.heatmap.metric}
+              />
+            </div>
+          )}
+        </>
+      )}
       <div
-        className={`w-full ${isMobile ? "h-[calc(100vh-12rem)]" : "h-[500px]"}`}
+        className={`w-full ${isMobile ? "h-[350px]" : "h-[500px]"}`}
         style={{ touchAction: "pan-y" }}
       >
         <MapContainer
+          key={props.context === "country" ? "country" : `${props.state.slug}`}
           style={{ height: "100%", width: "100%", backgroundColor: "#F8F5F2" }}
-          center={[47.5162, 14.5501]}
+          center={
+            props.context !== "country" &&
+            props.state.centerLat != null &&
+            props.state.centerLng != null
+              ? [props.state.centerLat, props.state.centerLng]
+              : [47.5162, 14.5501]
+          }
           zoom={9}
           minZoom={6}
           maxZoom={13}
-          scrollWheelZoom
+          scrollWheelZoom={false}
+          doubleClickZoom={false}
+          touchZoom={false}
+          boxZoom={false}
+          keyboard={false}
+          zoomControl={false}
           maxBounds={L.latLngBounds(
             [austriaBounds[0][0], austriaBounds[0][1]],
             [austriaBounds[1][0], austriaBounds[1][1]]
           )}
           maxBoundsViscosity={1.0}
         >
-          <FitToBounds bounds={bounds} />
-          <style>{`.leaflet-popup.no-tip .leaflet-popup-tip { display: none; }`}</style>
+          <ChangeView bounds={bounds} dragging={!isMobile} />
           <BoundaryLayer
             items={props.districts.map((d) => ({
               slug: d.slug,
               name: d.name,
               stateSlug: d.stateSlug,
+              stateName: d.stateName,
               geojson: d.geojson,
             }))}
             activeSlug={props.activeDistrictSlug}
@@ -341,32 +480,6 @@ export default function MapView(props: MapViewProps) {
             onHover={handleBoundaryHover}
             getFillColor={getFillColor}
           />
-          {!isMobile && hoverRect && (
-            <Popup
-              position={[
-                (hoverRect.bounds[0][0] + hoverRect.bounds[1][0]) / 2,
-                (hoverRect.bounds[0][1] + hoverRect.bounds[1][1]) / 2,
-              ]}
-              closeButton={false}
-              autoPan={false}
-              interactive={true}
-              autoClose={false}
-              closeOnClick={false}
-              className="no-tip p-0"
-              eventHandlers={{
-                mouseover: () => {
-                  if (hoverRect) {
-                    setHoverRect(hoverRect);
-                  }
-                },
-                mouseout: () => {
-                  handleBoundaryHover(null);
-                },
-              }}
-            >
-              {renderPopupContent(hoverRect.slug, hoverRect.name)}
-            </Popup>
-          )}
           {activePopup && (
             <Marker
               interactive={false}
@@ -376,7 +489,7 @@ export default function MapView(props: MapViewProps) {
               ]}
               icon={L.divIcon({
                 className: "",
-                html: `<div style="transform: translate(-50%, -100%);display: block; width: fit-content; pointer-events: none;" class="px-2 py-1 text-xs font-medium bg-background/90 rounded-md shadow">${escapeHtml(
+                html: `<div style="transform: translate(-50%, -100%);display: block; width: fit-content; pointer-events: none;" class="px-2 py-1 text-sm font-medium bg-background/90 rounded-md shadow">${escapeHtml(
                   activePopup.name
                 )}</div>`,
               })}
@@ -384,46 +497,106 @@ export default function MapView(props: MapViewProps) {
           )}
         </MapContainer>
       </div>
-      {/* Mobile popup below map */}
-      {isMobile && clickedDistrict && (
-        <div className="mt-4 border border-border rounded-md bg-background shadow-lg">
-          {renderPopupContent(clickedDistrict.slug, clickedDistrict.name)}
-          <div className="px-3 pb-3 pt-2">
-            <button
-              onClick={() => {
-                onSelectRegion(clickedDistrict.slug, clickedDistrict.stateSlug);
-                setClickedDistrict(null);
-              }}
-              className="w-full px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors"
-            >
-              Zu {clickedDistrict.name} navigieren
-            </button>
-            <button
-              onClick={() => setClickedDistrict(null)}
-              className="w-full mt-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Schließen
-            </button>
-          </div>
+      {/* Custom popover - Desktop */}
+      {!isMobile && (lockedDistrict || hoverRect) && (
+        <div
+          ref={setPopoverRef}
+          className="absolute left-4 top-4 z-800 pointer-events-auto"
+          onMouseEnter={() => {
+            if (hoverRect && !lockedDistrict) {
+              setHoverRect(hoverRect);
+            }
+          }}
+          onMouseLeave={() => {
+            if (!lockedDistrict) {
+              handleBoundaryHover(null);
+            }
+          }}
+        >
+          <DistrictPopover
+            slug={lockedDistrict?.slug || hoverRect!.slug}
+            name={lockedDistrict?.name || hoverRect!.name}
+            stateSlug={lockedDistrict?.stateSlug || hoverRect!.stateSlug}
+            stateName={lockedDistrict?.stateName || hoverRect!.stateName}
+            stats={props.districtStats?.get(
+              lockedDistrict?.slug || hoverRect!.slug
+            )}
+            heatmap={props.heatmap}
+            context={props.context}
+            currentStateSlug={
+              props.context === "state" || props.context === "district"
+                ? props.state.slug
+                : undefined
+            }
+            currentStateName={
+              props.context === "state" || props.context === "district"
+                ? props.state.name
+                : undefined
+            }
+            activeDistrictSlug={props.activeDistrictSlug}
+            showButtons={true}
+            showCloseButton={!!lockedDistrict}
+            isMobileView={false}
+            onClose={() => setLockedDistrict(null)}
+          />
         </div>
       )}
-      {/* Overlays */}
-      <div className="pointer-events-none absolute left-0 bottom-2 z-20">
-        <div className="pointer-events-auto">
-          <HeatmapToggles />
-        </div>
-      </div>
-      {props.heatmap && (
-        <div className="pointer-events-none absolute right-0 bg-background bottom-10 z-30">
-          <div className="pointer-events-auto">
-            <HeatmapLegend
-              min={props.heatmap.range?.min ?? null}
-              max={props.heatmap.range?.max ?? null}
-              avg={props.heatmap.range?.avg ?? null}
-              metric={props.heatmap.metric}
+      {/* Mobile popup overlay */}
+      {isMobile && lockedDistrict && (
+        <div className="absolute top-[85%] left-0 right-0 pointer-events-none z-800 px-4 pb-[50px]">
+          <div className="pointer-events-auto border border-border rounded-md bg-background shadow-lg w-full sm:w-full">
+            <DistrictPopover
+              slug={lockedDistrict.slug}
+              name={lockedDistrict.name}
+              stateSlug={lockedDistrict.stateSlug}
+              stateName={lockedDistrict.stateName}
+              stats={props.districtStats?.get(lockedDistrict.slug)}
+              heatmap={props.heatmap}
+              context={props.context}
+              currentStateSlug={
+                props.context === "state" || props.context === "district"
+                  ? props.state.slug
+                  : undefined
+              }
+              currentStateName={
+                props.context === "state" || props.context === "district"
+                  ? props.state.name
+                  : undefined
+              }
+              activeDistrictSlug={props.activeDistrictSlug}
+              showButtons={true}
+              showCloseButton={true}
+              isMobileView={true}
+              onClose={() => setLockedDistrict(null)}
             />
           </div>
         </div>
+      )}
+      {/* Overlays - Desktop */}
+      {!isMobile && (
+        <>
+          <div className="pointer-events-none absolute left-0 bottom-2 z-600">
+            <div className="pointer-events-auto">
+              <HeatmapToggles />
+            </div>
+          </div>
+          {props.heatmap && (
+            <div className="pointer-events-none absolute right-0 bg-background bottom-10 z-600">
+              <div className="pointer-events-auto">
+                <HeatmapLegend
+                  min={props.heatmap.range?.min ?? null}
+                  max={props.heatmap.range?.max ?? null}
+                  avg={props.heatmap.range?.avg ?? null}
+                  metric={props.heatmap.metric}
+                />
+              </div>
+            </div>
+          )}
+        </>
+      )}
+      {/* Overlays - Mobile */}
+      {isMobile && (
+        <>{/* No mobile overlays - legend is static positioned above */}</>
       )}
     </div>
   );

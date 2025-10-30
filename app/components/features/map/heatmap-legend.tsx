@@ -25,18 +25,53 @@ export function HeatmapLegend({
     ];
     return (
       <div className={className}>
-        <div className="rounded-md border border-border bg-background/95 p-3 shadow-md backdrop-blur-sm">
-          <div className="text-xs font-medium mb-2 text-foreground">
+        <div className="rounded border border-border bg-background/95 p-3 backdrop-blur-sm">
+          <div className="text-base font-medium mb-2 text-foreground">
             Legende
           </div>
-          <div className="grid gap-1.5">
+          <div className="flex flex-row flex-wrap gap-1.5 md:grid md:gap-1.5">
             {ranges.map((r) => (
               <div
                 key={r.label}
-                className="flex items-center gap-2.5 text-[11px] text-muted-foreground"
+                className="flex items-center gap-2.5 text-sm text-muted-foreground"
               >
                 <div
-                  className="h-3 w-7 rounded-sm border border-border/50"
+                  className="h-4 w-8 rounded-sm border border-border/50 shrink-0"
+                  style={{ backgroundColor: scale(r.mid) }}
+                />
+                <span className="font-medium">{r.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (metric === "avgPricePerSqm") {
+    // Fixed bins for €/m²: 0–5, 5–10, 10–15, 15–20, 20+
+    const scale = createColorScale(0, 20);
+    const ranges = [
+      { label: "0–5", mid: 2.5 },
+      { label: "5–10", mid: 7.5 },
+      { label: "10–15", mid: 12.5 },
+      { label: "15–20", mid: 17.5 },
+      { label: "20+", mid: 20 },
+    ];
+    return (
+      <div className={className}>
+        <div className="rounded border border-border bg-background/95 p-3 backdrop-blur-sm">
+          <div className="text-base font-medium mb-2 text-foreground">
+            Legende
+          </div>
+          <div className="flex flex-row flex-wrap gap-1.5 md:grid md:gap-1.5">
+            {ranges.map((r) => (
+              <div
+                key={r.label}
+                className="flex items-center gap-2.5 text-sm text-muted-foreground"
+              >
+                <div
+                  className="h-4 w-8 rounded-sm border border-border/50 shrink-0"
                   style={{ backgroundColor: scale(r.mid) }}
                 />
                 <span className="font-medium">{r.label}</span>
@@ -78,16 +113,18 @@ export function HeatmapLegend({
 
   return (
     <div className={className}>
-      <div className="rounded-md border border-border bg-background/95 p-3 shadow-md backdrop-blur-sm">
-        <div className="text-xs font-medium mb-2 text-foreground">Legende</div>
-        <div className="grid gap-1.5">
+      <div className="rounded border border-border bg-background/95 p-3 backdrop-blur-sm">
+        <div className="text-base font-medium mb-2 text-foreground">
+          Legende
+        </div>
+        <div className="flex flex-row flex-wrap gap-1.5 md:grid md:gap-1.5">
           {ranges.map((r, i) => (
             <div
               key={i}
-              className="flex items-center gap-2.5 text-[11px] text-muted-foreground"
+              className="flex items-center gap-2.5 text-sm text-muted-foreground"
             >
               <div
-                className="h-3 w-7 rounded-sm border border-border/50"
+                className="h-4 w-8 rounded-sm border border-border/50 shrink-0"
                 style={{ backgroundColor: scale(r.mid) }}
               />
               <span className="font-medium">{r.label}</span>

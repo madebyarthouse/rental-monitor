@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 const OPTIONS = [
   { key: "limitedPercentage", label: "% befristet" },
   { key: "avgPricePerSqm", label: "Ø €/m²" },
-  { key: "totalListings", label: "Anzahl" },
 ] as const;
 
 type MetricKey = (typeof OPTIONS)[number]["key"];

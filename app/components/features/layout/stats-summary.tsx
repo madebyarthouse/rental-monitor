@@ -44,7 +44,9 @@ export function StatsSummary() {
     },
     {
       label: "Ø €/m²",
-      value: formatNumber(stats.avgPricePerSqm, { maximumFractionDigits: 1 }),
+      value: `${formatNumber(stats.avgPricePerSqm, {
+        maximumFractionDigits: 1,
+      })} €/m²`,
     },
     {
       label: "% befristet",

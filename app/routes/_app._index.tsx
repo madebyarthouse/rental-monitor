@@ -25,9 +25,10 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   const statisticsService = new StatisticsService(
     context.cloudflare.env.rental_monitor
   );
-  const [country, districts] = await Promise.all([
+  const [country, districts, states] = await Promise.all([
     regionService.getCountry(),
     regionService.getAllDistrictsWithStateSlug(),
+    regionService.getAllStates(),
   ]);
   if (!country) throw new Response("Not Found", { status: 404 });
   const url = new URL(request.url);
@@ -117,8 +118,10 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       name: d.name,
       slug: d.slug,
       stateSlug: d.stateSlug,
+      stateName: d.stateName,
       geojson: d.geojson,
     })),
+    states: states.map((s) => ({ name: s.name, slug: s.slug })),
     heatmap,
     stats,
     limitedCounts,
@@ -137,6 +140,7 @@ export default function RootMap(props: Route.ComponentProps) {
             context="country"
             country={props.loaderData.country}
             districts={props.loaderData.districts}
+            states={props.loaderData.states}
             heatmap={props.loaderData.heatmap}
             districtStats={
               new Map(

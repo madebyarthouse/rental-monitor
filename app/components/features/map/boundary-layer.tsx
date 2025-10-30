@@ -3,11 +3,18 @@ import { GeoJSON } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-type Item = { slug: string; name: string; stateSlug?: string; geojson?: any };
+type Item = {
+  slug: string;
+  name: string;
+  stateSlug?: string;
+  stateName?: string;
+  geojson?: any;
+};
 type HoverInfo = {
   slug: string;
   name: string;
   stateSlug?: string;
+  stateName?: string;
   bounds: L.LatLngBounds;
 };
 
@@ -34,9 +41,12 @@ export default function BoundaryLayer({
 
   const highlightStyle = {
     color: "#E63946",
-    weight: 2,
-    fillOpacity: 0.35,
+    weight: 3,
+    fillOpacity: 0.2,
   } as L.PathOptions;
+
+  // Store layer references to update styles when activeSlug changes
+  const layerRefs = React.useRef<Map<string, L.Layer>>(new Map());
 
   const onEachFeature = React.useCallback(
     (feature: any, layer: any) => {
@@ -44,15 +54,21 @@ export default function BoundaryLayer({
       const slug = props.slug as string | undefined;
       const name = props.name as string | undefined;
       const stateSlug = props.stateSlug as string | undefined;
+      const stateName = props.stateName as string | undefined;
       const isActive = slug && slug === activeSlug;
       const fillColor = slug && getFillColor ? getFillColor(slug) : undefined;
+
+      if (slug) {
+        layerRefs.current.set(slug, layer);
+      }
+
       layer.setStyle({ ...(isActive ? highlightStyle : baseStyle), fillColor });
 
       layer.on({
         mouseover: () => {
           if (onHover && slug && name) {
             const b = (layer as L.Polygon).getBounds();
-            onHover({ slug, name, stateSlug, bounds: b });
+            onHover({ slug, name, stateSlug, stateName, bounds: b });
           }
           if (!isActive)
             layer.setStyle({ weight: 2, fillOpacity: 0.3, fillColor });
@@ -70,6 +86,25 @@ export default function BoundaryLayer({
     [activeSlug, onHover, onSelect, getFillColor]
   );
 
+  // Update styles when activeSlug or getFillColor changes
+  React.useEffect(() => {
+    layerRefs.current.forEach((layer, slug) => {
+      const isActive = slug === activeSlug;
+      const fillColor = getFillColor ? getFillColor(slug) : undefined;
+      layer.setStyle({ ...(isActive ? highlightStyle : baseStyle), fillColor });
+    });
+  }, [activeSlug, getFillColor]);
+
+  // Clear layer refs when items change (e.g., switching states)
+  React.useEffect(() => {
+    const currentSlugs = new Set(items.map((item) => item.slug));
+    layerRefs.current.forEach((_, slug) => {
+      if (!currentSlugs.has(slug)) {
+        layerRefs.current.delete(slug);
+      }
+    });
+  }, [items]);
+
   // Merge features; ensure each feature has properties.slug for interaction
   const featureCollection = React.useMemo(() => {
     const features: any[] = [];
@@ -80,6 +115,7 @@ export default function BoundaryLayer({
       (f.properties as any).slug = item.slug;
       (f.properties as any).name = item.name;
       (f.properties as any).stateSlug = item.stateSlug;
+      (f.properties as any).stateName = item.stateName;
       features.push(f);
     }
     return {
@@ -91,6 +127,19 @@ export default function BoundaryLayer({
   if (!featureCollection.features.length) return null;
 
   return (
-    <GeoJSON data={featureCollection as any} onEachFeature={onEachFeature} />
+    <GeoJSON
+      data={featureCollection as any}
+      onEachFeature={onEachFeature}
+      style={(feature: any) => {
+        const props = (feature?.properties as any) ?? {};
+        const slug = props.slug as string | undefined;
+        const isActive = slug && slug === activeSlug;
+        const fillColor = slug && getFillColor ? getFillColor(slug) : undefined;
+        return {
+          ...(isActive ? highlightStyle : baseStyle),
+          fillColor,
+        } as L.PathOptions;
+      }}
+    />
   );
 }
