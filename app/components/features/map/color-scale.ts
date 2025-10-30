@@ -8,11 +8,12 @@ export function createColorScale(min: number, max: number) {
       0,
       Math.min(1, (value - clampedMin) / (clampedMax - clampedMin))
     );
-    // Green (#2A9D8F) → Yellow (#E9C46A) → Red (#E63946)
+    // More vibrant colors: Green (#2A9D8F) → Yellow (#F4A261) → Red (#E63946)
+    // Increased saturation for more vibrant appearance
     const stops = [
-      { r: 0x2a, g: 0x9d, b: 0x8f },
-      { r: 0xe9, g: 0xc4, b: 0x6a },
-      { r: 0xe6, g: 0x39, b: 0x46 },
+      { r: 0x2a, g: 0x9d, b: 0x8f }, // Green
+      { r: 0xf4, g: 0xa2, b: 0x61 }, // Orange/Yellow (more vibrant)
+      { r: 0xe6, g: 0x39, b: 0x46 }, // Red
     ];
     const seg = t <= 0.5 ? 0 : 1;
     const localT = t <= 0.5 ? t * 2 : (t - 0.5) * 2;

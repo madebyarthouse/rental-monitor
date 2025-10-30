@@ -45,44 +45,71 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       platforms: query.platforms,
     }
   );
-  const [stats, limitedCounts, priceHistogram] = await Promise.all([
-    statisticsService.getStatistics(
-      { level: "country" },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-    statisticsService.getLimitedCounts(
-      { level: "country" },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-    statisticsService.getPriceHistogram(
-      { level: "country" },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-  ]);
+  const [stats, limitedCounts, priceHistogram, groupedStats, districtStats] =
+    await Promise.all([
+      statisticsService.getStatistics(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getLimitedCounts(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getPriceHistogram(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getGroupedStatistics(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        },
+        "state"
+      ),
+      statisticsService.getGroupedStatistics(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        },
+        "district"
+      ),
+    ]);
   return {
     country: { name: country.name, slug: country.slug, bounds: country.bounds },
     districts: districts.map((d) => ({
@@ -96,6 +123,8 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     stats,
     limitedCounts,
     priceHistogram,
+    groupedStats,
+    districtStats,
   };
 }
 
@@ -109,12 +138,19 @@ export default function RootMap(props: Route.ComponentProps) {
             country={props.loaderData.country}
             districts={props.loaderData.districts}
             heatmap={props.loaderData.heatmap}
+            districtStats={
+              new Map(
+                props.loaderData.districtStats.map((g) => [g.slug, g.stats])
+              )
+            }
           />
         )}
       </ClientOnly>
       <MapCharts
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}
+        groupedStats={props.loaderData.groupedStats}
+        groupLevel="state"
       />
     </div>
   );

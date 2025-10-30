@@ -6,8 +6,10 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import BoundaryLayer from "./boundary-layer";
 import { createColorScale } from "./color-scale";
 import type { HeatmapResult } from "@/services/map-service";
+import type { StatisticsSummary } from "@/services/statistics-service";
 import { HeatmapToggles } from "./heatmap-toggles";
 import { HeatmapLegend } from "./heatmap-legend";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type BoundsTuple = [[number, number], [number, number]];
 type RegionDTO = {
@@ -29,6 +31,7 @@ type MapViewProps =
       state?: never;
       activeDistrictSlug?: string;
       heatmap?: HeatmapResult;
+      districtStats?: Map<string, StatisticsSummary>;
     }
   | {
       context: "state" | "district";
@@ -39,18 +42,18 @@ type MapViewProps =
       country?: never;
       activeDistrictSlug?: string;
       heatmap?: HeatmapResult;
+      districtStats?: Map<string, StatisticsSummary>;
     };
 
 function FitToBounds({ bounds }: { bounds?: BoundsTuple }) {
   const map = useMap();
   useEffect(() => {
     if (!bounds) return;
-    console.log("bounds", bounds);
     const b = L.latLngBounds(
       [bounds[0][0], bounds[0][1]],
       [bounds[1][0], bounds[1][1]]
     );
-    map.fitBounds(b, { padding: [16, 16] });
+    map.fitBounds(b, { animate: false, padding: [16, 16] });
   }, [bounds, map]);
   return null;
 }
@@ -64,12 +67,21 @@ function escapeHtml(input: string): string {
     .replace(/'/g, "&#39;");
 }
 
+function formatNumber(
+  n: number | null | undefined,
+  opts?: Intl.NumberFormatOptions
+): string {
+  if (n == null || !Number.isFinite(n as number)) return "-";
+  return new Intl.NumberFormat("de-AT", opts).format(n as number);
+}
+
 export default function MapView(props: MapViewProps) {
   if (typeof window === "undefined") return null;
 
   const location = useLocation();
   const navigate = useNavigate();
   const params = useParams();
+  const isMobile = useIsMobile();
   const bounds: BoundsTuple | undefined = useMemo(() => {
     if (props.context === "country") return props.country.bounds;
     return props.state.bounds;
@@ -80,6 +92,11 @@ export default function MapView(props: MapViewProps) {
     name: string;
     stateSlug?: string;
     bounds: BoundsTuple;
+  } | null>(null);
+  const [clickedDistrict, setClickedDistrict] = useState<{
+    slug: string;
+    name: string;
+    stateSlug?: string;
   } | null>(null);
 
   const handleBoundaryHover = (
@@ -105,6 +122,17 @@ export default function MapView(props: MapViewProps) {
       stateSlug: info.stateSlug,
       bounds: tuple,
     });
+  };
+
+  const handleBoundaryClick = (slug: string, stateSlug?: string) => {
+    if (isMobile) {
+      const district = props.districts.find((d) => d.slug === slug);
+      if (district) {
+        setClickedDistrict({ slug, name: district.name, stateSlug });
+      }
+    } else {
+      onSelectRegion(slug, stateSlug);
+    }
   };
 
   const activePopup = useMemo(() => {
@@ -183,106 +211,210 @@ export default function MapView(props: MapViewProps) {
     };
   }, [props.heatmap]);
 
-  return (
-    <div className="w-full h-[500px] relative">
-      <MapContainer
-        key={location.key}
-        style={{ height: "100%", width: "100%", backgroundColor: "#F8F5F2" }}
-        center={[47.5162, 14.5501]}
-        zoom={9}
-        minZoom={6}
-        maxZoom={13}
-        scrollWheelZoom
-      >
-        <FitToBounds bounds={bounds} />
-        <style>{`.leaflet-popup.no-tip .leaflet-popup-tip { display: none; }`}</style>
-        <BoundaryLayer
-          items={props.districts.map((d) => ({
-            slug: d.slug,
-            name: d.name,
-            stateSlug: d.stateSlug,
-            geojson: d.geojson,
-          }))}
-          activeSlug={props.activeDistrictSlug}
-          onSelect={onSelectRegion}
-          onHover={handleBoundaryHover}
-          getFillColor={getFillColor}
-        />
-        {hoverRect && (
-          <Popup
-            position={[
-              (hoverRect.bounds[0][0] + hoverRect.bounds[1][0]) / 2,
-              (hoverRect.bounds[0][1] + hoverRect.bounds[1][1]) / 2,
-            ]}
-            closeButton={false}
-            autoPan={false}
-            interactive={true}
-            autoClose={false}
-            closeOnClick={false}
-            className="no-tip p-0"
-            eventHandlers={{
-              mouseover: () => {
-                if (hoverRect) {
-                  // Re-emit hover while pointer is over the popup
-                  setHoverRect(hoverRect);
-                }
-              },
-              mouseout: () => {
-                handleBoundaryHover(null);
-              },
-            }}
-          >
-            <div className="px-2 py-1 text-xs font-medium bg-background/90 rounded-md shadow">
-              <div>{hoverRect.name}</div>
-              {props.heatmap && (
-                <div className="mt-1 text-[11px] text-muted-foreground">
-                  {(() => {
-                    const h = props.heatmap as any;
-                    const map: Record<string, number | null> =
-                      "byRegion" in h
-                        ? Object.fromEntries(
-                            h.byRegion.map((x: any) => [x.slug, x.value])
-                          )
-                        : h.values || {};
-                    const v = map?.[hoverRect.slug];
-                    if (v == null || !Number.isFinite(v)) return null;
-                    if (h.metric === "limitedPercentage")
-                      return `${Math.round(v)}% befristet`;
-                    if (h.metric === "avgPricePerSqm")
-                      return `${Math.round(v)} €/m²`;
-                    if (h.metric === "totalListings")
-                      return `${Math.round(v)} Inserate`;
-                    return null;
-                  })()}
-                </div>
-              )}
+  const getHeatmapValue = (slug: string): number | null => {
+    const h = props.heatmap;
+    if (!h) return null;
+    let values: Record<string, number | null> | undefined;
+    if ("values" in h) {
+      values = h.values as Record<string, number | null>;
+    } else if ("byRegion" in h && Array.isArray(h.byRegion)) {
+      values = Object.fromEntries(
+        h.byRegion.map((x) => [x.slug, x.value])
+      ) as Record<string, number | null>;
+    }
+    return values?.[slug] ?? null;
+  };
+
+  const renderPopupContent = (slug: string, name: string) => {
+    const stats = props.districtStats?.get(slug);
+    const heatmapValue = getHeatmapValue(slug);
+    const metric = props.heatmap?.metric;
+
+    return (
+      <div className="px-3 py-2 text-xs bg-background/95 rounded-md shadow-lg border border-border min-w-[180px]">
+        <div className="font-semibold mb-2 text-foreground">{name}</div>
+        {stats && (
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Inserate gesamt</span>
+              <span
+                className={`font-medium ${
+                  metric === "totalListings" ? "text-primary font-semibold" : ""
+                }`}
+              >
+                {formatNumber(stats.total)}
+              </span>
             </div>
-          </Popup>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ø Preis</span>
+              <span className="font-medium">
+                {formatNumber(stats.avgPrice, { maximumFractionDigits: 0 })} €
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ø Fläche</span>
+              <span className="font-medium">
+                {formatNumber(stats.avgArea, { maximumFractionDigits: 1 })} m²
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ø €/m²</span>
+              <span
+                className={`font-medium ${
+                  metric === "avgPricePerSqm"
+                    ? "text-primary font-semibold"
+                    : ""
+                }`}
+              >
+                {formatNumber(stats.avgPricePerSqm, {
+                  maximumFractionDigits: 1,
+                })}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">% befristet</span>
+              <span
+                className={`font-medium ${
+                  metric === "limitedPercentage"
+                    ? "text-primary font-semibold"
+                    : ""
+                }`}
+              >
+                {stats.limitedPct == null
+                  ? "-"
+                  : `${formatNumber(stats.limitedPct, {
+                      maximumFractionDigits: 1,
+                    })}%`}
+              </span>
+            </div>
+          </div>
         )}
-        {activePopup && (
-          <Marker
-            interactive={false}
-            position={[
-              (activePopup.bounds[0][0] + activePopup.bounds[1][0]) / 2,
-              (activePopup.bounds[0][1] + activePopup.bounds[1][1]) / 2,
-            ]}
-            icon={L.divIcon({
-              className: "",
-              html: `<div style="transform: translate(-50%, -100%);display: block; width: fit-content; pointer-events: none;" class="px-2 py-1 text-xs font-medium bg-background/90 rounded-md shadow">${escapeHtml(
-                activePopup.name
-              )}</div>`,
-            })}
-          ></Marker>
+        {!stats && heatmapValue != null && Number.isFinite(heatmapValue) && (
+          <div className="mt-1 text-[11px] text-muted-foreground">
+            {metric === "limitedPercentage" &&
+              `${Math.round(heatmapValue)}% befristet`}
+            {metric === "avgPricePerSqm" && `${Math.round(heatmapValue)} €/m²`}
+            {metric === "totalListings" &&
+              `${Math.round(heatmapValue)} Inserate`}
+          </div>
         )}
-      </MapContainer>
+      </div>
+    );
+  };
+
+  // Austria bounds: [[46.0, 9.0], [49.0, 17.0]]
+  const austriaBounds: BoundsTuple = [
+    [46.0, 9.0],
+    [49.0, 17.0],
+  ];
+
+  return (
+    <div className="w-full relative">
+      <div
+        className={`w-full ${isMobile ? "h-[calc(100vh-12rem)]" : "h-[500px]"}`}
+        style={{ touchAction: "pan-y" }}
+      >
+        <MapContainer
+          style={{ height: "100%", width: "100%", backgroundColor: "#F8F5F2" }}
+          center={[47.5162, 14.5501]}
+          zoom={9}
+          minZoom={6}
+          maxZoom={13}
+          scrollWheelZoom
+          maxBounds={L.latLngBounds(
+            [austriaBounds[0][0], austriaBounds[0][1]],
+            [austriaBounds[1][0], austriaBounds[1][1]]
+          )}
+          maxBoundsViscosity={1.0}
+        >
+          <FitToBounds bounds={bounds} />
+          <style>{`.leaflet-popup.no-tip .leaflet-popup-tip { display: none; }`}</style>
+          <BoundaryLayer
+            items={props.districts.map((d) => ({
+              slug: d.slug,
+              name: d.name,
+              stateSlug: d.stateSlug,
+              geojson: d.geojson,
+            }))}
+            activeSlug={props.activeDistrictSlug}
+            onSelect={handleBoundaryClick}
+            onHover={handleBoundaryHover}
+            getFillColor={getFillColor}
+          />
+          {!isMobile && hoverRect && (
+            <Popup
+              position={[
+                (hoverRect.bounds[0][0] + hoverRect.bounds[1][0]) / 2,
+                (hoverRect.bounds[0][1] + hoverRect.bounds[1][1]) / 2,
+              ]}
+              closeButton={false}
+              autoPan={false}
+              interactive={true}
+              autoClose={false}
+              closeOnClick={false}
+              className="no-tip p-0"
+              eventHandlers={{
+                mouseover: () => {
+                  if (hoverRect) {
+                    setHoverRect(hoverRect);
+                  }
+                },
+                mouseout: () => {
+                  handleBoundaryHover(null);
+                },
+              }}
+            >
+              {renderPopupContent(hoverRect.slug, hoverRect.name)}
+            </Popup>
+          )}
+          {activePopup && (
+            <Marker
+              interactive={false}
+              position={[
+                (activePopup.bounds[0][0] + activePopup.bounds[1][0]) / 2,
+                (activePopup.bounds[0][1] + activePopup.bounds[1][1]) / 2,
+              ]}
+              icon={L.divIcon({
+                className: "",
+                html: `<div style="transform: translate(-50%, -100%);display: block; width: fit-content; pointer-events: none;" class="px-2 py-1 text-xs font-medium bg-background/90 rounded-md shadow">${escapeHtml(
+                  activePopup.name
+                )}</div>`,
+              })}
+            ></Marker>
+          )}
+        </MapContainer>
+      </div>
+      {/* Mobile popup below map */}
+      {isMobile && clickedDistrict && (
+        <div className="mt-4 border border-border rounded-md bg-background shadow-lg">
+          {renderPopupContent(clickedDistrict.slug, clickedDistrict.name)}
+          <div className="px-3 pb-3 pt-2">
+            <button
+              onClick={() => {
+                onSelectRegion(clickedDistrict.slug, clickedDistrict.stateSlug);
+                setClickedDistrict(null);
+              }}
+              className="w-full px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors"
+            >
+              Zu {clickedDistrict.name} navigieren
+            </button>
+            <button
+              onClick={() => setClickedDistrict(null)}
+              className="w-full mt-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Schließen
+            </button>
+          </div>
+        </div>
+      )}
       {/* Overlays */}
-      <div className="pointer-events-none absolute left-0 bottom-2 z-10">
+      <div className="pointer-events-none absolute left-0 bottom-2 z-20">
         <div className="pointer-events-auto">
           <HeatmapToggles />
         </div>
       </div>
       {props.heatmap && (
-        <div className="pointer-events-none absolute right-0 bg-background bottom-10 z-50">
+        <div className="pointer-events-none absolute right-0 bg-background bottom-10 z-30">
           <div className="pointer-events-auto">
             <HeatmapLegend
               min={props.heatmap.range?.min ?? null}

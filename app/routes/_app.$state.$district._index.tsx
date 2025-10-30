@@ -36,8 +36,10 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
   const url = new URL(request.url);
   const query = parseMapQuery(url.searchParams);
+  const districtIds = stateData.districts.map((d) => d.id);
+  // Fetch heatmap for entire state, not just active district
   const heatmap = await mapService.getHeatmapData(
-    { level: "district", districtId: activeDistrict.id },
+    { level: "state", districtIds },
     query.metric,
     {
       minPrice: query.minPrice,
@@ -48,46 +50,61 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       unlimited: query.unlimited,
       platforms: query.platforms,
     },
-    [activeDistrict.id]
+    districtIds
   );
-  const [stats, limitedCounts, priceHistogram] = await Promise.all([
-    statisticsService.getStatistics(
-      { level: "district", districtId: activeDistrict.id },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-    statisticsService.getLimitedCounts(
-      { level: "district", districtId: activeDistrict.id },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-    statisticsService.getPriceHistogram(
-      { level: "district", districtId: activeDistrict.id },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-  ]);
+  const [stats, limitedCounts, priceHistogram, groupedStats] =
+    await Promise.all([
+      statisticsService.getStatistics(
+        { level: "district", districtId: activeDistrict.id },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getLimitedCounts(
+        { level: "district", districtId: activeDistrict.id },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getPriceHistogram(
+        { level: "district", districtId: activeDistrict.id },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      // Fetch grouped stats for all districts in state for popup data
+      statisticsService.getGroupedStatistics(
+        { level: "state", districtIds },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        },
+        "district"
+      ),
+    ]);
 
   return {
     state: {
@@ -106,6 +123,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     stats,
     limitedCounts,
     priceHistogram,
+    groupedStats,
   };
 }
 
@@ -120,12 +138,19 @@ export default function DistrictMapView(props: Route.ComponentProps) {
             districts={props.loaderData.districts}
             activeDistrictSlug={props.loaderData.activeDistrictSlug}
             heatmap={props.loaderData.heatmap}
+            districtStats={
+              new Map(
+                props.loaderData.groupedStats.map((g) => [g.slug, g.stats])
+              )
+            }
           />
         )}
       </ClientOnly>
       <MapCharts
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}
+        groupedStats={undefined}
+        groupLevel={undefined}
       />
     </div>
   );
