@@ -13,6 +13,7 @@ import {
   ChartTooltipContent,
   ChartLegend,
 } from "@/components/ui/chart";
+import { chartColors } from "@/lib/theme-colors";
 
 type Bucket = { start: number; end: number | null; count: number };
 
@@ -44,9 +45,9 @@ export function PriceHistogram({
   return (
     <ChartContainer
       className={className}
-      config={{ count: { label: "Anzahl", color: "hsl(var(--chart-1))" } }}
+      config={{ count: { label: "Anzahl", color: chartColors.price } }}
     >
-      <BarChart data={data} barSize={18}>
+      <BarChart data={data} barSize={54}>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
         <XAxis
           dataKey="label"
@@ -57,7 +58,7 @@ export function PriceHistogram({
         />
         <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
         <ChartTooltip content={<ChartTooltipContent />} />
-        <Bar dataKey="count" fill="var(--color-count)" radius={4} />
+        <Bar dataKey="count" fill={chartColors.price} />
       </BarChart>
     </ChartContainer>
   );

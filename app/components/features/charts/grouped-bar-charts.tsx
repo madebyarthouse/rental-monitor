@@ -15,6 +15,7 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import type { StatisticsSummary } from "@/services/statistics-service";
+import { chartColors } from "@/lib/theme-colors";
 
 type GroupedStat = {
   slug: string;
@@ -68,9 +69,9 @@ export function GroupedBarCharts({
 
   return (
     <div className={className}>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid border-t border-l border-black md:grid-cols-3">
         {/* Stacked bar chart: Limited/Unlimited */}
-        <div className="rounded-md border p-3">
+        <div className="border-r border-b border-black p-3">
           <div className="mb-2 text-sm font-medium">
             % Befristet/Unbefristet
           </div>
@@ -78,15 +79,15 @@ export function GroupedBarCharts({
             config={{
               limited: {
                 label: "Befristet",
-                color: "hsl(var(--chart-2))",
+                color: chartColors.limited,
               },
               unlimited: {
                 label: "Unbefristet",
-                color: "hsl(var(--chart-3))",
+                color: chartColors.unlimited,
               },
             }}
           >
-            <BarChart data={limitedData} layout="vertical" barSize={20}>
+            <BarChart data={limitedData} layout="vertical" barSize={60}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 type="number"
@@ -107,28 +108,26 @@ export function GroupedBarCharts({
               <Bar
                 dataKey="limited"
                 stackId="a"
-                fill="var(--color-limited)"
-                radius={[0, 4, 4, 0]}
+                fill={chartColors.limited}
               />
               <Bar
                 dataKey="unlimited"
                 stackId="a"
-                fill="var(--color-unlimited)"
-                radius={[4, 0, 0, 4]}
+                fill={chartColors.unlimited}
               />
             </BarChart>
           </ChartContainer>
         </div>
 
         {/* Bar chart: Price per sqm */}
-        <div className="rounded-md border p-3">
+        <div className="border-r border-b border-black p-3">
           <div className="mb-2 text-sm font-medium">Ø €/m²</div>
           <ChartContainer
             config={{
-              value: { label: "Ø €/m²", color: "hsl(var(--chart-1))" },
+              value: { label: "Ø €/m²", color: chartColors.price },
             }}
           >
-            <BarChart data={pricePerSqmData} layout="vertical" barSize={20}>
+            <BarChart data={pricePerSqmData} layout="vertical" barSize={60}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" tickLine={false} axisLine={false} />
               <YAxis
@@ -140,20 +139,20 @@ export function GroupedBarCharts({
                 tick={{ fontSize: 10 }}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="value" fill="var(--color-value)" radius={4} />
+              <Bar dataKey="value" fill={chartColors.price} />
             </BarChart>
           </ChartContainer>
         </div>
 
         {/* Bar chart: Number of units */}
-        <div className="rounded-md border p-3">
+        <div className="border-b border-black p-3">
           <div className="mb-2 text-sm font-medium">Anzahl Inserate</div>
           <ChartContainer
             config={{
-              value: { label: "Anzahl", color: "hsl(var(--chart-1))" },
+              value: { label: "Anzahl", color: chartColors.tertiary },
             }}
           >
-            <BarChart data={unitsData} layout="vertical" barSize={20}>
+            <BarChart data={unitsData} layout="vertical" barSize={60}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 type="number"
@@ -170,7 +169,7 @@ export function GroupedBarCharts({
                 tick={{ fontSize: 10 }}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="value" fill="var(--color-value)" radius={4} />
+              <Bar dataKey="value" fill={chartColors.tertiary} />
             </BarChart>
           </ChartContainer>
         </div>

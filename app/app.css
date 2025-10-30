@@ -44,7 +44,7 @@
   --accent-foreground: #92400e;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e5e7eb;
+  --border: #000000;
   --input: #e5e7eb;
   --ring: #f59e0b;
   --chart-1: #f59e0b;
@@ -58,7 +58,7 @@
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f59e0b;
   --sidebar-accent-foreground: #000000;
-  --sidebar-border: #e5e7eb;
+  --sidebar-border: #000000;
   --sidebar-ring: #f59e0b;
   --font-sans: "Suisse Screen", "Inter", sans-serif;
   --font-serif: Source Serif 4, serif;
