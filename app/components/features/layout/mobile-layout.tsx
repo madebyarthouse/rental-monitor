@@ -31,14 +31,14 @@ export default function MobileLayout({
   return (
     <>
       {/* Top header with title */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex h-12 items-center border-b border-border bg-background px-4">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-1000 flex h-12 items-center border-b border-border bg-background px-4">
         <div className="text-sm font-semibold tracking-tight">Mietmonitor</div>
       </div>
       <div className="flex flex-col min-h-screen pt-12 pb-32">
         <StatsSummary />
         <main className="flex-1">{children}</main>
       </div>
-      <div className="md:hidden fixed bottom-20 left-0 right-0 bg-background border-t border-border z-40">
+      <div className="md:hidden fixed bottom-20 left-0 right-0 bg-background border-t border-border z-1000">
         <div className="flex">
           <Link
             to={buildFilteredUrl(getTabUrl("map", location.pathname), {
@@ -68,7 +68,7 @@ export default function MobileLayout({
           </Link>
         </div>
       </div>
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-40 px-4 justify-between">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-1000 px-4 justify-between">
         <div className="flex items-center justify-between px-4 py-3 w-full gap-5">
           <Link to="/">
             <img
@@ -90,7 +90,7 @@ export default function MobileLayout({
         </div>
       </div>
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="z-1000">
+        <DrawerContent className="z-1100">
           <DrawerHeader>
             <DrawerTitle>Regionen & Filter</DrawerTitle>
           </DrawerHeader>
