@@ -2,12 +2,20 @@ import * as React from "react";
 import { GeoJSON } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import type { Feature, FeatureCollection, Geometry } from "geojson";
 
-type Item = { slug: string; name: string; stateSlug?: string; geojson?: any };
+type Item = {
+  slug: string;
+  name: string;
+  stateSlug?: string;
+  stateName?: string;
+  geojson?: Feature | FeatureCollection | Geometry;
+};
 type HoverInfo = {
   slug: string;
   name: string;
   stateSlug?: string;
+  stateName?: string;
   bounds: L.LatLngBounds;
 };
 
@@ -29,68 +37,151 @@ export default function BoundaryLayer({
   const baseStyle = {
     color: "#457B9D",
     weight: 1,
-    fillOpacity: 0.2,
+    fillOpacity: 0.8,
   } as L.PathOptions;
 
   const highlightStyle = {
     color: "#E63946",
-    weight: 2,
-    fillOpacity: 0.35,
+    weight: 3,
+    fillOpacity: 0.2,
   } as L.PathOptions;
 
+  // Store layer references to update styles when activeSlug changes
+  const layerRefs = React.useRef<Map<string, L.Layer>>(new Map());
+
   const onEachFeature = React.useCallback(
-    (feature: any, layer: any) => {
-      const props = (feature?.properties as any) ?? {};
-      const slug = props.slug as string | undefined;
-      const name = props.name as string | undefined;
-      const stateSlug = props.stateSlug as string | undefined;
+    (feature: Feature, layer: L.Layer) => {
+      const props =
+        (feature?.properties as {
+          slug?: string;
+          name?: string;
+          stateSlug?: string;
+          stateName?: string;
+        }) || {};
+      const slug = props.slug;
+      const name = props.name;
+      const stateSlug = props.stateSlug;
+      const stateName = props.stateName;
       const isActive = slug && slug === activeSlug;
       const fillColor = slug && getFillColor ? getFillColor(slug) : undefined;
-      layer.setStyle({ ...(isActive ? highlightStyle : baseStyle), fillColor });
 
-      layer.on({
+      if (slug) {
+        layerRefs.current.set(slug, layer);
+      }
+
+      (layer as L.Path).setStyle({
+        ...(isActive ? highlightStyle : baseStyle),
+        fillColor,
+      });
+
+      (layer as L.Path).on({
         mouseover: () => {
           if (onHover && slug && name) {
             const b = (layer as L.Polygon).getBounds();
-            onHover({ slug, name, stateSlug, bounds: b });
+            onHover({ slug, name, stateSlug, stateName, bounds: b });
           }
           if (!isActive)
-            layer.setStyle({ weight: 2, fillOpacity: 0.3, fillColor });
+            (layer as L.Path).setStyle({
+              weight: 2,
+              fillOpacity: 0.8,
+              fillColor,
+            });
         },
         mouseout: () => {
           if (onHover) onHover(undefined);
-          if (!isActive) layer.setStyle({ ...baseStyle, fillColor });
+          if (!isActive)
+            (layer as L.Path).setStyle({ ...baseStyle, fillColor });
         },
         click: () => {
-          if (slug && onSelect)
-            onSelect(slug, props.stateSlug as string | undefined);
+          if (slug && onSelect) onSelect(slug, stateSlug);
         },
       });
     },
     [activeSlug, onHover, onSelect, getFillColor]
   );
 
-  // Merge features; ensure each feature has properties.slug for interaction
+  // Update styles when activeSlug or getFillColor changes
+  React.useEffect(() => {
+    layerRefs.current.forEach((layer, slug) => {
+      const isActive = slug === activeSlug;
+      const fillColor = getFillColor ? getFillColor(slug) : undefined;
+      (layer as L.Path).setStyle({
+        ...(isActive ? highlightStyle : baseStyle),
+        fillColor,
+      });
+    });
+  }, [activeSlug, getFillColor]);
+
+  // Clear layer refs when items change (e.g., switching states)
+  React.useEffect(() => {
+    const currentSlugs = new Set(items.map((item) => item.slug));
+    layerRefs.current.forEach((_, slug) => {
+      if (!currentSlugs.has(slug)) {
+        layerRefs.current.delete(slug);
+      }
+    });
+  }, [items]);
+
+  // Merge features; ensure each feature has properties with slugs for interaction
   const featureCollection = React.useMemo(() => {
-    const features: any[] = [];
+    const out: Feature[] = [];
     for (const item of items) {
-      if (!item.geojson) continue;
-      const f = item.geojson;
-      if (!f.properties) f.properties = {};
-      (f.properties as any).slug = item.slug;
-      (f.properties as any).name = item.name;
-      (f.properties as any).stateSlug = item.stateSlug;
-      features.push(f);
+      const gj = item.geojson;
+      if (!gj) continue;
+      if ((gj as FeatureCollection).type === "FeatureCollection") {
+        const fc = gj as FeatureCollection;
+        for (const f of fc.features) {
+          const props = (f.properties || {}) as Record<string, unknown>;
+          props.slug = item.slug;
+          props.name = item.name;
+          props.stateSlug = item.stateSlug;
+          props.stateName = item.stateName;
+          f.properties = props as any;
+          out.push(f);
+        }
+      } else if ((gj as Feature).type === "Feature") {
+        const f = gj as Feature;
+        const props = (f.properties || {}) as Record<string, unknown>;
+        props.slug = item.slug;
+        props.name = item.name;
+        props.stateSlug = item.stateSlug;
+        props.stateName = item.stateName;
+        f.properties = props as any;
+        out.push(f);
+      } else {
+        out.push({
+          type: "Feature",
+          geometry: gj as Geometry,
+          properties: {
+            slug: item.slug,
+            name: item.name,
+            stateSlug: item.stateSlug,
+            stateName: item.stateName,
+          },
+        });
+      }
     }
     return {
       type: "FeatureCollection",
-      features,
-    } as any;
+      features: out,
+    } as FeatureCollection;
   }, [items]);
 
   if (!featureCollection.features.length) return null;
 
   return (
-    <GeoJSON data={featureCollection as any} onEachFeature={onEachFeature} />
+    <GeoJSON
+      data={featureCollection}
+      onEachFeature={onEachFeature}
+      style={(feature) => {
+        if (!feature) return { ...baseStyle };
+        const props = (feature.properties as { slug?: string }) || {};
+        const slug = props.slug;
+        const isActive = slug && slug === activeSlug;
+        const fillColor = slug && getFillColor ? getFillColor(slug) : undefined;
+
+        return { ...(isActive ? highlightStyle : baseStyle), fillColor };
+      }}
+    />
   );
 }

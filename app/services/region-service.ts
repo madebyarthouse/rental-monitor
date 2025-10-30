@@ -16,6 +16,8 @@ export type RegionDTO = {
   slug: string;
   geojson?: unknown;
   bounds?: BoundsTuple;
+  centerLat?: number;
+  centerLng?: number;
 };
 
 type Region = typeof regions.$inferSelect;
@@ -29,6 +31,7 @@ export type DistrictWithStateDTO = {
   name: string;
   slug: string;
   stateSlug: string;
+  stateName: string;
   geojson?: unknown;
 };
 
@@ -109,6 +112,8 @@ export class RegionService extends BaseService {
       slug: r.slug,
       geojson: this.parseJsonColumn<unknown>(r.geojson),
       bounds: this.normalizeBounds(r.bounds),
+      centerLat: typeof r.centerLat === "number" ? r.centerLat : undefined,
+      centerLng: typeof r.centerLng === "number" ? r.centerLng : undefined,
     };
   }
 
@@ -247,6 +252,7 @@ export class RegionService extends BaseService {
         state: {
           id: s.id,
           slug: s.slug,
+          name: s.name,
           type: s.type,
         },
       })
@@ -269,6 +275,7 @@ export class RegionService extends BaseService {
         name: row.district.name,
         slug: row.district.slug,
         stateSlug: row.state.slug,
+        stateName: row.state.name,
         geojson: this.parseJsonColumn<unknown>(row.district.geojson),
       });
     }

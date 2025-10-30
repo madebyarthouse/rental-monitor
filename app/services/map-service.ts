@@ -143,13 +143,19 @@ export class MapService extends BaseService {
           r.regionId != null
             ? idToSlug.get(r.regionId) ?? String(r.regionId)
             : "",
-        value: r.value as number | null,
+        value:
+          r.value == null
+            ? null
+            : typeof r.value === "number"
+            ? (r.value as number)
+            : Number(r.value),
       }))
       .filter((v) => v.slug !== "");
 
     const numeric = values
-      .map((v) => v.value)
+      .map((v) => (v.value == null ? null : Number(v.value)))
       .filter((v): v is number => v != null && Number.isFinite(v));
+
     const min = numeric.length ? Math.min(...numeric) : null;
     const max = numeric.length ? Math.max(...numeric) : null;
     const avgVal = numeric.length

@@ -11,6 +11,7 @@
 		"postinstall": "npm run cf-typegen",
 		"preview": "pnpm run build && vite preview",
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
+		"data:generate-regions-json": "bun app/scripts/generate-regions-json.ts > ./app/scripts/data/regions.json",
 		"data:generate-regions": "bun app/scripts/generate-regions.ts > ./app/scripts/data/regions.sql",
 		"data:import-regions:local": "pnpm run data:generate-regions && wrangler d1 execute rental_monitor --file ./app/scripts/data/regions.sql --local",
 		"data:import-regions:remote": "pnpm run data:generate-regions && wrangler d1 execute rental_monitor --file ./app/scripts/data/regions.sql --remote",

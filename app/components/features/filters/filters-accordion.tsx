@@ -97,7 +97,7 @@ export function FiltersAccordion({ className }: { className?: string }) {
   };
 
   const onRemoveChip = (key: keyof ActiveFilters) => {
-    const next = { ...local } as any;
+    const next: ActiveFilters = { ...local };
     if (key === "platforms") next.platforms = [];
     else {
       // If removing limited or unlimited, ensure at least one remains checked
