@@ -112,21 +112,19 @@ export function FiltersAccordion({ className }: { className?: string }) {
         onValueChange={handleAccordionChange}
       >
         <AccordionItem value="filters">
-          <AccordionTrigger>
-            <div className="flex w-full flex-col gap-1">
-              <span className="px-2 pb-1 text-xl font-medium text-muted-foreground">
-                Filter
-              </span>
-              {!open && hasAnyActive && (
-                <FilterChips
-                  className="pt-0.5"
-                  size="md"
-                  filters={parseActiveFilters(location.search)}
-                  onRemove={onRemoveChip}
-                />
-              )}
-            </div>
-          </AccordionTrigger>
+          <div className="sticky top-0 z-30 bg-background px-2">
+            <AccordionTrigger className="px-0 py-2">
+              <span className="text-xl font-medium text-muted-foreground">Filter</span>
+            </AccordionTrigger>
+          </div>
+          {!open && hasAnyActive && (
+            <FilterChips
+              className="px-2 pt-1"
+              size="md"
+              filters={parseActiveFilters(location.search)}
+              onRemove={onRemoveChip}
+            />
+          )}
           <AccordionContent>
             <div className="grid gap-3 px-2">
               <div className="grid grid-cols-1 gap-2">
