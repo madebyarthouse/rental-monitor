@@ -1,4 +1,6 @@
-import { regionBase } from "./data/region-base";
+/// <reference types="node" />
+import fs from "fs";
+import path from "path";
 
 interface RegionData {
   center_lat: number;
@@ -75,7 +77,26 @@ function generateInsertStatements(regions: TransformedRegion[]): string {
 }
 
 // Main execution
-const transformedRegions = transformRegions(regionBase);
+const regionsJsonPath = path.join(
+  process.cwd(),
+  "app",
+  "scripts",
+  "data",
+  "regions.json"
+);
+
+let regions: RegionData[] = [];
+try {
+  const raw = fs.readFileSync(regionsJsonPath, "utf-8");
+  regions = JSON.parse(raw) as RegionData[];
+} catch (e) {
+  console.error(
+    `Failed to read regions JSON at ${regionsJsonPath}. Generate it with: pnpm run data:generate-regions-json`
+  );
+  throw e;
+}
+
+const transformedRegions = transformRegions(regions);
 const sql = generateInsertStatements(transformedRegions);
 
 console.log("-- Region Import SQL");
