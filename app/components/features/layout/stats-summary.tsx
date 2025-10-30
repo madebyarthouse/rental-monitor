@@ -9,6 +9,7 @@ import {
   Timer,
   type LucideIcon,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Stats = {
   total: number;
@@ -77,9 +78,16 @@ export function StatsSummary() {
 
   function renderRow() {
     return (
-      <div className="flex divide-x divide-border overflow-x-auto">
-        {items.map(({ label, value, Icon }) => (
-          <div key={label} className="px-4 py-3 min-w-40">
+      <div className="flex divide-x divide-black overflow-x-auto">
+        <div className="flex-1" />
+        {items.map(({ label, value, Icon }, index) => (
+          <div
+            key={label}
+            className={cn(
+              "px-4 py-3 min-w-40",
+              index === items.length - 1 && "border-r border-black"
+            )}
+          >
             <div className="flex items-center gap-2">
               <Icon className="size-4 text-muted-foreground" aria-hidden />
               <div className="font-semibold text-lg sm:text-xl">{value}</div>
@@ -87,16 +95,17 @@ export function StatsSummary() {
             <div className="text-muted-foreground text-sm">{label}</div>
           </div>
         ))}
+        <div className="flex-1" />
       </div>
     );
   }
 
   return (
-    <div className="border-b border-border bg-background">
+    <div className="border-b border-black bg-background">
       <div className="mx-auto max-w-screen-2xl px-4">
-        <div className="py-2">
+       
           {renderRow()}
-        </div>
+       
       </div>
     </div>
   );

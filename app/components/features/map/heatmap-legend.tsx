@@ -25,7 +25,7 @@ export function HeatmapLegend({
     ];
     return (
       <div className={className}>
-        <div className="rounded border border-border bg-background/95 p-3 backdrop-blur-sm">
+        <div className=" border border-border bg-background/95 p-3 backdrop-blur-sm">
           <div className="text-base font-medium mb-2 text-foreground">
             Legende
           </div>
@@ -36,7 +36,7 @@ export function HeatmapLegend({
                 className="flex items-center gap-2.5 text-sm text-muted-foreground"
               >
                 <div
-                  className="h-4 w-8 rounded-sm border border-border/50 shrink-0"
+                  className="h-4 w-8  border border-border/50 shrink-0"
                   style={{ backgroundColor: scale(r.mid) }}
                 />
                 <span className="font-medium">{r.label}</span>
@@ -60,7 +60,7 @@ export function HeatmapLegend({
     ];
     return (
       <div className={className}>
-        <div className="rounded border border-border bg-background/95 p-3 backdrop-blur-sm">
+        <div className=" border border-border bg-background/95 p-3 backdrop-blur-sm">
           <div className="text-base font-medium mb-2 text-foreground">
             Legende
           </div>
@@ -71,7 +71,7 @@ export function HeatmapLegend({
                 className="flex items-center gap-2.5 text-sm text-muted-foreground"
               >
                 <div
-                  className="h-4 w-8 rounded-sm border border-border/50 shrink-0"
+                  className="h-4 w-8  border border-border/50 shrink-0"
                   style={{ backgroundColor: scale(r.mid) }}
                 />
                 <span className="font-medium">{r.label}</span>
@@ -113,7 +113,7 @@ export function HeatmapLegend({
 
   return (
     <div className={className}>
-      <div className="rounded border border-border bg-background/95 p-3 backdrop-blur-sm">
+      <div className=" border border-border bg-background/95 p-3 backdrop-blur-sm">
         <div className="text-base font-medium mb-2 text-foreground">
           Legende
         </div>
@@ -124,7 +124,7 @@ export function HeatmapLegend({
               className="flex items-center gap-2.5 text-sm text-muted-foreground"
             >
               <div
-                className="h-4 w-8 rounded-sm border border-border/50 shrink-0"
+                className="h-4 w-8 border border-border/50 shrink-0"
                 style={{ backgroundColor: scale(r.mid) }}
               />
               <span className="font-medium">{r.label}</span>

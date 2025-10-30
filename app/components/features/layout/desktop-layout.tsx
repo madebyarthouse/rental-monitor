@@ -47,16 +47,16 @@ export default function DesktopLayout({
 
       <SidebarInset>
         <header className="sticky top-0 z-1000 flex h-16 items-center justify-between border-b border-border bg-background px-4">
-          <div className="text-base md:text-lg font-semibold tracking-tight">
+          <div className="text-xl md:text-2xl font-semibold tracking-tight border-r border-border pr-4 h-full flex items-center">
             {activeTitle}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 h-full">
             <Link
               to={buildFilteredUrl(getTabUrl("map", location.pathname), {
                 target: "map",
               })}
               className={cn(
-                "px-3 py-2 text-sm font-medium transition-colors rounded-md",
+                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center",
                 !isListingsView
                   ? "bg-secondary text-secondary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
@@ -69,7 +69,7 @@ export default function DesktopLayout({
                 target: "listings",
               })}
               className={cn(
-                "px-3 py-2 text-sm font-medium transition-colors rounded-md",
+                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center",
                 isListingsView
                   ? "bg-secondary text-secondary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"

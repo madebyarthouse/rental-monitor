@@ -7,6 +7,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart";
+import { chartColors } from "@/lib/theme-colors";
 
 export function LimitedPie({
   limited,
@@ -39,8 +40,8 @@ export function LimitedPie({
     <ChartContainer
       className={className}
       config={{
-        limited: { label: "Befristet", color: "hsl(var(--chart-2))" },
-        unlimited: { label: "Unbefristet", color: "hsl(var(--chart-3))" },
+        limited: { label: "Befristet", color: chartColors.limited },
+        unlimited: { label: "Unbefristet", color: chartColors.unlimited },
       }}
     >
       <PieChart>

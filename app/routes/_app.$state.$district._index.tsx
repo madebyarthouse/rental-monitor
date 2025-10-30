@@ -133,21 +133,23 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
 export default function DistrictMapView(props: Route.ComponentProps) {
   return (
-    <div className="py-4 px-4 flex flex-col gap-10">
+    <div className="flex flex-col gap-10">
       <ClientOnly>
         {() => (
-          <MapView
-            context="district"
-            state={props.loaderData.state}
-            districts={props.loaderData.districts}
-            activeDistrictSlug={props.loaderData.activeDistrictSlug}
-            heatmap={props.loaderData.heatmap}
-            districtStats={
-              new Map(
-                props.loaderData.groupedStats.map((g) => [g.slug, g.stats])
-              )
-            }
-          />
+          <div className="p-8">
+            <MapView
+              context="district"
+              state={props.loaderData.state}
+              districts={props.loaderData.districts}
+              activeDistrictSlug={props.loaderData.activeDistrictSlug}
+              heatmap={props.loaderData.heatmap}
+              districtStats={
+                new Map(
+                  props.loaderData.groupedStats.map((g) => [g.slug, g.stats])
+                )
+              }
+            />
+          </div>
         )}
       </ClientOnly>
       <MapCharts
