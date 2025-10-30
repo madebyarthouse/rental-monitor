@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, ChevronRight } from "lucide-react";
 import * as React from "react";
 import { useNavigate } from "react-router";
 import { useFilteredUrl } from "@/hooks/use-filtered-url";
@@ -37,10 +37,10 @@ type DistrictPopoverProps = {
   currentStateSlug?: string;
   currentStateName?: string;
   activeDistrictSlug?: string;
-  showButtons?: boolean;
   showCloseButton?: boolean;
   isMobileView?: boolean;
   onClose?: () => void;
+  autoFocusClose?: boolean;
 };
 
 export function DistrictPopover({
@@ -54,10 +54,10 @@ export function DistrictPopover({
   currentStateSlug,
   currentStateName,
   activeDistrictSlug,
-  showButtons,
   showCloseButton,
   isMobileView,
   onClose,
+  autoFocusClose,
 }: DistrictPopoverProps) {
   const navigate = useNavigate();
   const getFilteredUrl = useFilteredUrl();
@@ -77,65 +77,19 @@ export function DistrictPopover({
       ? currentStateSlug
       : undefined;
 
-  // Compute which buttons to show
-  const buttons = React.useMemo(() => {
-    if (!showButtons || !effectiveStateSlug) return [];
-
-    const buttonList: Array<{
-      label: string;
-      onClick: () => void;
-    }> = [];
-
-    // Show state navigation button only in country context
-    if (context === "country" && stateSlug) {
-      buttonList.push({
-        label: `Zu ${displayStateName || stateSlug} navigieren`,
-        onClick: () => {
-          navigate(getFilteredUrl(`/${stateSlug}`, { target: "map" }));
-        },
-      });
-    }
-
-    // Show district navigation button if not already on that district
-    if (
-      slug &&
-      effectiveStateSlug &&
-      !(context === "district" && activeDistrictSlug === slug)
-    ) {
-      buttonList.push({
-        label: `Zu ${name} navigieren`,
-        onClick: () => {
-          navigate(
-            getFilteredUrl(`/${effectiveStateSlug}/${slug}`, {
-              target: "map",
-            })
-          );
-        },
-      });
-    }
-
-    return buttonList;
-  }, [
-    showButtons,
-    effectiveStateSlug,
-    context,
-    stateSlug,
-    displayStateName,
-    slug,
-    name,
-    activeDistrictSlug,
-    navigate,
-    getFilteredUrl,
-  ]);
-
   return (
     <div
-      className={`px-3 py-2.5 text-sm bg-background rounded-md shadow-lg border border-border ${
+      className={`text-sm bg-background rounded-md shadow-lg border border-border ${
         isMobileView ? "w-full" : "w-[300px]"
       } relative`}
     >
       {showCloseButton && (
         <button
+          ref={(el) => {
+            if (autoFocusClose && el) {
+              setTimeout(() => el.focus(), 0);
+            }
+          }}
           onClick={onClose}
           className="absolute right-2 top-2 p-1 rounded-sm hover:bg-accent transition-colors"
           aria-label="Schließen"
@@ -143,16 +97,50 @@ export function DistrictPopover({
           <X className="size-4 text-muted-foreground" />
         </button>
       )}
-      <div className="font-semibold mb-2 text-base text-foreground pr-6">
-        {name}
+      <div className="px-3 pt-2.5">
+        {effectiveStateSlug &&
+        slug &&
+        !(context === "district" && activeDistrictSlug === slug) ? (
+          <button
+            onClick={() => {
+              navigate(
+                getFilteredUrl(`/${effectiveStateSlug}/${slug}`, {
+                  target: "map",
+                })
+              );
+            }}
+            className="flex items-center gap-2 group w-full text-left font-semibold mb-2 text-lg text-foreground pr-6 hover:text-primary transition-colors cursor-pointer"
+          >
+            <span>{name}</span>
+            <ChevronRight className="size-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+          </button>
+        ) : (
+          <div className="font-semibold mb-2 text-base text-foreground pr-6">
+            {name}
+          </div>
+        )}
+        {displayStateName && (
+          <>
+            {context === "country" && stateSlug ? (
+              <button
+                onClick={() => {
+                  navigate(getFilteredUrl(`/${stateSlug}`, { target: "map" }));
+                }}
+                className="flex items-center gap-2 group w-full text-left text-sm text-muted-foreground mb-2 hover:text-primary transition-colors cursor-pointer"
+              >
+                <span>{displayStateName}</span>
+                <ChevronRight className="size-3 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+              </button>
+            ) : (
+              <div className="text-xs text-muted-foreground mb-2">
+                {displayStateName}
+              </div>
+            )}
+          </>
+        )}
       </div>
-      {displayStateName && (
-        <div className="text-xs text-muted-foreground mb-2">
-          {displayStateName}
-        </div>
-      )}
       {stats && (
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 px-3 py-2.5 ">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Inserate gesamt</span>
             <span
@@ -211,19 +199,6 @@ export function DistrictPopover({
             `${Math.round(heatmapValue)}% befristet`}
           {metric === "avgPricePerSqm" && `${Math.round(heatmapValue)} €/m²`}
           {metric === "totalListings" && `${Math.round(heatmapValue)} Inserate`}
-        </div>
-      )}
-      {buttons.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-border flex flex-col gap-2">
-          {buttons.map((button, index) => (
-            <button
-              key={index}
-              onClick={button.onClick}
-              className="w-full px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-md transition-colors text-left"
-            >
-              {button.label}
-            </button>
-          ))}
         </div>
       )}
     </div>

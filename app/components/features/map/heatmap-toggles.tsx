@@ -34,7 +34,7 @@ export function HeatmapToggles({ className }: { className?: string }) {
           type="button"
           onClick={() => setMetric(opt.key)}
           className={cn(
-            "px-2 py-1 rounded-sm",
+            "px-2 py-1 rounded-sm cursor-pointer",
             opt.key === current
               ? "bg-secondary text-secondary-foreground"
               : "text-muted-foreground hover:text-foreground"

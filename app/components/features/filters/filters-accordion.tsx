@@ -77,9 +77,9 @@ export function FiltersAccordion({ className }: { className?: string }) {
   };
 
   const onRemoveChip = (key: keyof ActiveFilters) => {
-    const next = { ...local } as any;
+    const next: ActiveFilters = { ...local };
     if (key === "platforms") next.platforms = [];
-    else next[key] = undefined;
+    else delete (next as Record<string, unknown>)[key as string];
     setLocal(next);
     const sp = new URLSearchParams(location.search);
     sp.delete(String(key));

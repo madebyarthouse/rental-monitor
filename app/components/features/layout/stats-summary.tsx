@@ -23,8 +23,15 @@ export function StatsSummary() {
   const stats = React.useMemo<Stats | null>(() => {
     for (let i = matches.length - 1; i >= 0; i--) {
       const m = matches[i];
-      const s = (m.data as any)?.stats as Stats | undefined;
-      if (s) return s;
+      const data = m.data as unknown;
+      if (
+        data &&
+        typeof data === "object" &&
+        "stats" in (data as Record<string, unknown>)
+      ) {
+        const s = (data as { stats?: Stats }).stats;
+        if (s) return s;
+      }
     }
     return null;
   }, [matches]);

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { MapContainer, useMap, Marker } from "react-leaflet";
 import L from "leaflet";
+import type { Feature, FeatureCollection, Geometry } from "geojson";
 import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router";
 import BoundaryLayer from "./boundary-layer";
@@ -111,6 +112,34 @@ function ChangeView({
   return null;
 }
 
+function MapClickHandler({
+  onMapClick,
+}: {
+  onMapClick: (e: L.LeafletMouseEvent) => void;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    const handleClick = (e: L.LeafletMouseEvent) => {
+      // Check if the click hit a GeoJSON boundary by checking the DOM element
+      // GeoJSON boundaries are rendered as SVG path elements
+      const domTarget = e.originalEvent.target as HTMLElement;
+      const isBoundaryClick = domTarget.tagName === "path";
+
+      // If click is not on a boundary (path element), call the handler
+      if (!isBoundaryClick) {
+        onMapClick(e);
+      }
+    };
+
+    map.on("click", handleClick);
+    return () => {
+      map.off("click", handleClick);
+    };
+  }, [map, onMapClick]);
+
+  return null;
+}
+
 function escapeHtml(input: string): string {
   return input
     .replace(/&/g, "&amp;")
@@ -179,6 +208,7 @@ export default function MapView(props: MapViewProps) {
     stateSlug?: string;
     stateName?: string;
   } | null>(null);
+  const lastClickRef = useRef<{ slug: string; ts: number } | null>(null);
 
   const handleBoundaryHover = (
     info?: {
@@ -216,8 +246,25 @@ export default function MapView(props: MapViewProps) {
     const district = props.districts.find((d) => d.slug === slug);
     if (!district) return;
 
+    const now = Date.now();
+    const prev = lastClickRef.current;
+    const sameAsPrev = prev && prev.slug === slug && now - prev.ts <= 2000;
+
+    if (sameAsPrev) {
+      // Double click: navigate to district route
+      const targetStateSlug =
+        props.context === "country" ? stateSlug : props.state?.slug;
+      if (targetStateSlug) {
+        navigate(
+          getFilteredUrl(`/${targetStateSlug}/${slug}`, { target: "map" })
+        );
+        lastClickRef.current = null;
+        return;
+      }
+    }
+
+    // Single click: lock the popover
     if (isMobile) {
-      // Mobile: lock the popover
       setLockedDistrict({
         slug,
         name: district.name,
@@ -225,23 +272,24 @@ export default function MapView(props: MapViewProps) {
         stateName: district.stateName,
       });
     } else {
-      // Desktop: lock the popover instead of navigating
       setLockedDistrict({
         slug,
         name: district.name,
         stateSlug,
         stateName: district.stateName,
       });
-      // Clear hover when locking
       setHoverRect(null);
     }
+
+    lastClickRef.current = { slug, ts: now };
   };
 
   const activePopup = useMemo(() => {
-    if (!props.activeDistrictSlug) return null;
     if (!(props.context === "state" || props.context === "district"))
       return null;
-    const d = props.districts.find((x) => x.slug === props.activeDistrictSlug);
+    const targetSlug = lockedDistrict?.slug || props.activeDistrictSlug;
+    if (!targetSlug) return null;
+    const d = props.districts.find((x) => x.slug === targetSlug);
     if (!d || !d.geojson) return null;
     try {
       const layer = L.geoJSON(d.geojson as unknown as GeoJSON.GeoJSON);
@@ -254,7 +302,12 @@ export default function MapView(props: MapViewProps) {
     } catch {
       return null;
     }
-  }, [props.activeDistrictSlug, props.context, props.districts]);
+  }, [
+    lockedDistrict?.slug,
+    props.activeDistrictSlug,
+    props.context,
+    props.districts,
+  ]);
 
   const onSelectRegion = (slug: string, stateSlug?: string) => {
     // If we're at state context, navigate to /:state/:district using current state and clicked district
@@ -273,57 +326,115 @@ export default function MapView(props: MapViewProps) {
   const getFillColor = useMemo(() => {
     const h = props.heatmap;
     if (!h) return undefined;
-    let values: Record<string, number | null> | undefined;
-    if ("values" in h) {
-      values = h.values as Record<string, number | null>;
-    } else if ("byRegion" in h && Array.isArray(h.byRegion)) {
-      values = Object.fromEntries(
-        h.byRegion.map((x) => [x.slug, x.value])
-      ) as Record<string, number | null>;
-    }
+
+    const values: Record<string, number | null> | undefined = (() => {
+      if ("values" in h) return h.values as Record<string, number | null>;
+      if ("byRegion" in h && Array.isArray(h.byRegion)) {
+        return Object.fromEntries(
+          h.byRegion.map((x) => [x.slug, x.value])
+        ) as Record<string, number | null>;
+      }
+      return undefined;
+    })();
     if (!values) return undefined;
+
+    // Collect quick stats for debugging
+    if (import.meta.env.DEV) {
+      const numeric = Object.values(values).filter(
+        (v): v is number => v != null && Number.isFinite(v as number)
+      );
+      const minV = numeric.length ? Math.min(...numeric) : null;
+      const maxV = numeric.length ? Math.max(...numeric) : null;
+      const avgV = numeric.length
+        ? numeric.reduce((a, b) => a + b, 0) / numeric.length
+        : null;
+      // eslint-disable-next-line no-console
+      console.debug("[Heatmap] metric=", h.metric, {
+        count: numeric.length,
+        min: minV,
+        max: maxV,
+        avg: avgV,
+      });
+    }
+
+    // One-time per-slug logging to avoid noise
+    const logged = new Set<string>();
 
     if (h.metric === "limitedPercentage") {
       const scale = createColorScale(0, 100);
-      // Discrete five bins with midpoints 10,30,50,70,90
-      return (slug: string) => {
-        const v = values![slug];
+      const mapper = (slug: string) => {
+        const raw = values[slug];
+        const v =
+          raw == null ? null : typeof raw === "number" ? raw : Number(raw);
         if (v == null || !Number.isFinite(v)) return "#B8C1CC";
-        if (v <= 20) return scale(10);
-        if (v <= 40) return scale(30);
-        if (v <= 60) return scale(50);
-        if (v <= 80) return scale(70);
-        return scale(90);
+        let color: string;
+        if (v <= 20) color = scale(10);
+        else if (v <= 40) color = scale(30);
+        else if (v <= 60) color = scale(50);
+        else if (v <= 80) color = scale(70);
+        else color = scale(90);
+        if (import.meta.env.DEV && !logged.has(slug)) {
+          // eslint-disable-next-line no-console
+          console.debug("[Heatmap] fill limitedPercentage", { slug, v, color });
+          logged.add(slug);
+        }
+        return color;
       };
+      return mapper;
     }
+
     if (h.metric === "avgPricePerSqm") {
       // Fixed bins for €/m²: 0-5, 5-10, 10-15, 15-20, 20+
       const scale = createColorScale(0, 20);
-      return (slug: string) => {
-        const v = values![slug];
+      const mapper = (slug: string) => {
+        const raw = values[slug];
+        const v =
+          raw == null ? null : typeof raw === "number" ? raw : Number(raw);
         if (v == null || !Number.isFinite(v)) return "#B8C1CC";
-        if (v <= 5) return scale(2.5);
-        if (v <= 10) return scale(7.5);
-        if (v <= 15) return scale(12.5);
-        if (v <= 20) return scale(17.5);
-        return scale(20);
+        // Determine bin
+        const bin = v <= 5 ? 0 : v <= 10 ? 1 : v <= 15 ? 2 : v <= 20 ? 3 : 4;
+        const midpoints = [2.5, 7.5, 12.5, 17.5, 20];
+        const color = scale(midpoints[bin]);
+        if (import.meta.env.DEV && !logged.has(slug)) {
+          // eslint-disable-next-line no-console
+          console.debug("[Heatmap] fill avgPricePerSqm", {
+            slug,
+            v,
+            bin,
+            color,
+          });
+          logged.add(slug);
+        }
+        return color;
       };
+      return mapper;
     }
-    // For other metrics, use 5 equal steps across the range
+
+    // For other metrics, use 5 equal steps across the dynamic range
     const min = h.range?.min ?? null;
     const max = h.range?.max ?? null;
     if (min == null || max == null) return undefined;
     const scale = createColorScale(min, max);
     const step = (max - min) / 5;
-    return (slug: string) => {
-      const v = values![slug];
+    const mapper = (slug: string) => {
+      const raw = values[slug];
+      const v =
+        raw == null ? null : typeof raw === "number" ? raw : Number(raw);
       if (v == null || !Number.isFinite(v)) return "#B8C1CC";
-      if (v <= min + step * 1) return scale(min + step * 0.5);
-      if (v <= min + step * 2) return scale(min + step * 1.5);
-      if (v <= min + step * 3) return scale(min + step * 2.5);
-      if (v <= min + step * 4) return scale(min + step * 3.5);
-      return scale(min + step * 4.5);
+      let color: string;
+      if (v <= min + step * 1) color = scale(min + step * 0.5);
+      else if (v <= min + step * 2) color = scale(min + step * 1.5);
+      else if (v <= min + step * 3) color = scale(min + step * 2.5);
+      else if (v <= min + step * 4) color = scale(min + step * 3.5);
+      else color = scale(min + step * 4.5);
+      if (import.meta.env.DEV && !logged.has(slug)) {
+        // eslint-disable-next-line no-console
+        console.debug("[Heatmap] fill other", { slug, v, color, min, max });
+        logged.add(slug);
+      }
+      return color;
     };
+    return mapper;
   }, [props.heatmap]);
 
   const getHeatmapValue = (slug: string): number | null => {
@@ -372,8 +483,11 @@ export default function MapView(props: MapViewProps) {
     }
   };
 
-  // Custom popover ref for animation
+  // Custom popover refs and map area
   const [popoverRef, setPopoverRef] = useState<HTMLDivElement | null>(null);
+  const [mobilePopoverRef, setMobilePopoverRef] =
+    useState<HTMLDivElement | null>(null);
+  const [mapAreaRef, setMapAreaRef] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (hoverRect && popoverRef && !isMobile && !lockedDistrict) {
@@ -396,6 +510,51 @@ export default function MapView(props: MapViewProps) {
     [46.0, 9.0],
     [49.0, 17.0],
   ];
+
+  // Close locked popover when clicking outside the map or pressing Escape
+  useEffect(() => {
+    const onMouseDown = (e: MouseEvent) => {
+      if (!lockedDistrict) return;
+      const t = e.target as Node;
+      const insideMap = mapAreaRef ? mapAreaRef.contains(t) : false;
+      const insideDesktopPopover = popoverRef ? popoverRef.contains(t) : false;
+      const insideMobilePopover = mobilePopoverRef
+        ? mobilePopoverRef.contains(t)
+        : false;
+      if (insideDesktopPopover || insideMobilePopover) return;
+      if (insideMap) return;
+      setLockedDistrict(null);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!lockedDistrict) return;
+      if (e.key === "Escape") setLockedDistrict(null);
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [lockedDistrict, mapAreaRef, popoverRef, mobilePopoverRef]);
+
+  // Handle map clicks to close popover when clicking outside boundaries
+  const handleMapClick = useMemo(() => {
+    return (_e: L.LeafletMouseEvent) => {
+      if (!lockedDistrict) return;
+      // This handler is only called when click is NOT on a boundary
+      // (checked in MapClickHandler), so we can safely close the popover
+      setLockedDistrict(null);
+    };
+  }, [lockedDistrict]);
+
+  const toGeoJSON = (
+    g: unknown
+  ): Feature | FeatureCollection | Geometry | undefined => {
+    if (!g || typeof g !== "object") return undefined;
+    const maybeType = (g as { type?: unknown }).type;
+    if (typeof maybeType !== "string") return undefined;
+    return g as Feature | FeatureCollection | Geometry;
+  };
 
   return (
     <div className="w-full relative">
@@ -440,6 +599,7 @@ export default function MapView(props: MapViewProps) {
       <div
         className={`w-full ${isMobile ? "h-[350px]" : "h-[500px]"}`}
         style={{ touchAction: "pan-y" }}
+        ref={setMapAreaRef}
       >
         <MapContainer
           key={props.context === "country" ? "country" : `${props.state.slug}`}
@@ -466,16 +626,17 @@ export default function MapView(props: MapViewProps) {
           )}
           maxBoundsViscosity={1.0}
         >
-          <ChangeView bounds={bounds} dragging={!isMobile} />
+          <ChangeView bounds={bounds} dragging={false} />
+          <MapClickHandler onMapClick={handleMapClick} />
           <BoundaryLayer
             items={props.districts.map((d) => ({
               slug: d.slug,
               name: d.name,
               stateSlug: d.stateSlug,
               stateName: d.stateName,
-              geojson: d.geojson,
+              geojson: toGeoJSON(d.geojson),
             }))}
-            activeSlug={props.activeDistrictSlug}
+            activeSlug={lockedDistrict?.slug ?? props.activeDistrictSlug}
             onSelect={handleBoundaryClick}
             onHover={handleBoundaryHover}
             getFillColor={getFillColor}
@@ -534,8 +695,8 @@ export default function MapView(props: MapViewProps) {
                 : undefined
             }
             activeDistrictSlug={props.activeDistrictSlug}
-            showButtons={true}
             showCloseButton={!!lockedDistrict}
+            autoFocusClose={!!lockedDistrict}
             isMobileView={false}
             onClose={() => setLockedDistrict(null)}
           />
@@ -544,7 +705,10 @@ export default function MapView(props: MapViewProps) {
       {/* Mobile popup overlay */}
       {isMobile && lockedDistrict && (
         <div className="absolute top-[85%] left-0 right-0 pointer-events-none z-800 px-4 pb-[50px]">
-          <div className="pointer-events-auto border border-border rounded-md bg-background shadow-lg w-full sm:w-full">
+          <div
+            ref={setMobilePopoverRef}
+            className="pointer-events-auto border border-border rounded-md bg-background shadow-lg w-full sm:w-full"
+          >
             <DistrictPopover
               slug={lockedDistrict.slug}
               name={lockedDistrict.name}
@@ -564,8 +728,8 @@ export default function MapView(props: MapViewProps) {
                   : undefined
               }
               activeDistrictSlug={props.activeDistrictSlug}
-              showButtons={true}
               showCloseButton={true}
+              autoFocusClose={true}
               isMobileView={true}
               onClose={() => setLockedDistrict(null)}
             />

@@ -37,7 +37,7 @@ export default function DesktopLayout({
     if (!districtSlug) return state.name;
     const dist = statesWithDistricts
       .find((s) => s.state.slug === stateSlug)
-      ?.districts.find((d) => (d as any).slug === districtSlug);
+      ?.districts.find((d) => d.slug === districtSlug);
     return dist ? `${state.name} — ${dist.name}` : state.name;
   }, [location.pathname, statesWithDistricts]);
 
