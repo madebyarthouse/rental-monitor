@@ -108,9 +108,7 @@ export function FiltersAccordion({ className }: { className?: string }) {
         <AccordionItem value="filters">
           <AccordionTrigger>
             <div className="flex w-full flex-col gap-1">
-              <span className="px-2 pb-1 text-xl font-medium text-muted-foreground">
-                Filter
-              </span>
+              <h2 className="px-2 pb-1 text-muted-foreground">Filter</h2>
               {!open && hasAnyActive && (
                 <FilterChips
                   className="pt-0.5"

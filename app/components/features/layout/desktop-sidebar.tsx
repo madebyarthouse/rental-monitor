@@ -42,9 +42,7 @@ export default function DesktopSidebar({
         <div className="p-2">
           <div className="group-data-[state=collapsed]:hidden">
             <FiltersAccordion />
-            <div className="px-2 pb-1 text-xl font-medium text-muted-foreground">
-              Regionen
-            </div>
+            <h3 className="px-2 pb-1 text-muted-foreground">Regionen</h3>
             <div className="px-2">
               <RegionAccordion statesWithDistricts={statesWithDistricts} />
             </div>
