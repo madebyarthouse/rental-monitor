@@ -45,61 +45,80 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     },
     districtIds
   );
-  const [stats, limitedCounts, priceHistogram] = await Promise.all([
-    statisticsService.getStatistics(
-      { level: "state", districtIds },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-    statisticsService.getLimitedCounts(
-      { level: "state", districtIds },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-    statisticsService.getPriceHistogram(
-      { level: "state", districtIds },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-  ]);
+  const [stats, limitedCounts, priceHistogram, groupedStats] =
+    await Promise.all([
+      statisticsService.getStatistics(
+        { level: "state", districtIds },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getLimitedCounts(
+        { level: "state", districtIds },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getPriceHistogram(
+        { level: "state", districtIds },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getGroupedStatistics(
+        { level: "state", districtIds },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        },
+        "district"
+      ),
+    ]);
 
   return {
     state: {
       name: stateData.state.name,
       slug: stateData.state.slug,
       bounds: stateData.state.bounds,
+      centerLat: stateData.state.centerLat,
+      centerLng: stateData.state.centerLng,
     },
     districts: stateData.districts.map((d) => ({
       id: d.id,
       name: d.name,
       slug: d.slug,
       geojson: d.geojson,
+      stateSlug: stateData.state.slug,
+      stateName: stateData.state.name,
     })),
     heatmap,
     stats,
     limitedCounts,
     priceHistogram,
+    groupedStats,
   };
 }
 
@@ -113,12 +132,19 @@ export default function StateMapView(props: Route.ComponentProps) {
             state={props.loaderData.state}
             districts={props.loaderData.districts}
             heatmap={props.loaderData.heatmap}
+            districtStats={
+              new Map(
+                props.loaderData.groupedStats.map((g) => [g.slug, g.stats])
+              )
+            }
           />
         )}
       </ClientOnly>
       <MapCharts
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}
+        groupedStats={props.loaderData.groupedStats}
+        groupLevel="district"
       />
     </div>
   );
