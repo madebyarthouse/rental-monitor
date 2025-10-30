@@ -338,28 +338,6 @@ export default function MapView(props: MapViewProps) {
     })();
     if (!values) return undefined;
 
-    // Collect quick stats for debugging
-    if (import.meta.env.DEV) {
-      const numeric = Object.values(values).filter(
-        (v): v is number => v != null && Number.isFinite(v as number)
-      );
-      const minV = numeric.length ? Math.min(...numeric) : null;
-      const maxV = numeric.length ? Math.max(...numeric) : null;
-      const avgV = numeric.length
-        ? numeric.reduce((a, b) => a + b, 0) / numeric.length
-        : null;
-      // eslint-disable-next-line no-console
-      console.debug("[Heatmap] metric=", h.metric, {
-        count: numeric.length,
-        min: minV,
-        max: maxV,
-        avg: avgV,
-      });
-    }
-
-    // One-time per-slug logging to avoid noise
-    const logged = new Set<string>();
-
     if (h.metric === "limitedPercentage") {
       const scale = createColorScale(0, 100);
       const mapper = (slug: string) => {
@@ -373,11 +351,7 @@ export default function MapView(props: MapViewProps) {
         else if (v <= 60) color = scale(50);
         else if (v <= 80) color = scale(70);
         else color = scale(90);
-        if (import.meta.env.DEV && !logged.has(slug)) {
-          // eslint-disable-next-line no-console
-          console.debug("[Heatmap] fill limitedPercentage", { slug, v, color });
-          logged.add(slug);
-        }
+
         return color;
       };
       return mapper;
@@ -395,16 +369,7 @@ export default function MapView(props: MapViewProps) {
         const bin = v <= 5 ? 0 : v <= 10 ? 1 : v <= 15 ? 2 : v <= 20 ? 3 : 4;
         const midpoints = [2.5, 7.5, 12.5, 17.5, 20];
         const color = scale(midpoints[bin]);
-        if (import.meta.env.DEV && !logged.has(slug)) {
-          // eslint-disable-next-line no-console
-          console.debug("[Heatmap] fill avgPricePerSqm", {
-            slug,
-            v,
-            bin,
-            color,
-          });
-          logged.add(slug);
-        }
+
         return color;
       };
       return mapper;
@@ -427,11 +392,7 @@ export default function MapView(props: MapViewProps) {
       else if (v <= min + step * 3) color = scale(min + step * 2.5);
       else if (v <= min + step * 4) color = scale(min + step * 3.5);
       else color = scale(min + step * 4.5);
-      if (import.meta.env.DEV && !logged.has(slug)) {
-        // eslint-disable-next-line no-console
-        console.debug("[Heatmap] fill other", { slug, v, color, min, max });
-        logged.add(slug);
-      }
+
       return color;
     };
     return mapper;

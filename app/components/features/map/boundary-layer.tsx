@@ -65,15 +65,6 @@ export default function BoundaryLayer({
       const isActive = slug && slug === activeSlug;
       const fillColor = slug && getFillColor ? getFillColor(slug) : undefined;
 
-      if (import.meta.env.DEV && slug) {
-        // eslint-disable-next-line no-console
-        console.debug("[BoundaryLayer] initial style", {
-          slug,
-          isActive,
-          fillColor,
-        });
-      }
-
       if (slug) {
         layerRefs.current.set(slug, layer);
       }
@@ -92,7 +83,7 @@ export default function BoundaryLayer({
           if (!isActive)
             (layer as L.Path).setStyle({
               weight: 2,
-              fillOpacity: 0.6,
+              fillOpacity: 0.8,
               fillColor,
             });
         },
@@ -188,14 +179,7 @@ export default function BoundaryLayer({
         const slug = props.slug;
         const isActive = slug && slug === activeSlug;
         const fillColor = slug && getFillColor ? getFillColor(slug) : undefined;
-        if (import.meta.env.DEV && slug) {
-          // eslint-disable-next-line no-console
-          console.debug("[BoundaryLayer] style()", {
-            slug,
-            isActive,
-            fillColor,
-          });
-        }
+
         return { ...(isActive ? highlightStyle : baseStyle), fillColor };
       }}
     />

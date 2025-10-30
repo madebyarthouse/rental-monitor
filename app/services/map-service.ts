@@ -155,19 +155,7 @@ export class MapService extends BaseService {
     const numeric = values
       .map((v) => (v.value == null ? null : Number(v.value)))
       .filter((v): v is number => v != null && Number.isFinite(v));
-    if (numeric.length === 0 && metric === "avgPricePerSqm") {
-      // Server-side debug to diagnose empty avgPricePerSqm results
-      // eslint-disable-next-line no-console
-      console.debug("[MapService] avgPricePerSqm produced no numeric values", {
-        rows: rows.length,
-        sample: rows.slice(0, 3).map((r) => ({
-          regionId: r.regionId,
-          value: r.value,
-          type: typeof r.value,
-        })),
-        whereApplied: Boolean(whereExpr),
-      });
-    }
+
     const min = numeric.length ? Math.min(...numeric) : null;
     const max = numeric.length ? Math.max(...numeric) : null;
     const avgVal = numeric.length
