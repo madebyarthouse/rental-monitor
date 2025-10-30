@@ -1,0 +1,494 @@
+[
+    {
+        "name": "Wien, 01. Bezirk, Innere Stadt",
+        "state": "Wien",
+        "district": "innere-stadt",
+        "coordinates": [
+            48.2084,
+            16.3719
+        ],
+        "zipCodes": [
+            "1010"
+        ]
+    },
+    {
+        "name": "Wien, 02. Bezirk, Leopoldstadt",
+        "state": "Wien",
+        "district": "leopoldstadt",
+        "coordinates": [
+            48.2188,
+            16.3988
+        ],
+        "zipCodes": [
+            "1020"
+        ]
+    },
+    {
+        "name": "Wien, 03. Bezirk, Landstraße",
+        "state": "Wien",
+        "district": "landstrasse",
+        "coordinates": [
+            48.1951,
+            16.3943
+        ],
+        "zipCodes": [
+            "1030"
+        ]
+    },
+    {
+        "name": "Wien, 04. Bezirk, Wieden",
+        "state": "Wien",
+        "district": "wieden",
+        "coordinates": [
+            48.1957,
+            16.3668
+        ],
+        "zipCodes": [
+            "1040"
+        ]
+    },
+    {
+        "name": "Wien, 05. Bezirk, Margareten",
+        "state": "Wien",
+        "district": "margareten",
+        "coordinates": [
+            48.1857,
+            16.3587
+        ],
+        "zipCodes": [
+            "1050"
+        ]
+    },
+    {
+        "name": "Wien, 06. Bezirk, Mariahilf",
+        "state": "Wien",
+        "district": "mariahilf",
+        "coordinates": [
+            48.1967,
+            16.3533
+        ],
+        "zipCodes": [
+            "1060"
+        ]
+    },
+    {
+        "name": "Wien, 07. Bezirk, Neubau",
+        "state": "Wien",
+        "district": "neubau",
+        "coordinates": [
+            48.2056,
+            16.3514
+        ],
+        "zipCodes": [
+            "1070"
+        ]
+    },
+    {
+        "name": "Wien, 08. Bezirk, Josefstadt",
+        "state": "Wien",
+        "district": "josefstadt",
+        "coordinates": [
+            48.2125,
+            16.3514
+        ],
+        "zipCodes": [
+            "1080"
+        ]
+    },
+    {
+        "name": "Wien, 09. Bezirk, Alsergrund",
+        "state": "Wien",
+        "district": "alsergrund",
+        "coordinates": [
+            48.2222,
+            16.3551
+        ],
+        "zipCodes": [
+            "1090"
+        ]
+    },
+    {
+        "name": "Wien, 10. Bezirk, Favoriten",
+        "state": "Wien",
+        "district": "favoriten",
+        "coordinates": [
+            48.1614,
+            16.3776
+        ],
+        "zipCodes": [
+            "1100"
+        ]
+    },
+    {
+        "name": "Wien, 11. Bezirk, Simmering",
+        "state": "Wien",
+        "district": "simmering",
+        "coordinates": [
+            48.1667,
+            16.4167
+        ],
+        "zipCodes": [
+            "1110"
+        ]
+    },
+    {
+        "name": "Wien, 12. Bezirk, Meidling",
+        "state": "Wien",
+        "district": "meidling",
+        "coordinates": [
+            48.175,
+            16.3333
+        ],
+        "zipCodes": [
+            "1120"
+        ]
+    },
+    {
+        "name": "Wien, 13. Bezirk, Hietzing",
+        "state": "Wien",
+        "district": "hietzing",
+        "coordinates": [
+            48.1833,
+            16.3
+        ],
+        "zipCodes": [
+            "1130"
+        ]
+    },
+    {
+        "name": "Wien, 14. Bezirk, Penzing",
+        "state": "Wien",
+        "district": "penzing",
+        "coordinates": [
+            48.2,
+            16.2833
+        ],
+        "zipCodes": [
+            "1140"
+        ]
+    },
+    {
+        "name": "Wien, 15. Bezirk, Rudolfsheim-Fünfhaus",
+        "state": "Wien",
+        "district": "rudolfsheim-fuenfhaus",
+        "coordinates": [
+            48.2,
+            16.3333
+        ],
+        "zipCodes": [
+            "1150"
+        ]
+    },
+    {
+        "name": "Wien, 16. Bezirk, Ottakring",
+        "state": "Wien",
+        "district": "ottakring",
+        "coordinates": [
+            48.2167,
+            16.3
+        ],
+        "zipCodes": [
+            "1160"
+        ]
+    },
+    {
+        "name": "Wien, 17. Bezirk, Hernals",
+        "state": "Wien",
+        "district": "hernals",
+        "coordinates": [
+            48.2333,
+            16.3167
+        ],
+        "zipCodes": [
+            "1170"
+        ]
+    },
+    {
+        "name": "Wien, 18. Bezirk, Währing",
+        "state": "Wien",
+        "district": "waehring",
+        "coordinates": [
+            48.2333,
+            16.3333
+        ],
+        "zipCodes": [
+            "1180"
+        ]
+    },
+    {
+        "name": "Wien, 19. Bezirk, Döbling",
+        "state": "Wien",
+        "district": "doebling",
+        "coordinates": [
+            48.25,
+            16.35
+        ],
+        "zipCodes": [
+            "1190"
+        ]
+    },
+    {
+        "name": "Wien, 20. Bezirk, Brigittenau",
+        "state": "Wien",
+        "district": "brigittenau",
+        "coordinates": [
+            48.2333,
+            16.3667
+        ],
+        "zipCodes": [
+            "1200"
+        ]
+    },
+    {
+        "name": "Wien, 21. Bezirk, Floridsdorf",
+        "state": "Wien",
+        "district": "floridsdorf",
+        "coordinates": [
+            48.25,
+            16.4
+        ],
+        "zipCodes": [
+            "1210"
+        ]
+    },
+    {
+        "name": "Wien, 22. Bezirk, Donaustadt",
+        "state": "Wien",
+        "district": "donaustadt",
+        "coordinates": [
+            48.2333,
+            16.45
+        ],
+        "zipCodes": [
+            "1220"
+        ]
+    },
+    {
+        "name": "Wien, 23. Bezirk, Liesing",
+        "state": "Wien",
+        "district": "liesing",
+        "coordinates": [
+            48.1333,
+            16.3
+        ],
+        "zipCodes": [
+            "1230"
+        ]
+    },
+    {
+        "name": "Krems an der Donau",
+        "state": "Niederösterreich",
+        "district": "krems-an-der-donau",
+        "coordinates": [
+            48.4104,
+            15.6148
+        ],
+        "zipCodes": [
+            "3500"
+        ]
+    },
+    {
+        "name": "Stockerau",
+        "state": "Niederösterreich",
+        "district": "korneuburg",
+        "coordinates": [
+            48.3833,
+            16.2167
+        ],
+        "zipCodes": [
+            "2000"
+        ]
+    },
+    {
+        "name": "Breitenwaida",
+        "state": "Niederösterreich",
+        "district": "hollabrunn",
+        "coordinates": [
+            48.5,
+            15.9167
+        ],
+        "zipCodes": [
+            "2014"
+        ]
+    },
+    {
+        "name": "Linz",
+        "state": "Oberösterreich",
+        "district": "linz",
+        "coordinates": [
+            48.3069,
+            14.2858
+        ],
+        "zipCodes": [
+            "4020"
+        ]
+    },
+    {
+        "name": "Vöcklabruck",
+        "state": "Oberösterreich",
+        "district": "voecklabruck",
+        "coordinates": [
+            47.9167,
+            13.6583
+        ],
+        "zipCodes": [
+            "4840"
+        ]
+    },
+    {
+        "name": "Regau",
+        "state": "Oberösterreich",
+        "district": "voecklabruck",
+        "coordinates": [
+            47.8833,
+            13.7167
+        ],
+        "zipCodes": [
+            "4844"
+        ]
+    },
+    {
+        "name": "Schalchen",
+        "state": "Oberösterreich",
+        "district": "braunau-am-inn",
+        "coordinates": [
+            48.0833,
+            13.0833
+        ],
+        "zipCodes": [
+            "5231"
+        ]
+    },
+    {
+        "name": "Kirchschlag bei Linz",
+        "state": "Oberösterreich",
+        "district": "urfahr-umgebung",
+        "coordinates": [
+            48.3833,
+            14.1667
+        ],
+        "zipCodes": [
+            "4202"
+        ]
+    },
+    {
+        "name": "Altmünster",
+        "state": "Oberösterreich",
+        "district": "gmunden",
+        "coordinates": [
+            47.9,
+            13.7667
+        ],
+        "zipCodes": [
+            "4813"
+        ]
+    },
+    {
+        "name": "Bergheim",
+        "state": "Salzburg",
+        "district": "salzburg-umgebung",
+        "coordinates": [
+            47.8167,
+            13.0333
+        ],
+        "zipCodes": [
+            "5101"
+        ]
+    },
+    {
+        "name": "Kufstein",
+        "state": "Tirol",
+        "district": "kufstein",
+        "coordinates": [
+            47.5833,
+            12.1667
+        ],
+        "zipCodes": [
+            "6330"
+        ]
+    },
+    {
+        "name": "Münster",
+        "state": "Tirol",
+        "district": "kufstein",
+        "coordinates": [
+            47.4167,
+            12.1
+        ],
+        "zipCodes": [
+            "6232"
+        ]
+    },
+    {
+        "name": "Kitzbühel",
+        "state": "Tirol",
+        "district": "kitzbuehel",
+        "coordinates": [
+            47.4469,
+            12.3925
+        ],
+        "zipCodes": [
+            "6370"
+        ]
+    },
+    {
+        "name": "Villach",
+        "state": "Kärnten",
+        "district": "villach",
+        "coordinates": [
+            46.6111,
+            13.8558
+        ],
+        "zipCodes": [
+            "9500"
+        ]
+    },
+    {
+        "name": "Feldkirchen in Kärnten",
+        "state": "Kärnten",
+        "district": "feldkirchen",
+        "coordinates": [
+            46.7167,
+            14.0833
+        ],
+        "zipCodes": [
+            "9560"
+        ]
+    },
+    {
+        "name": "Graz",
+        "state": "Steiermark",
+        "district": "graz",
+        "coordinates": [
+            47.0667,
+            15.45
+        ],
+        "zipCodes": [
+            "8010"
+        ]
+    },
+    {
+        "name": "Gösting",
+        "state": "Steiermark",
+        "district": "graz",
+        "coordinates": [
+            47.1,
+            15.4167
+        ],
+        "zipCodes": [
+            "8051"
+        ]
+    },
+    {
+        "name": "Södingberg",
+        "state": "Steiermark",
+        "district": "voitsberg",
+        "coordinates": [
+            47.1,
+            15.2
+        ],
+        "zipCodes": [
+            "8152"
+        ]
+    }
+]

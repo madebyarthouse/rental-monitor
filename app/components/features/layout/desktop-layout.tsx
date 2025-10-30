@@ -37,15 +37,16 @@ export default function DesktopLayout({
     if (!districtSlug) return state.name;
     const dist = statesWithDistricts
       .find((s) => s.state.slug === stateSlug)
-      ?.districts.find((d) => (d as any).slug === districtSlug);
+      ?.districts.find((d) => d.slug === districtSlug);
     return dist ? `${state.name} — ${dist.name}` : state.name;
   }, [location.pathname, statesWithDistricts]);
 
   return (
     <SidebarProvider defaultOpen={true}>
       <DesktopSidebar statesWithDistricts={statesWithDistricts} />
+
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background px-4">
+        <header className="sticky top-0 z-1000 flex h-16 items-center justify-between border-b border-border bg-background px-4">
           <div className="text-base md:text-lg font-semibold tracking-tight">
             {activeTitle}
           </div>

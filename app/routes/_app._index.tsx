@@ -25,9 +25,10 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   const statisticsService = new StatisticsService(
     context.cloudflare.env.rental_monitor
   );
-  const [country, districts] = await Promise.all([
+  const [country, districts, states] = await Promise.all([
     regionService.getCountry(),
     regionService.getAllDistrictsWithStateSlug(),
+    regionService.getAllStates(),
   ]);
   if (!country) throw new Response("Not Found", { status: 404 });
   const url = new URL(request.url);
@@ -45,44 +46,71 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       platforms: query.platforms,
     }
   );
-  const [stats, limitedCounts, priceHistogram] = await Promise.all([
-    statisticsService.getStatistics(
-      { level: "country" },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-    statisticsService.getLimitedCounts(
-      { level: "country" },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-    statisticsService.getPriceHistogram(
-      { level: "country" },
-      {
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        minArea: query.minArea,
-        maxArea: query.maxArea,
-        limited: query.limited,
-        unlimited: query.unlimited,
-        platforms: query.platforms,
-      }
-    ),
-  ]);
+  const [stats, limitedCounts, priceHistogram, groupedStats, districtStats] =
+    await Promise.all([
+      statisticsService.getStatistics(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getLimitedCounts(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getPriceHistogram(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getGroupedStatistics(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        },
+        "state"
+      ),
+      statisticsService.getGroupedStatistics(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        },
+        "district"
+      ),
+    ]);
   return {
     country: { name: country.name, slug: country.slug, bounds: country.bounds },
     districts: districts.map((d) => ({
@@ -90,12 +118,16 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       name: d.name,
       slug: d.slug,
       stateSlug: d.stateSlug,
+      stateName: d.stateName,
       geojson: d.geojson,
     })),
+    states: states.map((s) => ({ name: s.name, slug: s.slug })),
     heatmap,
     stats,
     limitedCounts,
     priceHistogram,
+    groupedStats,
+    districtStats,
   };
 }
 
@@ -108,13 +140,21 @@ export default function RootMap(props: Route.ComponentProps) {
             context="country"
             country={props.loaderData.country}
             districts={props.loaderData.districts}
+            states={props.loaderData.states}
             heatmap={props.loaderData.heatmap}
+            districtStats={
+              new Map(
+                props.loaderData.districtStats.map((g) => [g.slug, g.stats])
+              )
+            }
           />
         )}
       </ClientOnly>
       <MapCharts
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}
+        groupedStats={props.loaderData.groupedStats}
+        groupLevel="state"
       />
     </div>
   );
