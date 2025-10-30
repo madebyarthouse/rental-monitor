@@ -87,13 +87,17 @@
   --spacing: 0.27rem;
 }
 
-html,
-body {
-  @apply bg-background;
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+}
+
+body {
+  @apply bg-background;
 }
 
 @theme inline {
@@ -147,6 +151,29 @@ body {
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+
+  /* Typography tokens - mobile first */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px; /* body mobile */
+  --text-xl: 18px;   /* h3 mobile */
+  --text-2xl: 22px;  /* h2 mobile */
+  --text-5xl: 36px;  /* h1 mobile */
+
+  --leading-normal: 1.5; /* body mobile */
+  --leading-snug: 1.36;   /* headings */
+}
+
+/* Desktop typography overrides (md and up) */
+@media (min-width: 768px) {
+  @theme inline {
+    --text-base: 18px; /* body desktop */
+    --leading-normal: 1.4; /* body desktop */
+
+    --text-xl: 20px;  /* h3 desktop */
+    --text-2xl: 28px; /* h2 desktop */
+    --text-5xl: 50px; /* h1 desktop */
+  }
 }
 
 @layer base {
@@ -154,7 +181,18 @@ body {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans text-base leading-normal;
+  }
+
+  /* Automatic heading styles - no classes needed */
+  h1 {
+    @apply text-5xl font-medium leading-snug;
+  }
+  h2 {
+    @apply text-2xl font-medium leading-snug;
+  }
+  h3 {
+    @apply text-xl font-medium leading-snug;
   }
 }
 
