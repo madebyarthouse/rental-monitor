@@ -7,6 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { FilterChips, type ActiveFilters } from "./filter-chips";
 
@@ -40,15 +41,31 @@ function setParams(
 export function FiltersAccordion({ className }: { className?: string }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [open, setOpen] = React.useState(false);
-  const [local, setLocal] = React.useState<ActiveFilters>(() =>
-    parseActiveFilters(location.search)
-  );
+  const [accordionValue, setAccordionValue] = React.useState<string | undefined>(undefined);
+  const [local, setLocal] = React.useState<ActiveFilters>(() => {
+    const parsed = parseActiveFilters(location.search);
+    // Ensure at least one checkbox is always checked
+    if (parsed.limited !== true && parsed.unlimited !== true) {
+      parsed.limited = true;
+    }
+    return parsed;
+  });
 
   React.useEffect(() => {
     // Sync when URL changes externally
-    setLocal(parseActiveFilters(location.search));
+    const parsed = parseActiveFilters(location.search);
+    // Ensure at least one checkbox is always checked
+    if (parsed.limited !== true && parsed.unlimited !== true) {
+      parsed.limited = true;
+    }
+    setLocal(parsed);
   }, [location.search]);
+
+  const handleAccordionChange = React.useCallback((value: string | undefined) => {
+    setAccordionValue(value);
+  }, []);
+
+  const open = accordionValue === "filters";
 
   const apply = () => {
     const sp = new URLSearchParams(location.search);
@@ -62,7 +79,9 @@ export function FiltersAccordion({ className }: { className?: string }) {
   };
 
   const clearAll = () => {
-    const cleared: ActiveFilters = {};
+    const cleared: ActiveFilters = {
+      limited: true, // Ensure at least one checkbox is always checked
+    };
     setLocal(cleared);
     const sp = new URLSearchParams(location.search);
     [
@@ -73,13 +92,25 @@ export function FiltersAccordion({ className }: { className?: string }) {
       "limited",
       "unlimited",
     ].forEach((k) => sp.delete(k));
+    sp.set("limited", "true");
     navigate({ pathname: location.pathname, search: sp.toString() });
   };
 
   const onRemoveChip = (key: keyof ActiveFilters) => {
     const next: ActiveFilters = { ...local };
     if (key === "platforms") next.platforms = [];
-    else delete (next as Record<string, unknown>)[key as string];
+    else {
+      // If removing limited or unlimited, ensure at least one remains checked
+      if (key === "limited" && next.unlimited !== true) {
+        // Don't allow removing the last checked checkbox
+        return;
+      }
+      if (key === "unlimited" && next.limited !== true) {
+        // Don't allow removing the last checked checkbox
+        return;
+      }
+      next[key] = undefined;
+    }
     setLocal(next);
     const sp = new URLSearchParams(location.search);
     sp.delete(String(key));
@@ -93,7 +124,8 @@ export function FiltersAccordion({ className }: { className?: string }) {
       f.maxPrice != null ||
       f.minArea != null ||
       f.maxArea != null ||
-      (f.limited ?? false) !== (f.unlimited ?? false)
+      f.limited === true ||
+      f.unlimited === true
     );
   }, [location.search]);
 
@@ -102,34 +134,31 @@ export function FiltersAccordion({ className }: { className?: string }) {
       <Accordion
         type="single"
         collapsible
-        value={open ? "filters" : undefined}
-        onValueChange={(v) => setOpen(v === "filters")}
+        value={accordionValue}
+        onValueChange={handleAccordionChange}
       >
         <AccordionItem value="filters">
-          <AccordionTrigger>
-            <div className="flex w-full flex-col gap-1">
-              <h2 className="px-2 pb-1 text-muted-foreground">Filter</h2>
-              {!open && hasAnyActive && (
-                <FilterChips
-                  className="pt-0.5"
-                  size="md"
-                  filters={parseActiveFilters(location.search)}
-                  onRemove={onRemoveChip}
-                />
-              )}
-            </div>
-          </AccordionTrigger>
+          <div className="sticky top-0 z-30 bg-background section-header-border">
+            <AccordionTrigger className="px-2 py-2">
+              <span className="text-xl font-medium text-muted-foreground">Filter</span>
+            </AccordionTrigger>
+          </div>
+          {!open && hasAnyActive && (
+            <FilterChips
+              className="px-2 pt-1"
+              size="md"
+              filters={parseActiveFilters(location.search)}
+              onRemove={onRemoveChip}
+            />
+          )}
           <AccordionContent>
             <div className="grid gap-3 px-2">
               <div className="grid grid-cols-1 gap-2">
                 <label className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Min. Preis (€)
-                  </span>
                   <input
                     type="number"
                     inputMode="numeric"
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-9 border-b border-black bg-background px-3 text-sm rounded-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0"
                     value={local.minPrice ?? ""}
                     onChange={(e) =>
                       setLocal((s) => ({
@@ -140,15 +169,15 @@ export function FiltersAccordion({ className }: { className?: string }) {
                       }))
                     }
                   />
+                  <span className="text-xs text-muted-foreground">
+                    Min. Preis (€)
+                  </span>
                 </label>
                 <label className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Max. Preis (€)
-                  </span>
                   <input
                     type="number"
                     inputMode="numeric"
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-9 border-b border-black bg-background px-3 text-sm rounded-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0"
                     value={local.maxPrice ?? ""}
                     onChange={(e) =>
                       setLocal((s) => ({
@@ -159,18 +188,18 @@ export function FiltersAccordion({ className }: { className?: string }) {
                       }))
                     }
                   />
+                  <span className="text-xs text-muted-foreground">
+                    Max. Preis (€)
+                  </span>
                 </label>
               </div>
 
               <div className="grid grid-cols-1 gap-2">
                 <label className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Min. Fläche (m²)
-                  </span>
                   <input
                     type="number"
                     inputMode="numeric"
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-9 border-b border-black bg-background px-3 text-sm rounded-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0"
                     value={local.minArea ?? ""}
                     onChange={(e) =>
                       setLocal((s) => ({
@@ -181,15 +210,15 @@ export function FiltersAccordion({ className }: { className?: string }) {
                       }))
                     }
                   />
+                  <span className="text-xs text-muted-foreground">
+                    Min. Fläche (m²)
+                  </span>
                 </label>
                 <label className="grid gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Max. Fläche (m²)
-                  </span>
                   <input
                     type="number"
                     inputMode="numeric"
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-9 border-b border-black bg-background px-3 text-sm rounded-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0"
                     value={local.maxArea ?? ""}
                     onChange={(e) =>
                       setLocal((s) => ({
@@ -200,35 +229,52 @@ export function FiltersAccordion({ className }: { className?: string }) {
                       }))
                     }
                   />
+                  <span className="text-xs text-muted-foreground">
+                    Max. Fläche (m²)
+                  </span>
                 </label>
               </div>
 
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(local.limited)}
-                    onChange={(e) =>
-                      setLocal((s) => ({
-                        ...s,
-                        limited: e.target.checked || undefined,
-                      }))
+              <div className="flex items-center gap-4" role="group" aria-label="Befristet / Unbefristet">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={local.limited === true}
+                    onCheckedChange={(checked) =>
+                      setLocal((s) => {
+                        // Prevent unchecking if this is the last checked checkbox
+                        if (checked === false && s.unlimited !== true) {
+                          return s;
+                        }
+                        return {
+                          ...s,
+                          limited: checked === true ? true : undefined,
+                        };
+                      })
                     }
+                    className="rounded-full size-[1.2rem]"
+                    iconClassName="size-3"
                   />
-                  Befristet
+                  <span className="text-sm">Befristet</span>
                 </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(local.unlimited)}
-                    onChange={(e) =>
-                      setLocal((s) => ({
-                        ...s,
-                        unlimited: e.target.checked || undefined,
-                      }))
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={local.unlimited === true}
+                    onCheckedChange={(checked) =>
+                      setLocal((s) => {
+                        // Prevent unchecking if this is the last checked checkbox
+                        if (checked === false && s.limited !== true) {
+                          return s;
+                        }
+                        return {
+                          ...s,
+                          unlimited: checked === true ? true : undefined,
+                        };
+                      })
                     }
+                    className="rounded-full size-[1.2rem]"
+                    iconClassName="size-3"
                   />
-                  Unbefristet
+                  <span className="text-sm">Unbefristet</span>
                 </label>
               </div>
 
