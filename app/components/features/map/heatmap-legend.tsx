@@ -25,19 +25,56 @@ export function HeatmapLegend({
     ];
     return (
       <div className={className}>
-        <div className="rounded-md border bg-background p-2 shadow-sm">
-          <div className="text-xs mb-1 text-muted-foreground">Legende</div>
-          <div className="grid gap-1">
+        <div className="rounded border border-border bg-background/95 p-3 backdrop-blur-sm">
+          <div className="text-base font-medium mb-2 text-foreground">
+            Legende
+          </div>
+          <div className="flex flex-row flex-wrap gap-1.5 md:grid md:gap-1.5">
             {ranges.map((r) => (
               <div
                 key={r.label}
-                className="flex items-center gap-2 text-[11px] text-muted-foreground"
+                className="flex items-center gap-2.5 text-sm text-muted-foreground"
               >
                 <div
-                  className="h-2 w-6 rounded"
+                  className="h-4 w-8 rounded-sm border border-border/50 shrink-0"
                   style={{ backgroundColor: scale(r.mid) }}
                 />
-                <span>{r.label}</span>
+                <span className="font-medium">{r.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (metric === "avgPricePerSqm") {
+    // Fixed bins for €/m²: 0–5, 5–10, 10–15, 15–20, 20+
+    const scale = createColorScale(0, 20);
+    const ranges = [
+      { label: "0–5", mid: 2.5 },
+      { label: "5–10", mid: 7.5 },
+      { label: "10–15", mid: 12.5 },
+      { label: "15–20", mid: 17.5 },
+      { label: "20+", mid: 20 },
+    ];
+    return (
+      <div className={className}>
+        <div className="rounded border border-border bg-background/95 p-3 backdrop-blur-sm">
+          <div className="text-base font-medium mb-2 text-foreground">
+            Legende
+          </div>
+          <div className="flex flex-row flex-wrap gap-1.5 md:grid md:gap-1.5">
+            {ranges.map((r) => (
+              <div
+                key={r.label}
+                className="flex items-center gap-2.5 text-sm text-muted-foreground"
+              >
+                <div
+                  className="h-4 w-8 rounded-sm border border-border/50 shrink-0"
+                  style={{ backgroundColor: scale(r.mid) }}
+                />
+                <span className="font-medium">{r.label}</span>
               </div>
             ))}
           </div>
@@ -49,23 +86,48 @@ export function HeatmapLegend({
   if (min == null || max == null) return null;
 
   const scale = createColorScale(min, max);
-  const labels = [0.1, 0.3, 0.5, 0.7, 0.9].map((t) => min + (max - min) * t);
+  // Use same 5-step binning as getFillColor: step = (max - min) / 5
+  const step = (max - min) / 5;
+  const ranges = [
+    {
+      label: `${Math.round(min)}–${Math.round(min + step)}`,
+      mid: min + step * 0.5,
+    },
+    {
+      label: `${Math.round(min + step)}–${Math.round(min + step * 2)}`,
+      mid: min + step * 1.5,
+    },
+    {
+      label: `${Math.round(min + step * 2)}–${Math.round(min + step * 3)}`,
+      mid: min + step * 2.5,
+    },
+    {
+      label: `${Math.round(min + step * 3)}–${Math.round(min + step * 4)}`,
+      mid: min + step * 3.5,
+    },
+    {
+      label: `${Math.round(min + step * 4)}–${Math.round(max)}`,
+      mid: min + step * 4.5,
+    },
+  ];
 
   return (
     <div className={className}>
-      <div className="rounded-md border bg-background p-2 shadow-sm">
-        <div className="text-xs mb-1 text-muted-foreground">Legende</div>
-        <div className="grid gap-1">
-          {[0.1, 0.3, 0.5, 0.7, 0.9].map((t, i) => (
+      <div className="rounded border border-border bg-background/95 p-3 backdrop-blur-sm">
+        <div className="text-base font-medium mb-2 text-foreground">
+          Legende
+        </div>
+        <div className="flex flex-row flex-wrap gap-1.5 md:grid md:gap-1.5">
+          {ranges.map((r, i) => (
             <div
               key={i}
-              className="flex items-center gap-2 text-[11px] text-muted-foreground"
+              className="flex items-center gap-2.5 text-sm text-muted-foreground"
             >
               <div
-                className="h-2 w-6 rounded"
-                style={{ backgroundColor: scale(min + (max - min) * t) }}
+                className="h-4 w-8 rounded-sm border border-border/50 shrink-0"
+                style={{ backgroundColor: scale(r.mid) }}
               />
-              <span>{Math.round(labels[i])}</span>
+              <span className="font-medium">{r.label}</span>
             </div>
           ))}
         </div>

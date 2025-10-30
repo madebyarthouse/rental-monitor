@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +11,6 @@ import { SocialBar } from "./social-bar";
 import { Credits } from "./credits";
 import { Link } from "react-router";
 import { FiltersAccordion } from "../filters/filters-accordion";
-import { Separator } from "@/components/ui/separator";
 
 export default function DesktopSidebar({
   statesWithDistricts,
@@ -20,9 +18,9 @@ export default function DesktopSidebar({
   statesWithDistricts: RegionHierarchy;
 }) {
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="sticky top-0 z-50 bg-background border-b border-sidebar-border h-16">
-        <div className="flex h-full items-center justify-between w-full gap-2 px-2">
+    <Sidebar collapsible="icon" className="group-data-[state=collapsed]:w-16">
+      <SidebarHeader className="sticky top-0 z-50 bg-background border-b border-sidebar-border h-16 group-data-[state=collapsed]:w-16">
+        <div className="flex h-full items-center justify-between w-full  gap-2 px-2">
           <Link
             to="/"
             className="group-data-[state=collapsed]:hidden h-full block py-1"
