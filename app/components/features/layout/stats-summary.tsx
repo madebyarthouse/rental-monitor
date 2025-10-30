@@ -1,5 +1,14 @@
 import * as React from "react";
 import { useMatches } from "react-router";
+import {
+  List,
+  CheckCircle2,
+  Euro,
+  Ruler,
+  Calculator,
+  Timer,
+  type LucideIcon,
+} from "lucide-react";
 
 type Stats = {
   total: number;
@@ -38,22 +47,23 @@ export function StatsSummary() {
 
   if (!stats) return null;
 
-  const items = [
-    { label: "Inserate gesamt", value: formatNumber(stats.total) },
-    { label: "Aktiv", value: formatNumber(stats.activeCount) },
+  const items: Array<{ label: string; value: string; Icon: LucideIcon }> = [
+    { label: "Inserate gesamt", value: formatNumber(stats.total), Icon: List },
+    { label: "Aktiv", value: formatNumber(stats.activeCount), Icon: CheckCircle2 },
     {
       label: "Ø Preis",
       value: `${formatNumber(stats.avgPrice, { maximumFractionDigits: 0 })} €`,
+      Icon: Euro,
     },
     {
       label: "Ø Fläche",
       value: `${formatNumber(stats.avgArea, { maximumFractionDigits: 1 })} m²`,
+      Icon: Ruler,
     },
     {
       label: "Ø €/m²",
-      value: `${formatNumber(stats.avgPricePerSqm, {
-        maximumFractionDigits: 1,
-      })} €/m²`,
+      value: `${formatNumber(stats.avgPricePerSqm, { maximumFractionDigits: 1 })} €/m²`,
+      Icon: Calculator,
     },
     {
       label: "% befristet",
@@ -61,19 +71,31 @@ export function StatsSummary() {
         stats.limitedPct == null
           ? "-"
           : `${formatNumber(stats.limitedPct, { maximumFractionDigits: 1 })}%`,
+      Icon: Timer,
     },
   ];
+
+  function renderRow() {
+    return (
+      <div className="flex divide-x divide-border overflow-x-auto">
+        {items.map(({ label, value, Icon }) => (
+          <div key={label} className="px-4 py-3 min-w-40">
+            <div className="flex items-center gap-2">
+              <Icon className="size-4 text-muted-foreground" aria-hidden />
+              <div className="font-semibold text-lg sm:text-xl">{value}</div>
+            </div>
+            <div className="text-muted-foreground text-sm">{label}</div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="border-b border-border bg-background">
       <div className="mx-auto max-w-screen-2xl px-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 py-2 text-xs">
-          {items.map((it) => (
-            <div key={it.label} className="flex flex-col">
-              <div className="text-muted-foreground">{it.label}</div>
-              <div className="font-medium">{it.value}</div>
-            </div>
-          ))}
+        <div className="py-2">
+          {renderRow()}
         </div>
       </div>
     </div>
