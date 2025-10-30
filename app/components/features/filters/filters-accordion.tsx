@@ -138,8 +138,8 @@ export function FiltersAccordion({ className }: { className?: string }) {
         onValueChange={handleAccordionChange}
       >
         <AccordionItem value="filters">
-          <div className="sticky top-0 z-30 bg-background px-2">
-            <AccordionTrigger className="px-0 py-2">
+          <div className="sticky top-0 z-30 bg-background section-header-border">
+            <AccordionTrigger className="px-2 py-2">
               <span className="text-xl font-medium text-muted-foreground">Filter</span>
             </AccordionTrigger>
           </div>
