@@ -185,3 +185,10 @@ body {
 .scroll-thin-primary::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Map control layering: keep Leaflet controls below app popovers/selects */
+.leaflet-top,
+.leaflet-bottom,
+.leaflet-control {
+  z-index: 400 !important;
+}

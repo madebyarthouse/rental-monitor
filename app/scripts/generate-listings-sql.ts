@@ -1,6 +1,25 @@
+/// <reference types="node" />
 import fs from "fs";
 import path from "path";
-import { regionBase } from "./data/region-base";
+// region base entries are now provided via JSON generated from geojson
+const regionsJsonPath = path.join(
+  process.cwd(),
+  "app",
+  "scripts",
+  "data",
+  "regions.json"
+);
+
+let regionBase: RegionBaseEntry[] = [];
+try {
+  const rawRegions = fs.readFileSync(regionsJsonPath, "utf-8");
+  regionBase = JSON.parse(rawRegions) as RegionBaseEntry[];
+} catch (e) {
+  console.error(
+    `Failed to read regions JSON at ${regionsJsonPath}. Generate it with: pnpm run data:generate-regions-json`
+  );
+  throw e;
+}
 
 type JsonListing = {
   id: string; // scraper-generated id
@@ -111,6 +130,14 @@ type UnmatchedListingRecord = {
   normalizedDistrict: string | null;
 };
 
+// Explicit normalization for certain Willhaben district names
+const DISTRICT_NORMALIZATION: Record<string, string> = {
+  braunauaminn: "braunau",
+  kirchdorfanderkrems: "kirchdorf",
+  riediminnkreis: "ried",
+  graz: "graz-stadt",
+};
+
 function looseNormalize(raw: string | null | undefined): string | null {
   if (!raw) return null;
   let s = raw.toLowerCase();
@@ -144,6 +171,7 @@ function buildRegionIndices() {
   }
 
   const compositeToDistrictSlug = new Map<string, string>();
+  const districtKeyToSlug = new Map<string, string>();
   for (const r of regionBase as RegionBaseEntry[]) {
     if (r.type !== "district") continue;
     const parent = r.parent_id ? idToRegion.get(r.parent_id) : undefined;
@@ -190,9 +218,16 @@ function buildRegionIndices() {
         }
       }
     }
+
+    // State-agnostic district lookup for simplification/fallback
+    for (const dk of districtCandidates) {
+      if (!districtKeyToSlug.has(dk)) {
+        districtKeyToSlug.set(dk, r.slug);
+      }
+    }
   }
 
-  return { stateKeyToSlug, compositeToDistrictSlug };
+  return { stateKeyToSlug, compositeToDistrictSlug, districtKeyToSlug };
 }
 
 function resolveRegionSlugForListing(
@@ -218,12 +253,28 @@ function resolveRegionSlugForListing(
   }
 
   for (const cand of candidates) {
-    const districtKey = looseNormalize(cand);
+    const districtKeyRaw = looseNormalize(cand);
+    let districtKey = districtKeyRaw
+      ? DISTRICT_NORMALIZATION[districtKeyRaw] ?? districtKeyRaw
+      : null;
+    // Re-normalize after mapping to keep keys compatible with indices
+    if (districtKey) districtKey = looseNormalize(districtKey);
     if (!districtKey) continue;
     const slug = indices.compositeToDistrictSlug.get(
       `${stateKey}::${districtKey}`
     );
     if (slug) return slug;
+
+    // Fallback: try state-agnostic district matching if composite failed
+    const byDistrictOnly = indices.districtKeyToSlug.get(districtKey);
+    if (byDistrictOnly) return byDistrictOnly;
+  }
+
+  // Fallback: if no district/city provided, use the state slug
+  const noDistrictOrCity = !location.district && !location.city;
+  if (noDistrictOrCity) {
+    const stateSlug = indices.stateKeyToSlug.get(stateKey);
+    if (stateSlug) return stateSlug;
   }
 
   return null;
@@ -353,7 +404,10 @@ function main(): void {
       indices,
       item.location ?? null
     );
-    if (regionSlug) {
+    // Ignore listings with price > 50k as they are likely invalid
+    const overPriceLimit =
+      typeof item.price === "number" && item.price > 50_000;
+    if (regionSlug && !overPriceLimit) {
       matched.push({ item, regionSlug });
       const platform = item.platform ?? "unknown";
       const platformSellerId = derivePlatformSellerId(item);

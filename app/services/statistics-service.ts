@@ -1,7 +1,8 @@
 import { and, avg, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { BaseService } from "./base";
-import { listings } from "@/db/schema";
+import { listings, regions } from "@/db/schema";
 import type { RegionContext } from "./listings-service";
+import { alias } from "drizzle-orm/sqlite-core";
 
 export type StatisticsFilters = {
   minPrice?: number;
@@ -190,5 +191,158 @@ export class StatisticsService extends BaseService {
     ];
 
     return { buckets, range: { min: r?.min ?? null, max: r?.max ?? null } };
+  }
+
+  async getGroupedStatistics(
+    region: RegionContext,
+    filters: StatisticsFilters,
+    groupLevel: "state" | "district"
+  ): Promise<Array<{ slug: string; name: string; stats: StatisticsSummary }>> {
+    const filterWhere = this.buildFilterWhere(filters);
+
+    const pricePerSqmExpr = sql<number>`CASE WHEN ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`;
+    const limitedExpr = sql<number>`CASE WHEN ${listings.isLimited} THEN 1 ELSE 0 END`;
+
+    const convertAvg = (val: unknown): number | null => {
+      if (val == null) return null;
+      if (typeof val === "number") return Number.isFinite(val) ? val : null;
+      if (typeof val === "string") {
+        const num = Number.parseFloat(val);
+        return Number.isFinite(num) ? num : null;
+      }
+      return null;
+    };
+
+    if (groupLevel === "district") {
+      // Group by district (regionId)
+      const regionWhere = this.buildRegionWhere(region);
+      const whereExpr =
+        regionWhere && filterWhere
+          ? and(regionWhere, filterWhere)
+          : regionWhere || filterWhere;
+
+      const rows = await this.db
+        .select({
+          regionId: listings.regionId,
+          total: count(listings.id),
+          limitedCount: sql<number>`SUM(${limitedExpr})`,
+          activeCount: sql<number>`SUM(CASE WHEN ${listings.isActive} THEN 1 ELSE 0 END)`,
+          avgPrice: avg(listings.price),
+          avgArea: avg(listings.area),
+          avgPricePerSqm: avg(pricePerSqmExpr),
+        })
+        .from(listings)
+        .where(whereExpr as any)
+        .groupBy(listings.regionId);
+
+      // Batch region lookups
+      const ids = rows
+        .map((r) => r.regionId)
+        .filter((x): x is number => x != null);
+
+      const regionRows: Array<{ id: number; slug: string; name: string }> = [];
+      const batchSize = 99;
+      for (let i = 0; i < ids.length; i += batchSize) {
+        const batch = ids.slice(i, i + batchSize);
+        const batchRows = await this.db
+          .select({ id: regions.id, slug: regions.slug, name: regions.name })
+          .from(regions)
+          .where(inArray(regions.id, batch));
+        regionRows.push(...batchRows);
+      }
+
+      const idToRegion = new Map(
+        regionRows.map((r) => [r.id, { slug: r.slug, name: r.name }] as const)
+      );
+
+      return rows
+        .map((r) => {
+          const region = idToRegion.get(r.regionId ?? 0);
+          if (!region) return null;
+          const total = r.total ?? 0;
+          const limitedCount = r.limitedCount ?? 0;
+          const limitedPct =
+            total > 0 ? Math.round((limitedCount / total) * 1000) / 10 : null;
+
+          return {
+            slug: region.slug,
+            name: region.name,
+            stats: {
+              total,
+              limitedCount,
+              limitedPct,
+              activeCount: r.activeCount ?? 0,
+              avgPrice: convertAvg(r.avgPrice),
+              avgArea: convertAvg(r.avgArea),
+              avgPricePerSqm: convertAvg(r.avgPricePerSqm),
+            },
+          };
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null);
+    } else {
+      // Group by state: join listings -> regions (districts) -> regions (states)
+      const state = alias(regions, "state");
+      const district = alias(regions, "district");
+
+      // Build base where clause for region filtering
+      let baseWhere = filterWhere;
+      if (region.level === "district") {
+        baseWhere = baseWhere
+          ? and(baseWhere, eq(listings.regionId, region.districtId))
+          : eq(listings.regionId, region.districtId);
+      } else if (region.level === "state") {
+        if (region.districtIds.length) {
+          baseWhere = baseWhere
+            ? and(baseWhere, inArray(listings.regionId, region.districtIds))
+            : inArray(listings.regionId, region.districtIds);
+        }
+      }
+      // Country level: no region filtering
+
+      const rows = await this.db
+        .select({
+          stateId: state.id,
+          stateSlug: state.slug,
+          stateName: state.name,
+          total: count(listings.id),
+          limitedCount: sql<number>`SUM(${limitedExpr})`,
+          activeCount: sql<number>`SUM(CASE WHEN ${listings.isActive} THEN 1 ELSE 0 END)`,
+          avgPrice: avg(listings.price),
+          avgArea: avg(listings.area),
+          avgPricePerSqm: avg(pricePerSqmExpr),
+        })
+        .from(listings)
+        .innerJoin(district, eq(listings.regionId, district.id))
+        .innerJoin(
+          state,
+          and(
+            eq(state.type, "state"),
+            eq(district.parentId, sql<string>`cast(${state.id} as text)`)
+          )
+        )
+        .where(baseWhere as any)
+        .groupBy(state.id);
+
+      return rows.map((r) => {
+        const total = r.total ?? 0;
+        const limitedCount = r.limitedCount ?? 0;
+        const limitedPct =
+          total > 0 ? Math.round((limitedCount / total) * 1000) / 10 : null;
+
+        return {
+          slug: r.stateSlug ?? "",
+          name: r.stateName ?? "",
+          stats: {
+            total,
+            limitedCount,
+            limitedPct,
+            activeCount: r.activeCount ?? 0,
+            avgPrice: convertAvg(r.avgPrice),
+            avgArea: convertAvg(r.avgArea),
+            avgPricePerSqm: convertAvg(r.avgPricePerSqm),
+          },
+        };
+      });
+    }
   }
 }
