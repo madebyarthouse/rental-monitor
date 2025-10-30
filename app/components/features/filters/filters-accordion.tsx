@@ -7,6 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { FilterChips, type ActiveFilters } from "./filter-chips";
 
@@ -41,13 +42,23 @@ export function FiltersAccordion({ className }: { className?: string }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [accordionValue, setAccordionValue] = React.useState<string | undefined>(undefined);
-  const [local, setLocal] = React.useState<ActiveFilters>(() =>
-    parseActiveFilters(location.search)
-  );
+  const [local, setLocal] = React.useState<ActiveFilters>(() => {
+    const parsed = parseActiveFilters(location.search);
+    // Ensure at least one checkbox is always checked
+    if (parsed.limited !== true && parsed.unlimited !== true) {
+      parsed.limited = true;
+    }
+    return parsed;
+  });
 
   React.useEffect(() => {
     // Sync when URL changes externally
-    setLocal(parseActiveFilters(location.search));
+    const parsed = parseActiveFilters(location.search);
+    // Ensure at least one checkbox is always checked
+    if (parsed.limited !== true && parsed.unlimited !== true) {
+      parsed.limited = true;
+    }
+    setLocal(parsed);
   }, [location.search]);
 
   const handleAccordionChange = React.useCallback((value: string | undefined) => {
@@ -68,7 +79,9 @@ export function FiltersAccordion({ className }: { className?: string }) {
   };
 
   const clearAll = () => {
-    const cleared: ActiveFilters = {};
+    const cleared: ActiveFilters = {
+      limited: true, // Ensure at least one checkbox is always checked
+    };
     setLocal(cleared);
     const sp = new URLSearchParams(location.search);
     [
@@ -79,13 +92,25 @@ export function FiltersAccordion({ className }: { className?: string }) {
       "limited",
       "unlimited",
     ].forEach((k) => sp.delete(k));
+    sp.set("limited", "true");
     navigate({ pathname: location.pathname, search: sp.toString() });
   };
 
   const onRemoveChip = (key: keyof ActiveFilters) => {
     const next = { ...local } as any;
     if (key === "platforms") next.platforms = [];
-    else next[key] = undefined;
+    else {
+      // If removing limited or unlimited, ensure at least one remains checked
+      if (key === "limited" && next.unlimited !== true) {
+        // Don't allow removing the last checked checkbox
+        return;
+      }
+      if (key === "unlimited" && next.limited !== true) {
+        // Don't allow removing the last checked checkbox
+        return;
+      }
+      next[key] = undefined;
+    }
     setLocal(next);
     const sp = new URLSearchParams(location.search);
     sp.delete(String(key));
@@ -99,7 +124,8 @@ export function FiltersAccordion({ className }: { className?: string }) {
       f.maxPrice != null ||
       f.minArea != null ||
       f.maxArea != null ||
-      (f.limited ?? false) !== (f.unlimited ?? false)
+      f.limited === true ||
+      f.unlimited === true
     );
   }, [location.search]);
 
@@ -209,37 +235,47 @@ export function FiltersAccordion({ className }: { className?: string }) {
                 </label>
               </div>
 
-              <div className="flex items-center gap-2" role="group" aria-label="Befristet / Unbefristet">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={local.limited ? "secondary" : "ghost"}
-                  aria-pressed={Boolean(local.limited)}
-                  onClick={() =>
-                    setLocal((s) => ({
-                      ...s,
-                      limited: s.limited ? undefined : true,
-                      unlimited: undefined,
-                    }))
-                  }
-                >
-                  Befristet
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={local.unlimited ? "secondary" : "ghost"}
-                  aria-pressed={Boolean(local.unlimited)}
-                  onClick={() =>
-                    setLocal((s) => ({
-                      ...s,
-                      unlimited: s.unlimited ? undefined : true,
-                      limited: undefined,
-                    }))
-                  }
-                >
-                  Unbefristet
-                </Button>
+              <div className="flex items-center gap-4" role="group" aria-label="Befristet / Unbefristet">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={local.limited === true}
+                    onCheckedChange={(checked) =>
+                      setLocal((s) => {
+                        // Prevent unchecking if this is the last checked checkbox
+                        if (checked === false && s.unlimited !== true) {
+                          return s;
+                        }
+                        return {
+                          ...s,
+                          limited: checked === true ? true : undefined,
+                        };
+                      })
+                    }
+                    className="rounded-full size-[1.2rem]"
+                    iconClassName="size-3"
+                  />
+                  <span className="text-sm">Befristet</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={local.unlimited === true}
+                    onCheckedChange={(checked) =>
+                      setLocal((s) => {
+                        // Prevent unchecking if this is the last checked checkbox
+                        if (checked === false && s.limited !== true) {
+                          return s;
+                        }
+                        return {
+                          ...s,
+                          unlimited: checked === true ? true : undefined,
+                        };
+                      })
+                    }
+                    className="rounded-full size-[1.2rem]"
+                    iconClassName="size-3"
+                  />
+                  <span className="text-sm">Unbefristet</span>
+                </label>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
