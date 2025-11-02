@@ -221,3 +221,51 @@ export const sellerHistoryRelations = relations(sellerHistory, ({ one }) => ({
     references: [sellers.id],
   }),
 }));
+
+// Runs tracking table for scheduled scraper executions
+export const scrapeRuns = sqliteTable(
+  "scrape_runs",
+  {
+    id: integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
+    type: text({
+      enum: ["discovery", "sweep", "verification"],
+    }).notNull(),
+    status: text({
+      enum: ["pending", "running", "success", "error"],
+    })
+      .notNull()
+      .default("pending"),
+
+    // Timing
+    startedAt: integer({ mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
+    finishedAt: integer({ mode: "timestamp" }),
+    durationMs: integer({ mode: "number" }),
+
+    // Error
+    errorMessage: text(),
+
+    // Metrics (nullable when not applicable)
+    overviewPagesVisited: integer({ mode: "number" }),
+    detailPagesFetched: integer({ mode: "number" }),
+    listingsDiscovered: integer({ mode: "number" }),
+    listingsUpdated: integer({ mode: "number" }),
+    listingsVerified: integer({ mode: "number" }),
+    listingsNotFound: integer({ mode: "number" }),
+    priceHistoryInserted: integer({ mode: "number" }),
+    priceChangesDetected: integer({ mode: "number" }),
+    lastOverviewPage: integer({ mode: "number" }),
+
+    // Metadata
+    createdAt: integer({ mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer({ mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => {
+    return [
+      {
+        typeIdx: index("idx_scrape_runs_type").on(table.type),
+        statusIdx: index("idx_scrape_runs_status").on(table.status),
+        startedAtIdx: index("idx_scrape_runs_started_at").on(table.startedAt),
+      },
+    ];
+  }
+);

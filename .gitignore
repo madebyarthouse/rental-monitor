@@ -20,3 +20,4 @@ worker-configuration.d.ts
 !.env.example
 
 old-data
+scraper
