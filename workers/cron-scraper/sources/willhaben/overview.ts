@@ -117,8 +117,15 @@ export function parseOverview(html: string): OverviewItem[] {
 
     const platformSellerId = getAttr(ad, "ORG_UUID");
 
+    const normalizedId = String(ad.id).replace(/[^0-9A-Za-z_\-]/g, "");
+    if (normalizedId !== ad.id) {
+      console.warn(
+        `[willhaben] normalized id mismatch: ${ad.id} -> ${normalizedId}`
+      );
+    }
+
     return {
-      id: ad.id,
+      id: normalizedId,
       url,
       title: ad.description,
       price,
