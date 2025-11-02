@@ -39,7 +39,7 @@ export async function runSweep(
 
   try {
     const rowsPerPage = 90;
-    const maxPages = 250;
+    const maxPages = 50;
     const lastRun = await tracker.getLastRunOfType("sweep");
     let page = computeSweepStartPage(lastRun, new Date());
     console.log(

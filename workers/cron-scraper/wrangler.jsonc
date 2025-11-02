@@ -24,8 +24,8 @@
   "d1_databases": [
     {
       "binding": "rental_monitor",
-      "database_name": "rental-monitor",
-      "database_id": "761dca52-680e-4026-9933-4716cce94260",
+      "database_name": "rental_monitor",
+      "database_id": "e4edfad2-e2b0-4ace-a9d7-0a73dc96fb07",
       "migrations_dir": "../../drizzle"
     }
   ],
