@@ -4,9 +4,9 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "rental-monitor",
+  "name": "rental-monitor-scraper",
   "compatibility_date": "2025-04-04",
-  "main": "./workers/app.ts",
+  "main": "./cron.scraper.ts",
   "compatibility_flags": [
     "nodejs_compat",
     "nodejs_compat_populate_process_env"
@@ -15,23 +15,25 @@
     "VALUE_FROM_CLOUDFLARE": "Hello from Cloudflare"
   },
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "triggers": {
+    "crons": ["*/30 * * * *", "0 */3 * * *", "0 * * * *"]
   },
   "d1_databases": [
     {
       "binding": "rental_monitor",
       "database_name": "rental_monitor",
       "database_id": "e4edfad2-e2b0-4ace-a9d7-0a73dc96fb07",
-      "migrations_dir": "./drizzle"
+      "migrations_dir": "../../drizzle"
     }
   ],
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
    */
-  "placement": {
-    "mode": "smart"
-  }
+  "placement": { "mode": "smart" }
   /**
    * Bindings
    * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including

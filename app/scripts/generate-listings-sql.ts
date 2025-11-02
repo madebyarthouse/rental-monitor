@@ -524,14 +524,14 @@ WHERE NOT EXISTS (
     const urlEscaped = escapeString(item.url);
     const externalId = parseExternalIdFromUrl(item.url);
     const externalIdValue = externalId ? `'${externalId}'` : "NULL";
-    const platformListingIdValue = `'${escapeString(item.id)}'`;
+    const platformListingIdValue = `'${escapeString(externalId ?? item.id)}'`;
 
     const firstSeenAtMs =
       toEpochMs(item.firstSeenAt) ?? toEpochMs(item.scrapedAt) ?? Date.now();
     const lastSeenAtMs =
       toEpochMs(item.lastSeenAt) ?? toEpochMs(item.scrapedAt) ?? Date.now();
     const lastScrapedAtMs = toEpochMs(item.scrapedAt);
-    const isActiveValue = item.active ? 1 : 0;
+    const isActiveValue = false; // item.active ? 1 : 0;
 
     const sql = `INSERT OR IGNORE INTO listings (
   platformListingId, title, price, area, rooms, zipCode, city, district, state, latitude, longitude,
