@@ -21,3 +21,4 @@ worker-configuration.d.ts
 
 old-data
 scraper
+db-dump.sql
