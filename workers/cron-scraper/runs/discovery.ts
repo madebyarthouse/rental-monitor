@@ -4,12 +4,14 @@ import { eq } from "drizzle-orm";
 import { RunTracker } from "../run-tracker";
 import { fetchOverview, parseOverview } from "../sources/willhaben/overview";
 import { fetchDetail, parseDetail } from "../sources/willhaben/detail";
+import { upsertSeller } from "../utils/seller";
 
 export async function runDiscovery(
   db: DrizzleD1Database<typeof import("@/db/schema")>
 ): Promise<void> {
   const tracker = new RunTracker(db);
   const started = await tracker.startRun("discovery");
+  console.log(`[discovery] start`);
   const metrics = {
     overviewPagesVisited: 0,
     detailPagesFetched: 0,
@@ -19,14 +21,16 @@ export async function runDiscovery(
   };
 
   try {
-    const rowsPerPage = 60;
+    const rowsPerPage = 90;
     let page = 1;
     let newFoundOnPage = 0;
-    const maxPages = 20; // safety cap
+    let consecutiveNoNew = 0;
+    const maxPages = 10; // safety cap
 
-    do {
+    while (page <= maxPages && consecutiveNoNew < 3) {
       const html = await fetchOverview(page, rowsPerPage);
       const items = parseOverview(html);
+      console.log(`[discovery] page=${page} items=${items.length}`);
       metrics.overviewPagesVisited++;
       if (items.length === 0) break;
 
@@ -35,31 +39,40 @@ export async function runDiscovery(
         const existing = await db
           .select({ id: listings.id })
           .from(listings)
-          .where(eq(listings.url, item.url))
+          .where(eq(listings.platformListingId, item.id))
           .get();
 
         if (!existing) {
-          const detailHtml = await fetchDetail(item.url);
-          const detail = parseDetail(detailHtml);
-          if (!detail) continue;
-          metrics.detailPagesFetched++;
           const now = new Date();
+
+          // Minimal seller upsert if available from overview
+          const minimalSellerId = item.platformSellerId
+            ? await upsertSeller(db, "willhaben", {
+                platformSellerId: item.platformSellerId,
+              })
+            : null;
+
           await db
             .insert(listings)
             .values({
-              platformListingId: detail.id,
-              title: detail.title,
-              price: detail.price,
-              area: detail.area || null,
-              zipCode: detail.location?.zipCode || null,
-              city: detail.location?.city || null,
-              district: detail.location?.district || null,
-              state: detail.location?.state || null,
-              isLimited: !!detail.duration?.isLimited,
-              durationMonths: detail.duration?.months || null,
-              platform: detail.platform,
-              url: detail.url,
-              externalId: detail.id,
+              platformListingId: item.id,
+              title: item.title,
+              price: item.price ?? 0,
+              area: item.area ?? null,
+              rooms: item.rooms ?? null,
+              zipCode: item.zipCode ?? null,
+              city: item.city ?? null,
+              district: item.district ?? null,
+              state: item.state ?? null,
+              latitude: item.latitude ?? null,
+              longitude: item.longitude ?? null,
+              // Duration populated after detail fetch
+              isLimited: false,
+              durationMonths: null,
+              platform: "willhaben",
+              url: item.url,
+              externalId: item.id,
+              sellerId: minimalSellerId ?? null,
               firstSeenAt: now,
               lastSeenAt: now,
               lastScrapedAt: now,
@@ -69,15 +82,16 @@ export async function runDiscovery(
             .onConflictDoUpdate({
               target: listings.url,
               set: {
-                title: detail.title,
-                price: detail.price,
-                area: detail.area || null,
-                zipCode: detail.location?.zipCode || null,
-                city: detail.location?.city || null,
-                district: detail.location?.district || null,
-                state: detail.location?.state || null,
-                isLimited: !!detail.duration?.isLimited,
-                durationMonths: detail.duration?.months || null,
+                title: item.title,
+                price: item.price ?? 0,
+                area: item.area ?? null,
+                rooms: item.rooms ?? null,
+                zipCode: item.zipCode ?? null,
+                city: item.city ?? null,
+                district: item.district ?? null,
+                state: item.state ?? null,
+                latitude: item.latitude ?? null,
+                longitude: item.longitude ?? null,
                 lastSeenAt: now,
                 lastScrapedAt: now,
                 isActive: true,
@@ -90,18 +104,40 @@ export async function runDiscovery(
           const row = await db
             .select({ id: listings.id })
             .from(listings)
-            .where(eq(listings.url, detail.url))
+            .where(eq(listings.platformListingId, item.id))
             .get();
           if (row?.id) {
             await db
               .insert(priceHistory)
               .values({
                 listingId: row.id,
-                price: detail.price,
+                price: item.price ?? 0,
                 observedAt: now,
               })
               .run();
             metrics.priceHistoryInserted++;
+          }
+
+          // Fetch details only to enrich duration and seller info
+          const detailHtml = await fetchDetail(item.url);
+          const detail = parseDetail(detailHtml);
+          if (detail) {
+            metrics.detailPagesFetched++;
+            const enrichedSellerId = await upsertSeller(
+              db,
+              "willhaben",
+              detail.seller
+            );
+            await db
+              .update(listings)
+              .set({
+                isLimited: !!detail.duration?.isLimited,
+                durationMonths: detail.duration?.months ?? null,
+                sellerId: enrichedSellerId ?? minimalSellerId ?? null,
+                lastScrapedAt: now,
+              })
+              .where(eq(listings.platformListingId, item.id))
+              .run();
           }
 
           metrics.listingsDiscovered++;
@@ -119,10 +155,19 @@ export async function runDiscovery(
       }
 
       await tracker.updateRun(started.id, metrics);
+      console.log(
+        `[discovery] progress: pages=${metrics.overviewPagesVisited} new=${metrics.listingsDiscovered} updated=${metrics.listingsUpdated} details=${metrics.detailPagesFetched}`
+      );
+      if (newFoundOnPage === 0) {
+        consecutiveNoNew++;
+      } else {
+        consecutiveNoNew = 0;
+      }
       page++;
-    } while (newFoundOnPage > 0 && page <= maxPages);
+    }
 
     await tracker.finishRun(started.id, started.startedAt, "success");
+    console.log(`[discovery] done: status=success`);
   } catch (error) {
     await tracker.finishRun(
       started.id,
@@ -130,5 +175,6 @@ export async function runDiscovery(
       "error",
       error instanceof Error ? error.message : String(error)
     );
+    console.log(`[discovery] done: status=error`);
   }
 }

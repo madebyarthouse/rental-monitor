@@ -45,7 +45,9 @@ export class RunTracker {
       .orderBy(desc(scrapeRuns.id))
       .get();
 
-    return { id: created?.id ?? 0, startedAt };
+    const id = created?.id ?? 0;
+    console.log(`[runs] start: id=${id} type=${type} at=${startedAt.toISOString()}`);
+    return { id, startedAt };
   }
 
   async updateRun(id: number, metrics: RunMetrics): Promise<void> {
@@ -71,6 +73,9 @@ export class RunTracker {
       .set({ status, finishedAt, durationMs, errorMessage })
       .where(eq(scrapeRuns.id, id))
       .run();
+    console.log(
+      `[runs] finish: id=${id} status=${status} durationMs=${durationMs}${errorMessage ? ` error=${errorMessage}` : ""}`
+    );
   }
 
   async getLastRunOfType(type: RunType): Promise<{

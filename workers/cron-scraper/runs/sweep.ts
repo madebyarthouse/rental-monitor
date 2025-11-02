@@ -3,7 +3,6 @@ import { listings, priceHistory } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { RunTracker } from "../run-tracker";
 import { fetchOverview, parseOverview } from "../sources/willhaben/overview";
-import { fetchDetail, parseDetail } from "../sources/willhaben/detail";
 
 function computeSweepStartPage(
   lastRun: { startedAt: Date | null; lastOverviewPage: number | null } | null,
@@ -23,102 +22,96 @@ export async function runSweep(
 ): Promise<void> {
   const tracker = new RunTracker(db);
   const started = await tracker.startRun("sweep");
+  console.log(`[sweep] start`);
   const metrics: {
     overviewPagesVisited: number;
     detailPagesFetched: number;
     listingsUpdated: number;
     priceHistoryInserted: number;
+    priceChangesDetected: number;
   } = {
     overviewPagesVisited: 0,
     detailPagesFetched: 0,
     listingsUpdated: 0,
     priceHistoryInserted: 0,
+    priceChangesDetected: 0,
   };
 
   try {
-    const rowsPerPage = 60;
-    const maxPages = 50;
+    const rowsPerPage = 90;
+    const maxPages = 250;
     const lastRun = await tracker.getLastRunOfType("sweep");
     let page = computeSweepStartPage(lastRun, new Date());
+    console.log(
+      `[sweep] computed start page=${page} lastRunPage=${
+        lastRun?.lastOverviewPage ?? "n/a"
+      }`
+    );
 
     while (page <= maxPages) {
       const html = await fetchOverview(page, rowsPerPage);
       const items = parseOverview(html);
       metrics.overviewPagesVisited++;
+      console.log(`[sweep] page=${page} items=${items.length}`);
       if (items.length === 0) break;
 
       for (const item of items) {
         const now = new Date();
-        const detailHtml = await fetchDetail(item.url);
-        const detail = parseDetail(detailHtml);
-        if (!detail) continue;
-        metrics.detailPagesFetched++;
-
-        await db
-          .insert(listings)
-          .values({
-            platformListingId: detail.id,
-            title: detail.title,
-            price: detail.price,
-            area: detail.area || null,
-            zipCode: detail.location?.zipCode || null,
-            city: detail.location?.city || null,
-            district: detail.location?.district || null,
-            state: detail.location?.state || null,
-            isLimited: !!detail.duration?.isLimited,
-            durationMonths: detail.duration?.months || null,
-            platform: detail.platform,
-            url: detail.url,
-            externalId: detail.id,
-            firstSeenAt: now,
-            lastSeenAt: now,
-            lastScrapedAt: now,
-            isActive: true,
-            verificationStatus: "active",
-          })
-          .onConflictDoUpdate({
-            target: listings.url,
-            set: {
-              title: detail.title,
-              price: detail.price,
-              area: detail.area || null,
-              zipCode: detail.location?.zipCode || null,
-              city: detail.location?.city || null,
-              district: detail.location?.district || null,
-              state: detail.location?.state || null,
-              isLimited: !!detail.duration?.isLimited,
-              durationMonths: detail.duration?.months || null,
-              lastSeenAt: now,
-              lastScrapedAt: now,
-              isActive: true,
-            },
-          })
-          .run();
-
         const row = await db
-          .select({ id: listings.id })
+          .select({ id: listings.id, price: listings.price })
           .from(listings)
-          .where(eq(listings.url, detail.url))
+          .where(eq(listings.platformListingId, item.id))
           .get();
-        if (row?.id) {
-          await db
-            .insert(priceHistory)
-            .values({ listingId: row.id, price: detail.price, observedAt: now })
-            .run();
-          metrics.priceHistoryInserted++;
+
+        if (!row?.id) {
+          // Sweep does not create new listings; skip unknown entries
+          continue;
         }
 
-        metrics.listingsUpdated++;
+        const hasPrice =
+          typeof item.price === "number" && Number.isFinite(item.price);
+        const isChange =
+          hasPrice && typeof row.price === "number" && row.price !== item.price;
+        if (hasPrice) {
+          await db
+            .update(listings)
+            .set({
+              lastSeenAt: now,
+              lastScrapedAt: now,
+              price: hasPrice ? item.price : 0,
+              isActive: true,
+            })
+            .where(eq(listings.id, row.id))
+            .run();
+
+          await db
+            .insert(priceHistory)
+            .values({
+              listingId: row.id,
+              price: item.price ?? 0,
+              observedAt: now,
+            })
+            .run();
+          metrics.priceHistoryInserted++;
+          if (isChange) metrics.priceChangesDetected++;
+
+          metrics.listingsUpdated++;
+        }
       }
 
       await tracker.updateRun(started.id, {
         ...metrics,
         lastOverviewPage: page,
       });
+      console.log(
+        `[sweep] progress: pages=${metrics.overviewPagesVisited} priceRows=${metrics.priceHistoryInserted} priceChanges=${metrics.priceChangesDetected} updated=${metrics.listingsUpdated}`
+      );
+
       page++;
     }
 
     await tracker.finishRun(started.id, started.startedAt, "success");
+    console.log(`[sweep] done: status=success`);
   } catch (error) {
     await tracker.finishRun(
       started.id,
@@ -126,5 +119,6 @@ export async function runSweep(
       "error",
       error instanceof Error ? error.message : String(error)
     );
+    console.log(`[sweep] done: status=error`);
   }
 }

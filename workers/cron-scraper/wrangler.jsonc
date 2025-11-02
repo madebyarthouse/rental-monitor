@@ -19,14 +19,14 @@
     "head_sampling_rate": 1
   },
   "triggers": {
-    "crons": ["*/30 * * * *", "0 */3 * * *", "0 */6 * * *"]
+    "crons": ["*/30 * * * *", "0 */3 * * *", "0 * * * *"]
   },
   "d1_databases": [
     {
       "binding": "rental_monitor",
       "database_name": "rental-monitor",
       "database_id": "761dca52-680e-4026-9933-4716cce94260",
-      "migrations_dir": "./drizzle"
+      "migrations_dir": "../../drizzle"
     }
   ],
   /**

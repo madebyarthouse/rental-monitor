@@ -58,6 +58,15 @@ export function parseDetail(html: string): UnifiedRentalListing | null {
   };
   const loc = enhanceLocationData(rawLoc, url);
 
+  // Seller extraction
+  const sellerProfile = details.sellerProfileUserData;
+  const org = details.organisationDetails;
+  const platformSellerId =
+    org?.uuid || (org?.id != null ? String(org.id) : undefined) || sellerProfile?.orgUUID || undefined;
+  const organisationWebsite = org?.organisationDetailLinkList?.contextLink?.find(
+    (l) => l.id === "seller.profile"
+  )?.uri;
+
   return {
     id: details.id,
     title: details.description,
@@ -73,6 +82,19 @@ export function parseDetail(html: string): UnifiedRentalListing | null {
     platform: "willhaben",
     url,
     scrapedAt: new Date().toISOString(),
+    seller: {
+      platformSellerId,
+      name: sellerProfile?.name,
+      isPrivate: sellerProfile?.private,
+      registerDate: sellerProfile?.registerDate,
+      location: sellerProfile?.location,
+      activeAdCount: sellerProfile?.activeAdCount,
+      organisationName: org?.orgName ?? undefined,
+      organisationPhone: org?.orgPhone ?? undefined,
+      organisationEmail: org?.orgEmail ?? undefined,
+      organisationWebsite: organisationWebsite ?? undefined,
+      hasProfileImage: sellerProfile?.hasProfileImage,
+    },
   };
 }
 
