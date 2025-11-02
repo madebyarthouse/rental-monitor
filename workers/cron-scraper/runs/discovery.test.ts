@@ -55,7 +55,11 @@ describe("discovery flow primitives", () => {
             seoMetaData: {
               canonicalUrl: items[0].url,
             },
-            advertAddressDetails: { postCode: "1010", postalName: "Wien", province: "Wien" },
+            advertAddressDetails: {
+              postCode: "1010",
+              postalName: "Wien",
+              province: "Wien",
+            },
           },
         },
       },
@@ -67,5 +71,3 @@ describe("discovery flow primitives", () => {
     expect(listing!.duration?.isLimited).toBeTypeOf("boolean");
   });
 });
-
-
