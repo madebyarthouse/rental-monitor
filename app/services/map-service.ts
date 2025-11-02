@@ -85,10 +85,14 @@ export class MapService extends BaseService {
         : { districtIds: groupIds }),
     } as RegionContext);
     const filterWhere = this.buildFilterWhere(filters);
-    const whereExpr =
+    const activeWhere = eq(listings.isActive, true);
+    const combined =
       regionWhere && filterWhere
         ? and(regionWhere, filterWhere)
         : regionWhere || filterWhere;
+    const whereExpr = combined
+      ? and(combined as any, activeWhere)
+      : (activeWhere as any);
 
     const pricePerSqmExpr = sql<number>`CASE WHEN ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`;
     const limitedExpr = sql<number>`CASE WHEN ${listings.isLimited} THEN 1 ELSE 0 END`;

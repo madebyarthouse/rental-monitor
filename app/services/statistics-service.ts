@@ -74,10 +74,14 @@ export class StatisticsService extends BaseService {
   ): Promise<StatisticsSummary> {
     const regionWhere = this.buildRegionWhere(region);
     const filterWhere = this.buildFilterWhere(filters);
-    const whereExpr =
+    const activeWhere = eq(listings.isActive, true);
+    const combined =
       regionWhere && filterWhere
         ? and(regionWhere, filterWhere)
         : regionWhere || filterWhere;
+    const whereExpr = combined
+      ? and(combined as any, activeWhere)
+      : (activeWhere as any);
 
     const pricePerSqmExpr = sql<number>`CASE WHEN ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`;
     const limitedExpr = sql<number>`CASE WHEN ${listings.isLimited} THEN 1 ELSE 0 END`;
@@ -129,10 +133,14 @@ export class StatisticsService extends BaseService {
   ): Promise<{ limited: number; unlimited: number; total: number }> {
     const regionWhere = this.buildRegionWhere(region);
     const filterWhere = this.buildFilterWhere(filters);
-    const whereExpr =
+    const activeWhere = eq(listings.isActive, true);
+    const combined =
       regionWhere && filterWhere
         ? and(regionWhere, filterWhere)
         : regionWhere || filterWhere;
+    const whereExpr = combined
+      ? and(combined as any, activeWhere)
+      : (activeWhere as any);
 
     const limitedExpr = sql<number>`CASE WHEN ${listings.isLimited} THEN 1 ELSE 0 END`;
     const rows = await this.db
@@ -159,10 +167,14 @@ export class StatisticsService extends BaseService {
   }> {
     const regionWhere = this.buildRegionWhere(region);
     const filterWhere = this.buildFilterWhere(filters);
-    const whereExpr =
+    const activeWhere = eq(listings.isActive, true);
+    const combined =
       regionWhere && filterWhere
         ? and(regionWhere, filterWhere)
         : regionWhere || filterWhere;
+    const whereExpr = combined
+      ? and(combined as any, activeWhere)
+      : (activeWhere as any);
 
     // Fixed buckets (EUR): [0,500), [500,1000), [1000,1500), [1500,2000), [2000,2500), [2500, +inf)
     const row = await this.db
@@ -216,10 +228,14 @@ export class StatisticsService extends BaseService {
     if (groupLevel === "district") {
       // Group by district (regionId)
       const regionWhere = this.buildRegionWhere(region);
-      const whereExpr =
+      const activeWhere = eq(listings.isActive, true);
+      const combined =
         regionWhere && filterWhere
           ? and(regionWhere, filterWhere)
           : regionWhere || filterWhere;
+      const whereExpr = combined
+        ? and(combined as any, activeWhere)
+        : (activeWhere as any);
 
       const rows = await this.db
         .select({
@@ -285,16 +301,19 @@ export class StatisticsService extends BaseService {
       const district = alias(regions, "district");
 
       // Build base where clause for region filtering
-      let baseWhere = filterWhere;
+      const activeWhere = eq(listings.isActive, true);
+      let baseWhere = filterWhere
+        ? and(filterWhere as any, activeWhere)
+        : (activeWhere as any);
       if (region.level === "district") {
         baseWhere = baseWhere
           ? and(baseWhere, eq(listings.regionId, region.districtId))
-          : eq(listings.regionId, region.districtId);
+          : and(eq(listings.regionId, region.districtId), activeWhere);
       } else if (region.level === "state") {
         if (region.districtIds.length) {
           baseWhere = baseWhere
             ? and(baseWhere, inArray(listings.regionId, region.districtIds))
-            : inArray(listings.regionId, region.districtIds);
+            : and(inArray(listings.regionId, region.districtIds), activeWhere);
         }
       }
       // Country level: no region filtering
