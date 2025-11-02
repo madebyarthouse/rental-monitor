@@ -148,10 +148,17 @@ export class ListingsService extends BaseService {
     const regionWhere = this.buildRegionWhere(region);
     const filterWhere = this.buildFilterWhere(filters);
 
-    const whereExpr =
+    // Always restrict to active listings
+    const activeWhere = eq(listings.isActive, true);
+
+    const combinedRegionAndFilter =
       regionWhere && filterWhere
         ? and(regionWhere, filterWhere)
         : regionWhere || filterWhere;
+
+    const whereExpr = combinedRegionAndFilter
+      ? and(combinedRegionAndFilter as any, activeWhere)
+      : (activeWhere as any);
 
     const orderBy = this.buildOrderBy(filters);
     const limit = filters.perPage;

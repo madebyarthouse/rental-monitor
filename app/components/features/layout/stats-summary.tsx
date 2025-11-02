@@ -50,7 +50,6 @@ export function StatsSummary() {
 
   const items: Array<{ label: string; value: string; Icon: LucideIcon }> = [
     { label: "Inserate gesamt", value: formatNumber(stats.total), Icon: List },
-    { label: "Aktiv", value: formatNumber(stats.activeCount), Icon: CheckCircle2 },
     {
       label: "Ø Preis",
       value: `${formatNumber(stats.avgPrice, { maximumFractionDigits: 0 })} €`,
@@ -63,7 +62,9 @@ export function StatsSummary() {
     },
     {
       label: "Ø €/m²",
-      value: `${formatNumber(stats.avgPricePerSqm, { maximumFractionDigits: 1 })} €/m²`,
+      value: `${formatNumber(stats.avgPricePerSqm, {
+        maximumFractionDigits: 1,
+      })} €/m²`,
       Icon: Calculator,
     },
     {
@@ -102,11 +103,7 @@ export function StatsSummary() {
 
   return (
     <div className="border-b border-black bg-background">
-      <div className="mx-auto max-w-screen-2xl px-4">
-       
-          {renderRow()}
-       
-      </div>
+      <div className="mx-auto max-w-screen-2xl px-4">{renderRow()}</div>
     </div>
   );
 }
