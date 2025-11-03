@@ -128,16 +128,23 @@ export class MapService extends BaseService {
       .filter((x): x is number => x != null);
 
     // Batch region lookups to avoid exceeding SQL parameter limits (typically 100 for D1)
-    const regionRows: Array<{ id: number; slug: string }> = [];
     const batchSize = 99;
+    const statements: Array<ReturnType<typeof this.db.select>> = [] as any;
     for (let i = 0; i < ids.length; i += batchSize) {
       const batch = ids.slice(i, i + batchSize);
-      const batchRows = await this.db
-        .select({ id: regions.id, slug: regions.slug })
-        .from(regions)
-        .where(inArray(regions.id, batch));
-      regionRows.push(...batchRows);
+      statements.push(
+        this.db
+          .select({ id: regions.id, slug: regions.slug })
+          .from(regions)
+          .where(inArray(regions.id, batch))
+      );
     }
+    const regionRowsBatches = statements.length
+      ? await this.db.batch(statements)
+      : ([] as Array<Array<{ id: number; slug: string }>>);
+    const regionRows: Array<{ id: number; slug: string }> = (
+      regionRowsBatches as Array<Array<{ id: number; slug: string }>>
+    ).flat();
 
     const idToSlug = new Map(regionRows.map((r) => [r.id, r.slug] as const));
 
