@@ -2,7 +2,11 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listings, priceHistory } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { RunTracker } from "../run-tracker";
-import { fetchOverview, parseOverview } from "../sources/willhaben/overview";
+import {
+  fetchOverview,
+  parseOverview,
+  extractOverviewDebug,
+} from "../sources/willhaben/overview";
 import { fetchDetail, parseDetail } from "../sources/willhaben/detail";
 import { upsertSeller } from "../utils/seller";
 
@@ -20,7 +24,9 @@ function formatD1Error(error: unknown): {
   const causeMessage = e?.cause?.message ? String(e.cause.message) : undefined;
   const stack = e?.stack ? String(e.stack) : undefined;
   const causeStack = e?.cause?.stack ? String(e.cause.stack) : undefined;
-  const combined = causeMessage ? `${name}: ${message} | cause: ${causeMessage}` : `${name}: ${message}`;
+  const combined = causeMessage
+    ? `${name}: ${message} | cause: ${causeMessage}`
+    : `${name}: ${message}`;
   return { name, message, causeMessage, stack, causeStack, combined };
 }
 // Retry wrapper with structured logs for transient D1/SQLite lock/busy errors
@@ -39,9 +45,16 @@ async function runWithRetry<T>(
       lastError = error;
       const { name, message, causeMessage } = formatD1Error(error);
       const matchText = `${message} ${causeMessage ?? ""}`;
-      const shouldRetry = /locked|SQLITE_BUSY|SQLITE_LOCKED|busy|code\s*5|code\s*6|code\s*49/i.test(matchText);
+      const shouldRetry =
+        /locked|SQLITE_BUSY|SQLITE_LOCKED|busy|code\s*5|code\s*6|code\s*49/i.test(
+          matchText
+        );
       console.error(
-        `[retry] op=${opName} attempt=${attempt + 1}/${attempts} willRetry=${shouldRetry} errorName=${name} errorMessage=${message}${causeMessage ? ` cause=${causeMessage}` : ""}${ctx ? ` ctx=${JSON.stringify(ctx)}` : ""}`
+        `[retry] op=${opName} attempt=${
+          attempt + 1
+        }/${attempts} willRetry=${shouldRetry} errorName=${name} errorMessage=${message}${
+          causeMessage ? ` cause=${causeMessage}` : ""
+        }${ctx ? ` ctx=${JSON.stringify(ctx)}` : ""}`
       );
       if (!shouldRetry) throw error;
       const delay = baseDelayMs * (attempt + 1);
@@ -49,7 +62,9 @@ async function runWithRetry<T>(
     }
   }
   console.error(
-    `[retry] op=${opName} exhausted attempts=${attempts}${ctx ? ` ctx=${JSON.stringify(ctx)}` : ""}`
+    `[retry] op=${opName} exhausted attempts=${attempts}${
+      ctx ? ` ctx=${JSON.stringify(ctx)}` : ""
+    }`
   );
   throw lastError;
 }
@@ -79,6 +94,21 @@ export async function runDiscovery(
       const html = await fetchOverview(page, rowsPerPage);
       const items = parseOverview(html);
       console.log(`[discovery] page=${page} items=${items.length}`);
+      if (items.length === 0) {
+        const dbg = extractOverviewDebug(html);
+        console.log(
+          `[discovery] stop: empty items on page=${page} debug hasNextData=${
+            dbg.hasNextData
+          } hasSearchResult=${dbg.hasSearchResult} pageRequested=${
+            dbg.pageRequested ?? "n/a"
+          } rowsRequested=${dbg.rowsRequested ?? "n/a"} rowsFound=${
+            dbg.rowsFound ?? "n/a"
+          } rowsReturned=${dbg.rowsReturned ?? "n/a"} itemsCount=${
+            dbg.itemsCount ?? "n/a"
+          }`
+        );
+        break;
+      }
       metrics.overviewPagesVisited++;
       if (items.length === 0) break;
 
@@ -252,7 +282,9 @@ export async function runDiscovery(
   } catch (error) {
     const errInfo = formatD1Error(error);
     console.error(
-      `[discovery] error name=${errInfo.name} message=${errInfo.message}${errInfo.causeMessage ? ` cause=${errInfo.causeMessage}` : ""}`
+      `[discovery] error name=${errInfo.name} message=${errInfo.message}${
+        errInfo.causeMessage ? ` cause=${errInfo.causeMessage}` : ""
+      }`
     );
     await runWithRetry(
       "scrape_runs.finishRun",

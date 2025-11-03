@@ -1,5 +1,9 @@
 import { fetchHtml } from "../../lib/http";
-import type { WillhabenResultPage, AdvertSummary } from "./types/result-page";
+import type {
+  WillhabenResultPage,
+  AdvertSummary,
+  SearchResult,
+} from "./types/result-page";
 
 export interface OverviewItem {
   id: string;
@@ -141,4 +145,36 @@ export function parseOverview(html: string): OverviewItem[] {
       platformSellerId,
     };
   });
+}
+
+export function extractOverviewDebug(html: string): {
+  hasNextData: boolean;
+  hasSearchResult: boolean;
+  pageRequested?: number;
+  rowsRequested?: number;
+  rowsFound?: number;
+  rowsReturned?: number;
+  itemsCount?: number;
+} {
+  const json = extractJson(html);
+  const hasNextData = !!json;
+  const sr: SearchResult | undefined = json?.props?.pageProps?.searchResult as
+    | SearchResult
+    | undefined;
+  const hasSearchResult = !!sr;
+  const pageRequested = sr?.pageRequested;
+  const rowsRequested = sr?.rowsRequested;
+  const rowsFound = sr?.rowsFound;
+  const rowsReturned = sr?.rowsReturned;
+  const items = sr?.advertSummaryList?.advertSummary;
+  const itemsCount = Array.isArray(items) ? items.length : undefined;
+  return {
+    hasNextData,
+    hasSearchResult,
+    pageRequested,
+    rowsRequested,
+    rowsFound,
+    rowsReturned,
+    itemsCount,
+  };
 }

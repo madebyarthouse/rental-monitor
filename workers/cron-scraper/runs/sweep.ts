@@ -2,7 +2,11 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listings, priceHistory } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { RunTracker } from "../run-tracker";
-import { fetchOverview, parseOverview } from "../sources/willhaben/overview";
+import {
+  fetchOverview,
+  parseOverview,
+  extractOverviewDebug,
+} from "../sources/willhaben/overview";
 
 function formatD1Error(error: unknown): {
   name: string;
@@ -18,7 +22,9 @@ function formatD1Error(error: unknown): {
   const causeMessage = e?.cause?.message ? String(e.cause.message) : undefined;
   const stack = e?.stack ? String(e.stack) : undefined;
   const causeStack = e?.cause?.stack ? String(e.cause.stack) : undefined;
-  const combined = causeMessage ? `${name}: ${message} | cause: ${causeMessage}` : `${name}: ${message}`;
+  const combined = causeMessage
+    ? `${name}: ${message} | cause: ${causeMessage}`
+    : `${name}: ${message}`;
   return { name, message, causeMessage, stack, causeStack, combined };
 }
 
@@ -39,9 +45,13 @@ async function runWithRetry<T>(
       const { name, message, causeMessage } = formatD1Error(error);
       const matchText = `${message} ${causeMessage ?? ""}`;
       const shouldRetry =
-        /locked|SQLITE_BUSY|SQLITE_LOCKED|busy|code\s*5|code\s*6|code\s*49/i.test(matchText);
+        /locked|SQLITE_BUSY|SQLITE_LOCKED|busy|code\s*5|code\s*6|code\s*49/i.test(
+          matchText
+        );
       console.error(
-        `[retry] op=${opName} attempt=${attempt + 1}/${attempts} willRetry=${shouldRetry} errorName=${name} errorMessage=${message}${
+        `[retry] op=${opName} attempt=${
+          attempt + 1
+        }/${attempts} willRetry=${shouldRetry} errorName=${name} errorMessage=${message}${
           causeMessage ? ` cause=${causeMessage}` : ""
         }${ctx ? ` ctx=${JSON.stringify(ctx)}` : ""}`
       );
@@ -107,7 +117,21 @@ export async function runSweep(
       const items = parseOverview(html);
       metrics.overviewPagesVisited++;
       console.log(`[sweep] page=${page} items=${items.length}`);
-      if (items.length === 0) break;
+      if (items.length === 0) {
+        const dbg = extractOverviewDebug(html);
+        console.log(
+          `[sweep] stop: empty items on page=${page} debug hasNextData=${
+            dbg.hasNextData
+          } hasSearchResult=${dbg.hasSearchResult} pageRequested=${
+            dbg.pageRequested ?? "n/a"
+          } rowsRequested=${dbg.rowsRequested ?? "n/a"} rowsFound=${
+            dbg.rowsFound ?? "n/a"
+          } rowsReturned=${dbg.rowsReturned ?? "n/a"} itemsCount=${
+            dbg.itemsCount ?? "n/a"
+          }`
+        );
+        break;
+      }
 
       for (const item of items) {
         const now = new Date();
@@ -188,7 +212,9 @@ export async function runSweep(
   } catch (error) {
     const errInfo = formatD1Error(error);
     console.error(
-      `[sweep] error name=${errInfo.name} message=${errInfo.message}${errInfo.causeMessage ? ` cause=${errInfo.causeMessage}` : ""}`
+      `[sweep] error name=${errInfo.name} message=${errInfo.message}${
+        errInfo.causeMessage ? ` cause=${errInfo.causeMessage}` : ""
+      }`
     );
     await runWithRetry(
       "scrape_runs.finishRun",
