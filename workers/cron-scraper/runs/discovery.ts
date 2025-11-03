@@ -6,6 +6,23 @@ import { fetchOverview, parseOverview } from "../sources/willhaben/overview";
 import { fetchDetail, parseDetail } from "../sources/willhaben/detail";
 import { upsertSeller } from "../utils/seller";
 
+function formatD1Error(error: unknown): {
+  name: string;
+  message: string;
+  causeMessage?: string;
+  stack?: string;
+  causeStack?: string;
+  combined: string;
+} {
+  const e = error as any;
+  const name = e?.name ?? "Error";
+  const message = e?.message ? String(e.message) : String(e);
+  const causeMessage = e?.cause?.message ? String(e.cause.message) : undefined;
+  const stack = e?.stack ? String(e.stack) : undefined;
+  const causeStack = e?.cause?.stack ? String(e.cause.stack) : undefined;
+  const combined = causeMessage ? `${name}: ${message} | cause: ${causeMessage}` : `${name}: ${message}`;
+  return { name, message, causeMessage, stack, causeStack, combined };
+}
 // Retry wrapper with structured logs for transient D1/SQLite lock/busy errors
 async function runWithRetry<T>(
   opName: string,
@@ -20,27 +37,19 @@ async function runWithRetry<T>(
       return await fn();
     } catch (error) {
       lastError = error;
-      const message = error instanceof Error ? error.message : String(error);
-      const shouldRetry =
-        /locked|SQLITE_BUSY|SQLITE_LOCKED|busy|code\s*5|code\s*6|code\s*49/i.test(
-          message
-        );
-      console.log(
-        `[retry] op=${opName} attempt=${
-          attempt + 1
-        }/${attempts} willRetry=${shouldRetry} error=${message}${
-          ctx ? ` ctx=${JSON.stringify(ctx)}` : ""
-        }`
+      const { name, message, causeMessage } = formatD1Error(error);
+      const matchText = `${message} ${causeMessage ?? ""}`;
+      const shouldRetry = /locked|SQLITE_BUSY|SQLITE_LOCKED|busy|code\s*5|code\s*6|code\s*49/i.test(matchText);
+      console.error(
+        `[retry] op=${opName} attempt=${attempt + 1}/${attempts} willRetry=${shouldRetry} errorName=${name} errorMessage=${message}${causeMessage ? ` cause=${causeMessage}` : ""}${ctx ? ` ctx=${JSON.stringify(ctx)}` : ""}`
       );
       if (!shouldRetry) throw error;
       const delay = baseDelayMs * (attempt + 1);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
-  console.log(
-    `[retry] op=${opName} exhausted attempts=${attempts}${
-      ctx ? ` ctx=${JSON.stringify(ctx)}` : ""
-    }`
+  console.error(
+    `[retry] op=${opName} exhausted attempts=${attempts}${ctx ? ` ctx=${JSON.stringify(ctx)}` : ""}`
   );
   throw lastError;
 }
@@ -241,6 +250,10 @@ export async function runDiscovery(
     );
     console.log(`[discovery] done: status=success`);
   } catch (error) {
+    const errInfo = formatD1Error(error);
+    console.error(
+      `[discovery] error name=${errInfo.name} message=${errInfo.message}${errInfo.causeMessage ? ` cause=${errInfo.causeMessage}` : ""}`
+    );
     await runWithRetry(
       "scrape_runs.finishRun",
       { runId: started.id, status: "error" },
@@ -249,7 +262,7 @@ export async function runDiscovery(
           started.id,
           started.startedAt,
           "error",
-          error instanceof Error ? error.message : String(error)
+          errInfo.combined
         )
     );
     console.log(`[discovery] done: status=error`);

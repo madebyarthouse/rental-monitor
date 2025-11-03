@@ -22,6 +22,13 @@
       "when": 1762095907458,
       "tag": "0002_lumpy_epoch",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1762179294060,
+      "tag": "0003_clean_human_fly",
+      "breakpoints": true
     }
   ]
 }

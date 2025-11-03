@@ -164,7 +164,7 @@ export class ListingsService extends BaseService {
     const limit = filters.perPage;
     const offset = (filters.page - 1) * filters.perPage;
 
-    const rows = await this.db
+    const rowsQuery = this.db
       .select({
         id: listings.id,
         title: listings.title,
@@ -183,13 +183,15 @@ export class ListingsService extends BaseService {
       .limit(limit)
       .offset(offset);
 
-    const totalRow = await this.db
+    const totalQuery = this.db
       .select({ total: count(listings.id).as("c") })
       .from(listings)
       .where(whereExpr as any)
       .limit(1);
 
-    const total = totalRow[0]?.total ?? 0;
+    const [rows, totalRow] = await this.db.batch([rowsQuery, totalQuery]);
+
+    const total = (totalRow[0]?.total as number | undefined) ?? 0;
     const totalPages = Math.max(1, Math.ceil(total / filters.perPage));
 
     function toDate(value: unknown): Date {

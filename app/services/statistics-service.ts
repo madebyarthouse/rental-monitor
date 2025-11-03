@@ -256,16 +256,25 @@ export class StatisticsService extends BaseService {
         .map((r) => r.regionId)
         .filter((x): x is number => x != null);
 
-      const regionRows: Array<{ id: number; slug: string; name: string }> = [];
       const batchSize = 99;
+      const statements: Array<ReturnType<typeof this.db.select>> = [] as any;
       for (let i = 0; i < ids.length; i += batchSize) {
         const batch = ids.slice(i, i + batchSize);
-        const batchRows = await this.db
-          .select({ id: regions.id, slug: regions.slug, name: regions.name })
-          .from(regions)
-          .where(inArray(regions.id, batch));
-        regionRows.push(...batchRows);
+        statements.push(
+          this.db
+            .select({ id: regions.id, slug: regions.slug, name: regions.name })
+            .from(regions)
+            .where(inArray(regions.id, batch))
+        );
       }
+      const regionRowsBatches = statements.length
+        ? await this.db.batch(statements)
+        : ([] as Array<Array<{ id: number; slug: string; name: string }>>);
+      const regionRows: Array<{ id: number; slug: string; name: string }> = (
+        regionRowsBatches as Array<
+          Array<{ id: number; slug: string; name: string }>
+        >
+      ).flat();
 
       const idToRegion = new Map(
         regionRows.map((r) => [r.id, { slug: r.slug, name: r.name }] as const)
