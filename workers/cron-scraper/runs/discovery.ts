@@ -6,6 +6,45 @@ import { fetchOverview, parseOverview } from "../sources/willhaben/overview";
 import { fetchDetail, parseDetail } from "../sources/willhaben/detail";
 import { upsertSeller } from "../utils/seller";
 
+// Retry wrapper with structured logs for transient D1/SQLite lock/busy errors
+async function runWithRetry<T>(
+  opName: string,
+  ctx: Record<string, unknown> | undefined,
+  fn: () => Promise<T>,
+  attempts = 3,
+  baseDelayMs = 100
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      const shouldRetry =
+        /locked|SQLITE_BUSY|SQLITE_LOCKED|busy|code\s*5|code\s*6|code\s*49/i.test(
+          message
+        );
+      console.log(
+        `[retry] op=${opName} attempt=${
+          attempt + 1
+        }/${attempts} willRetry=${shouldRetry} error=${message}${
+          ctx ? ` ctx=${JSON.stringify(ctx)}` : ""
+        }`
+      );
+      if (!shouldRetry) throw error;
+      const delay = baseDelayMs * (attempt + 1);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  console.log(
+    `[retry] op=${opName} exhausted attempts=${attempts}${
+      ctx ? ` ctx=${JSON.stringify(ctx)}` : ""
+    }`
+  );
+  throw lastError;
+}
+
 export async function runDiscovery(
   db: DrizzleD1Database<typeof import("@/db/schema")>
 ): Promise<void> {
@@ -52,53 +91,58 @@ export async function runDiscovery(
               })
             : null;
 
-          await db
-            .insert(listings)
-            .values({
-              platformListingId: item.id,
-              title: item.title,
-              price: item.price ?? 0,
-              area: item.area ?? null,
-              rooms: item.rooms ?? null,
-              zipCode: item.zipCode ?? null,
-              city: item.city ?? null,
-              district: item.district ?? null,
-              state: item.state ?? null,
-              latitude: item.latitude ?? null,
-              longitude: item.longitude ?? null,
-              // Duration populated after detail fetch
-              isLimited: false,
-              durationMonths: null,
-              platform: "willhaben",
-              url: item.url,
-              externalId: item.id,
-              sellerId: minimalSellerId ?? null,
-              firstSeenAt: now,
-              lastSeenAt: now,
-              lastScrapedAt: now,
-              isActive: true,
-              verificationStatus: "active",
-            })
-            .onConflictDoUpdate({
-              target: listings.url,
-              set: {
-                title: item.title,
-                price: item.price ?? 0,
-                area: item.area ?? null,
-                rooms: item.rooms ?? null,
-                zipCode: item.zipCode ?? null,
-                city: item.city ?? null,
-                district: item.district ?? null,
-                state: item.state ?? null,
-                latitude: item.latitude ?? null,
-                longitude: item.longitude ?? null,
-                lastSeenAt: now,
-                lastScrapedAt: now,
-                isActive: true,
-                verificationStatus: "active",
-              },
-            })
-            .run();
+          await runWithRetry(
+            "listings.upsert",
+            { platformListingId: item.id, url: item.url },
+            () =>
+              db
+                .insert(listings)
+                .values({
+                  platformListingId: item.id,
+                  title: item.title,
+                  price: item.price ?? 0,
+                  area: item.area ?? null,
+                  rooms: item.rooms ?? null,
+                  zipCode: item.zipCode ?? null,
+                  city: item.city ?? null,
+                  district: item.district ?? null,
+                  state: item.state ?? null,
+                  latitude: item.latitude ?? null,
+                  longitude: item.longitude ?? null,
+                  // Duration populated after detail fetch
+                  isLimited: false,
+                  durationMonths: null,
+                  platform: "willhaben",
+                  url: item.url,
+                  externalId: item.id,
+                  sellerId: minimalSellerId ?? null,
+                  firstSeenAt: now,
+                  lastSeenAt: now,
+                  lastScrapedAt: now,
+                  isActive: true,
+                  verificationStatus: "active",
+                })
+                .onConflictDoUpdate({
+                  target: listings.url,
+                  set: {
+                    title: item.title,
+                    price: item.price ?? 0,
+                    area: item.area ?? null,
+                    rooms: item.rooms ?? null,
+                    zipCode: item.zipCode ?? null,
+                    city: item.city ?? null,
+                    district: item.district ?? null,
+                    state: item.state ?? null,
+                    latitude: item.latitude ?? null,
+                    longitude: item.longitude ?? null,
+                    lastSeenAt: now,
+                    lastScrapedAt: now,
+                    isActive: true,
+                    verificationStatus: "active",
+                  },
+                })
+                .run()
+          );
 
           // Fetch listing id to insert price history
           const row = await db
@@ -107,14 +151,19 @@ export async function runDiscovery(
             .where(eq(listings.platformListingId, item.id))
             .get();
           if (row?.id) {
-            await db
-              .insert(priceHistory)
-              .values({
-                listingId: row.id,
-                price: item.price ?? 0,
-                observedAt: now,
-              })
-              .run();
+            await runWithRetry(
+              "price_history.insert",
+              { listingId: row.id, price: item.price ?? 0 },
+              () =>
+                db
+                  .insert(priceHistory)
+                  .values({
+                    listingId: row.id,
+                    price: item.price ?? 0,
+                    observedAt: now,
+                  })
+                  .run()
+            );
             metrics.priceHistoryInserted++;
           }
 
@@ -128,16 +177,26 @@ export async function runDiscovery(
               "willhaben",
               detail.seller
             );
-            await db
-              .update(listings)
-              .set({
-                isLimited: !!detail.duration?.isLimited,
-                durationMonths: detail.duration?.months ?? null,
-                sellerId: enrichedSellerId ?? minimalSellerId ?? null,
-                lastScrapedAt: now,
-              })
-              .where(eq(listings.platformListingId, item.id))
-              .run();
+
+            await runWithRetry(
+              "listings.detail_update",
+              {
+                platformListingId: item.id,
+                enrichedSellerId: enrichedSellerId ?? null,
+                minimalSellerId: minimalSellerId ?? null,
+              },
+              () =>
+                db
+                  .update(listings)
+                  .set({
+                    isLimited: !!detail.duration?.isLimited,
+                    durationMonths: detail.duration?.months ?? null,
+                    sellerId: enrichedSellerId ?? minimalSellerId ?? null,
+                    lastScrapedAt: now,
+                  })
+                  .where(eq(listings.platformListingId, item.id))
+                  .run()
+            );
           }
 
           metrics.listingsDiscovered++;
@@ -145,16 +204,25 @@ export async function runDiscovery(
         } else {
           // Touch lastSeenAt for existing, but discovery focuses on new
           const now = new Date();
-          await db
-            .update(listings)
-            .set({ lastSeenAt: now })
-            .where(eq(listings.id, existing.id))
-            .run();
+          await runWithRetry(
+            "listings.touch_last_seen",
+            { id: existing.id },
+            () =>
+              db
+                .update(listings)
+                .set({ lastSeenAt: now })
+                .where(eq(listings.id, existing.id))
+                .run()
+          );
           metrics.listingsUpdated++;
         }
       }
 
-      await tracker.updateRun(started.id, metrics);
+      await runWithRetry(
+        "scrape_runs.updateRun",
+        { runId: started.id, metrics },
+        () => tracker.updateRun(started.id, metrics)
+      );
       console.log(
         `[discovery] progress: pages=${metrics.overviewPagesVisited} new=${metrics.listingsDiscovered} updated=${metrics.listingsUpdated} details=${metrics.detailPagesFetched}`
       );
@@ -166,14 +234,23 @@ export async function runDiscovery(
       page++;
     }
 
-    await tracker.finishRun(started.id, started.startedAt, "success");
+    await runWithRetry(
+      "scrape_runs.finishRun",
+      { runId: started.id, status: "success" },
+      () => tracker.finishRun(started.id, started.startedAt, "success")
+    );
     console.log(`[discovery] done: status=success`);
   } catch (error) {
-    await tracker.finishRun(
-      started.id,
-      started.startedAt,
-      "error",
-      error instanceof Error ? error.message : String(error)
+    await runWithRetry(
+      "scrape_runs.finishRun",
+      { runId: started.id, status: "error" },
+      () =>
+        tracker.finishRun(
+          started.id,
+          started.startedAt,
+          "error",
+          error instanceof Error ? error.message : String(error)
+        )
     );
     console.log(`[discovery] done: status=error`);
   }

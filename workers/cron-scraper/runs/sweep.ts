@@ -4,6 +4,45 @@ import { eq } from "drizzle-orm";
 import { RunTracker } from "../run-tracker";
 import { fetchOverview, parseOverview } from "../sources/willhaben/overview";
 
+// Retry wrapper with structured logs for transient D1/SQLite lock/busy errors
+async function runWithRetry<T>(
+  opName: string,
+  ctx: Record<string, unknown> | undefined,
+  fn: () => Promise<T>,
+  attempts = 3,
+  baseDelayMs = 100
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      const shouldRetry =
+        /locked|SQLITE_BUSY|SQLITE_LOCKED|busy|code\s*5|code\s*6|code\s*49/i.test(
+          message
+        );
+      console.log(
+        `[retry] op=${opName} attempt=${
+          attempt + 1
+        }/${attempts} willRetry=${shouldRetry} error=${message}${
+          ctx ? ` ctx=${JSON.stringify(ctx)}` : ""
+        }`
+      );
+      if (!shouldRetry) throw error;
+      const delay = baseDelayMs * (attempt + 1);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  console.log(
+    `[retry] op=${opName} exhausted attempts=${attempts}${
+      ctx ? ` ctx=${JSON.stringify(ctx)}` : ""
+    }`
+  );
+  throw lastError;
+}
+
 function computeSweepStartPage(
   lastRun: { startedAt: Date | null; lastOverviewPage: number | null } | null,
   now: Date
@@ -73,25 +112,35 @@ export async function runSweep(
         const isChange =
           hasPrice && typeof row.price === "number" && row.price !== item.price;
         if (hasPrice) {
-          await db
-            .update(listings)
-            .set({
-              lastSeenAt: now,
-              lastScrapedAt: now,
-              price: hasPrice ? item.price : 0,
-              isActive: true,
-            })
-            .where(eq(listings.id, row.id))
-            .run();
+          await runWithRetry(
+            "listings.update",
+            { id: row.id, price: item.price ?? null },
+            () =>
+              db
+                .update(listings)
+                .set({
+                  lastSeenAt: now,
+                  lastScrapedAt: now,
+                  price: hasPrice ? item.price : 0,
+                  isActive: true,
+                })
+                .where(eq(listings.id, row.id))
+                .run()
+          );
 
-          await db
-            .insert(priceHistory)
-            .values({
-              listingId: row.id,
-              price: item.price ?? 0,
-              observedAt: now,
-            })
-            .run();
+          await runWithRetry(
+            "price_history.insert",
+            { listingId: row.id, price: item.price ?? 0 },
+            () =>
+              db
+                .insert(priceHistory)
+                .values({
+                  listingId: row.id,
+                  price: item.price ?? 0,
+                  observedAt: now,
+                })
+                .run()
+          );
           metrics.priceHistoryInserted++;
           if (isChange) metrics.priceChangesDetected++;
 
@@ -99,10 +148,15 @@ export async function runSweep(
         }
       }
 
-      await tracker.updateRun(started.id, {
-        ...metrics,
-        lastOverviewPage: page,
-      });
+      await runWithRetry(
+        "scrape_runs.updateRun",
+        { runId: started.id, lastOverviewPage: page, metrics },
+        () =>
+          tracker.updateRun(started.id, {
+            ...metrics,
+            lastOverviewPage: page,
+          })
+      );
       console.log(
         `[sweep] progress: pages=${metrics.overviewPagesVisited} priceRows=${metrics.priceHistoryInserted} priceChanges=${metrics.priceChangesDetected} updated=${metrics.listingsUpdated}`
       );
@@ -110,14 +164,23 @@ export async function runSweep(
       page++;
     }
 
-    await tracker.finishRun(started.id, started.startedAt, "success");
+    await runWithRetry(
+      "scrape_runs.finishRun",
+      { runId: started.id, status: "success" },
+      () => tracker.finishRun(started.id, started.startedAt, "success")
+    );
     console.log(`[sweep] done: status=success`);
   } catch (error) {
-    await tracker.finishRun(
-      started.id,
-      started.startedAt,
-      "error",
-      error instanceof Error ? error.message : String(error)
+    await runWithRetry(
+      "scrape_runs.finishRun",
+      { runId: started.id, status: "error" },
+      () =>
+        tracker.finishRun(
+          started.id,
+          started.startedAt,
+          "error",
+          error instanceof Error ? error.message : String(error)
+        )
     );
     console.log(`[sweep] done: status=error`);
   }
