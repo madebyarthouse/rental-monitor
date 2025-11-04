@@ -80,7 +80,7 @@ export default function RegionAccordion({
                       onClick={onNavigate}
                       ref={isDistrictActive ? activeItemRef : null}
                       className={cn(
-                        "rounded-md px-2 py-2 text-base hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                        "px-2 py-2 text-base hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
                         isDistrictActive &&
                           "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
                       )}

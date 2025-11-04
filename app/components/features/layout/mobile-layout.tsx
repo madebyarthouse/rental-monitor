@@ -14,7 +14,6 @@ import type { RegionHierarchy } from "@/services/region-service";
 import { getTabUrl } from "./utils";
 import { useFilteredUrl } from "@/hooks/use-filtered-url";
 import { FiltersAccordion } from "../filters/filters-accordion";
-import { StatsSummary } from "./stats-summary";
 
 export default function MobileLayout({
   statesWithDistricts,
@@ -35,7 +34,6 @@ export default function MobileLayout({
         <div className="text-sm font-semibold tracking-tight">Mietmonitor</div>
       </div>
       <div className="flex flex-col min-h-screen pt-12 pb-32">
-        <StatsSummary />
         <main className="flex-1">{children}</main>
       </div>
       <div className="md:hidden fixed bottom-20 left-0 right-0 bg-background border-t border-border z-1000">

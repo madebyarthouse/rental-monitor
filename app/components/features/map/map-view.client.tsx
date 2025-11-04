@@ -623,7 +623,7 @@ export default function MapView(props: MapViewProps) {
       {!isMobile && (lockedDistrict || hoverRect) && (
         <div
           ref={setPopoverRef}
-          className="absolute left-4 top-4 z-800 pointer-events-auto"
+          className="absolute left-0 top-4 z-800 pointer-events-auto"
           onMouseEnter={() => {
             if (hoverRect && !lockedDistrict) {
               setHoverRect(hoverRect);
@@ -700,7 +700,7 @@ export default function MapView(props: MapViewProps) {
       {/* Overlays - Desktop */}
       {!isMobile && (
         <>
-          <div className="pointer-events-none absolute left-0 bottom-2 z-600">
+          <div className="pointer-events-none absolute left-0 bottom-0 z-600">
             <div className="pointer-events-auto">
               <HeatmapToggles />
             </div>
