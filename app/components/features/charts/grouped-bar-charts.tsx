@@ -55,6 +55,11 @@ export function GroupedBarCharts({
     });
   }, [sortedStats]);
 
+  // Sort by limited percentage (descending) for the first chart
+  const limitedDataSorted = React.useMemo(() => {
+    return [...limitedData].sort((a, b) => b.limited - a.limited);
+  }, [limitedData]);
+
   // Price per sqm data
   const pricePerSqmData = React.useMemo(() => {
     return sortedStats.map((stat) => ({
@@ -93,7 +98,7 @@ export function GroupedBarCharts({
               },
             }}
           >
-            <BarChart data={limitedData} layout="vertical" barSize={50} barCategoryGap="5%">
+            <BarChart data={limitedDataSorted} layout="vertical" barSize={50} barCategoryGap="5%">
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 type="number"
@@ -117,7 +122,7 @@ export function GroupedBarCharts({
                 stackId="a"
                 fill={chartColors.limited}
               >
-                {limitedData.map((d) => (
+                {limitedDataSorted.map((d) => (
                   <Cell
                     key={`limited-${d.slug}`}
                     fill={chartColors.limited}
@@ -130,7 +135,7 @@ export function GroupedBarCharts({
                 stackId="a"
                 fill={chartColors.unlimited}
               >
-                {limitedData.map((d) => (
+                {limitedDataSorted.map((d) => (
                   <Cell
                     key={`unlimited-${d.slug}`}
                     fill={chartColors.unlimited}
