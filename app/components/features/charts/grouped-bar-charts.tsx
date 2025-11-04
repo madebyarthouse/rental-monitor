@@ -69,10 +69,10 @@ export function GroupedBarCharts({
 
   return (
     <div className={className}>
-      <div className="grid border-t border-l border-black md:grid-cols-3">
+      <div className="grid border-t border-l border-r border-black grid-cols-1 xl:grid-cols-2">
         {/* Stacked bar chart: Limited/Unlimited */}
-        <div className="border-r border-b border-black p-8">
-          <div className="mb-2 text-sm font-medium">
+        <div className="border-b border-black xl:border-r p-4 md:p-8">
+          <div className="mb-2 text-base font-medium">
             % Befristet/Unbefristet
           </div>
           <ChartContainer
@@ -87,7 +87,7 @@ export function GroupedBarCharts({
               },
             }}
           >
-            <BarChart data={limitedData} layout="vertical" barSize={60}>
+            <BarChart data={limitedData} layout="vertical" barSize={50} barCategoryGap="5%">
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 type="number"
@@ -98,10 +98,11 @@ export function GroupedBarCharts({
               <YAxis
                 dataKey="name"
                 type="category"
-                width={100}
+                width={150}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 14 }}
+                interval={0}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
@@ -120,39 +121,41 @@ export function GroupedBarCharts({
         </div>
 
         {/* Bar chart: Price per sqm */}
-        <div className="border-r border-b border-black p-8">
-          <div className="mb-2 text-sm font-medium">Ø €/m²</div>
+        <div className="border-b border-black p-4 md:p-8">
+          <div className="mb-2 text-base font-medium">Ø €/m²</div>
           <ChartContainer
             config={{
               value: { label: "Ø €/m²", color: chartColors.price },
             }}
           >
-            <BarChart data={pricePerSqmData} layout="vertical" barSize={60}>
+            <BarChart data={pricePerSqmData} layout="vertical" barSize={50} barCategoryGap="5%">
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" tickLine={false} axisLine={false} />
               <YAxis
                 dataKey="name"
                 type="category"
-                width={100}
+                width={150}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 14 }}
+                interval={0}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
               <Bar dataKey="value" fill={chartColors.price} />
             </BarChart>
           </ChartContainer>
         </div>
 
         {/* Bar chart: Number of units */}
-        <div className="border-b border-black p-8">
-          <div className="mb-2 text-sm font-medium">Anzahl Inserate</div>
+        <div className="border-b border-black xl:border-r p-4 md:p-8">
+          <div className="mb-2 text-base font-medium">Anzahl Inserate</div>
           <ChartContainer
             config={{
               value: { label: "Anzahl", color: chartColors.tertiary },
             }}
           >
-            <BarChart data={unitsData} layout="vertical" barSize={60}>
+            <BarChart data={unitsData} layout="vertical" barSize={50} barCategoryGap="5%">
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 type="number"
@@ -163,12 +166,14 @@ export function GroupedBarCharts({
               <YAxis
                 dataKey="name"
                 type="category"
-                width={100}
+                width={150}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 14 }}
+                interval={0}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
               <Bar dataKey="value" fill={chartColors.tertiary} />
             </BarChart>
           </ChartContainer>
