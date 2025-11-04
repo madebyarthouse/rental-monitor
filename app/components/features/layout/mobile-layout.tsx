@@ -1,19 +1,16 @@
 import { Link, useLocation } from "react-router";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
-import { useState } from "react";
+import { Menu, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import RegionAccordion from "./region-accordion";
 import type { RegionHierarchy } from "@/services/region-service";
-import { getTabUrl } from "./utils";
+import { getActiveRegionTitle, getTabUrl } from "./utils";
 import { useFilteredUrl } from "@/hooks/use-filtered-url";
 import { FiltersAccordion } from "../filters/filters-accordion";
+import { StatsSummary } from "./stats-summary";
+import { Credits } from "./credits";
+import { SocialBar } from "./social-bar";
 
 export default function MobileLayout({
   statesWithDistricts,
@@ -22,31 +19,111 @@ export default function MobileLayout({
   statesWithDistricts: RegionHierarchy;
   children: React.ReactNode;
 }) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const isListingsView = location.pathname.includes("/inserate");
+  const isMethodikView = location.pathname === "/methodik";
   const buildFilteredUrl = useFilteredUrl();
+  const activeTitle = useMemo(
+    () => getActiveRegionTitle(statesWithDistricts, location.pathname),
+    [statesWithDistricts, location.pathname]
+  );
+
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+    return;
+  }, [menuOpen]);
 
   return (
     <>
-      {/* Top header with title */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-1000 flex h-12 items-center border-b border-border bg-background px-4">
-        <div className="text-sm font-semibold tracking-tight">Mietmonitor</div>
+      {/* Sticky top header: Logo + menu toggle */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-1100 border-b border-border bg-background">
+        <div className="flex items-center justify-between px-4 h-14 gap-4">
+          <Link to="/" className="block h-full py-2">
+            <img
+              src="/momentum-institut-logo.png"
+              alt="Momentum Institut"
+              width={1700}
+              height={441}
+              className="h-full w-auto max-w-[220px]"
+            />
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Menü öffnen"
+            className="shrink-0"
+          >
+            {menuOpen ? (
+              <X className="size-8" strokeWidth={2} />
+            ) : (
+              <Menu className="size-8" strokeWidth={2} />
+            )}
+          </Button>
+        </div>
+
+        {/* Under-header area: either region bar (default) or fade-in menu panel */}
+        {!menuOpen ? (
+          <div className="flex h-12 items-center px-4 border-t border-border bg-background">
+            <div className="text-lg font-medium tracking-tight truncate">
+              {activeTitle}
+            </div>
+          </div>
+        ) : (
+          <div
+            className={cn(
+              "border-t border-border bg-background overflow-hidden",
+              "transition-opacity duration-200 ease-out",
+              menuOpen ? "opacity-100" : "opacity-0"
+            )}
+            style={{ height: "calc(100dvh - 56px)" }}
+          >
+            <div className="flex flex-col h-full">
+              <div className="flex-1 overflow-auto py-3 px-2 space-y-4">
+                <FiltersAccordion />
+                <div className="px-2">
+                  <RegionAccordion
+                    statesWithDistricts={statesWithDistricts}
+                    onNavigate={() => setMenuOpen(false)}
+                  />
+                </div>
+              </div>
+              <div className="border-t p-3">
+                <div className="mb-3 text-xs text-muted-foreground">
+                  <SocialBar />
+                </div>
+                <Credits />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <div className="flex flex-col min-h-screen pt-12 pb-32">
-        <main className="flex-1">{children}</main>
+
+      {/* Main content spacing accounts for header + region bar */}
+      <div className="flex flex-col min-h-screen pt-[104px] pb-20">
+        <main className="flex-1 pt-5">{children}</main>
       </div>
-      <div className="md:hidden fixed bottom-20 left-0 right-0 bg-background border-t border-border z-1000">
+
+      {/* Bottom sticky tabs: Map, Listings, Methodik */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-1000">
         <div className="flex">
           <Link
             to={buildFilteredUrl(getTabUrl("map", location.pathname), {
               target: "map",
             })}
             className={cn(
-              "flex-1 py-3 text-center text-sm font-medium transition-colors",
-              !isListingsView
-                ? "text-foreground border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
+              "flex-1 py-3 text-center text-xl font-medium transition-colors",
+              !isListingsView && !isMethodikView
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}
           >
             Karte
@@ -56,53 +133,27 @@ export default function MobileLayout({
               target: "listings",
             })}
             className={cn(
-              "flex-1 py-3 text-center text-sm font-medium transition-colors",
+              "flex-1 py-3 text-center text-xl font-medium transition-colors",
               isListingsView
-                ? "text-foreground border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}
           >
             Inserate
           </Link>
-        </div>
-      </div>
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-1000 px-4 justify-between">
-        <div className="flex items-center justify-between px-4 py-3 w-full gap-5">
-          <Link to="/">
-            <img
-              src="/momentum-institut-logo.png"
-              alt="Momentum Institut"
-              width={1700}
-              height={441}
-              className="max-w-[250px] grow"
-            />
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setDrawerOpen(true)}
-            className="shrink-0 block"
+          <Link
+            to="/methodik"
+            className={cn(
+              "flex-1 py-3 text-center text-xl font-medium transition-colors",
+              isMethodikView
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+            )}
           >
-            <Menu className="size-10" strokeWidth={2} />
-          </Button>
+            Methodik
+          </Link>
         </div>
       </div>
-      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="z-1100">
-          <DrawerHeader>
-            <DrawerTitle>Regionen & Filter</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-4">
-            <div className="max-h-[60vh] overflow-auto">
-              <FiltersAccordion className="mb-3" />
-              <RegionAccordion
-                statesWithDistricts={statesWithDistricts}
-                onNavigate={() => setDrawerOpen(false)}
-              />
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
     </>
   );
 }
