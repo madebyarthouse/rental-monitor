@@ -73,7 +73,7 @@ export default function MobileLayout({
         {/* Under-header area: either region bar (default) or fade-in menu panel */}
         {!menuOpen ? (
           <div className="flex h-12 items-center px-4 border-t border-border bg-background">
-            <div className="text-sm font-medium tracking-tight truncate">
+            <div className="text-lg font-medium tracking-tight truncate">
               {activeTitle}
             </div>
           </div>
