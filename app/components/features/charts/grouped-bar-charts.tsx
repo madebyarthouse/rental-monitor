@@ -6,6 +6,7 @@ import {
   XAxis,
   YAxis,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 import {
   ChartContainer,
@@ -26,9 +27,11 @@ type GroupedStat = {
 export function GroupedBarCharts({
   groupedStats,
   className,
+  activeSlug,
 }: {
   groupedStats: GroupedStat[];
   className?: string;
+  activeSlug?: string;
 }) {
   // Sort by total descending for better readability
   const sortedStats = React.useMemo(() => {
@@ -44,6 +47,7 @@ export function GroupedBarCharts({
       const limitedPct = total > 0 ? (limited / total) * 100 : 0;
       const unlimitedPct = total > 0 ? (unlimited / total) * 100 : 0;
       return {
+        slug: stat.slug,
         name: stat.name,
         limited: limitedPct,
         unlimited: unlimitedPct,
@@ -51,9 +55,15 @@ export function GroupedBarCharts({
     });
   }, [sortedStats]);
 
+  // Sort by limited percentage (descending) for the first chart
+  const limitedDataSorted = React.useMemo(() => {
+    return [...limitedData].sort((a, b) => b.limited - a.limited);
+  }, [limitedData]);
+
   // Price per sqm data
   const pricePerSqmData = React.useMemo(() => {
     return sortedStats.map((stat) => ({
+      slug: stat.slug,
       name: stat.name,
       value: stat.stats.avgPricePerSqm ?? 0,
     }));
@@ -62,6 +72,7 @@ export function GroupedBarCharts({
   // Number of units data
   const unitsData = React.useMemo(() => {
     return sortedStats.map((stat) => ({
+      slug: stat.slug,
       name: stat.name,
       value: stat.stats.total,
     }));
@@ -69,10 +80,10 @@ export function GroupedBarCharts({
 
   return (
     <div className={className}>
-      <div className="grid border-t border-l border-black md:grid-cols-3">
+      <div className="grid border-t md:border-l-0 border-l border-r border-black grid-cols-1 xl:grid-cols-2">
         {/* Stacked bar chart: Limited/Unlimited */}
-        <div className="border-r border-b border-black p-8">
-          <div className="mb-2 text-sm font-medium">
+        <div className="border-b border-black xl:border-r p-4 md:p-8">
+          <div className="mb-2 text-base font-medium">
             % Befristet/Unbefristet
           </div>
           <ChartContainer
@@ -87,7 +98,7 @@ export function GroupedBarCharts({
               },
             }}
           >
-            <BarChart data={limitedData} layout="vertical" barSize={60}>
+            <BarChart data={limitedDataSorted} layout="vertical" barSize={50} barCategoryGap="5%">
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 type="number"
@@ -98,10 +109,11 @@ export function GroupedBarCharts({
               <YAxis
                 dataKey="name"
                 type="category"
-                width={100}
+                width={150}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 14 }}
+                interval={0}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
@@ -109,50 +121,76 @@ export function GroupedBarCharts({
                 dataKey="limited"
                 stackId="a"
                 fill={chartColors.limited}
-              />
+              >
+                {limitedDataSorted.map((d) => (
+                  <Cell
+                    key={`limited-${d.slug}`}
+                    fill={chartColors.limited}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                  />
+                ))}
+              </Bar>
               <Bar
                 dataKey="unlimited"
                 stackId="a"
                 fill={chartColors.unlimited}
-              />
+              >
+                {limitedDataSorted.map((d) => (
+                  <Cell
+                    key={`unlimited-${d.slug}`}
+                    fill={chartColors.unlimited}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ChartContainer>
         </div>
 
         {/* Bar chart: Price per sqm */}
-        <div className="border-r border-b border-black p-8">
-          <div className="mb-2 text-sm font-medium">Ø €/m²</div>
+        <div className="border-b border-black p-4 md:p-8">
+          <div className="mb-2 text-base font-medium">Ø €/m²</div>
           <ChartContainer
             config={{
               value: { label: "Ø €/m²", color: chartColors.price },
             }}
           >
-            <BarChart data={pricePerSqmData} layout="vertical" barSize={60}>
+            <BarChart data={pricePerSqmData} layout="vertical" barSize={50} barCategoryGap="5%">
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" tickLine={false} axisLine={false} />
               <YAxis
                 dataKey="name"
                 type="category"
-                width={100}
+                width={150}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 14 }}
+                interval={0}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="value" fill={chartColors.price} />
+              <ChartLegend content={<ChartLegendContent />} />
+              <Bar dataKey="value" fill={chartColors.price}>
+                {pricePerSqmData.map((d) => (
+                  <Cell
+                    key={`price-${d.slug}`}
+                    fill={chartColors.price}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ChartContainer>
         </div>
 
         {/* Bar chart: Number of units */}
-        <div className="border-b border-black p-8">
-          <div className="mb-2 text-sm font-medium">Anzahl Inserate</div>
+        <div className="border-b border-black xl:border-r p-4 md:p-8">
+          <div className="mb-2 text-base font-medium">Anzahl Inserate</div>
           <ChartContainer
             config={{
               value: { label: "Anzahl", color: chartColors.tertiary },
             }}
           >
-            <BarChart data={unitsData} layout="vertical" barSize={60}>
+            <BarChart data={unitsData} layout="vertical" barSize={50} barCategoryGap="5%">
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 type="number"
@@ -163,13 +201,23 @@ export function GroupedBarCharts({
               <YAxis
                 dataKey="name"
                 type="category"
-                width={100}
+                width={150}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 14 }}
+                interval={0}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="value" fill={chartColors.tertiary} />
+              <ChartLegend content={<ChartLegendContent />} />
+              <Bar dataKey="value" fill={chartColors.tertiary}>
+                {unitsData.map((d) => (
+                  <Cell
+                    key={`units-${d.slug}`}
+                    fill={chartColors.tertiary}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ChartContainer>
         </div>

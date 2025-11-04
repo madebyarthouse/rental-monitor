@@ -16,6 +16,7 @@ export function MapCharts({
   limitedCounts,
   groupedStats,
   groupLevel,
+  activeSlug,
   className,
 }: {
   priceHistogram: {
@@ -24,6 +25,7 @@ export function MapCharts({
   limitedCounts: { limited: number; unlimited: number };
   groupedStats?: GroupedStat[];
   groupLevel?: "state" | "district";
+  activeSlug?: string;
   className?: string;
 }) {
   return (
@@ -43,10 +45,15 @@ export function MapCharts({
           />
         </div>
       </div>
+      {activeSlug && groupedStats && groupedStats.length > 0 && (
+        <div className="mt-6 px-8 text-base font-medium">
+          Vergleich mit anderen Bezirken
+        </div>
+      )}
       {groupedStats && groupedStats.length > 0 && groupLevel && (
         <>
-          <GroupedBarCharts groupedStats={groupedStats} className="mt-6" />
-          <StatisticsTable groupedStats={groupedStats} className="mt-6" />
+          <GroupedBarCharts groupedStats={groupedStats} className="mt-6" activeSlug={activeSlug} />
+          <StatisticsTable groupedStats={groupedStats} className="mt-6" activeSlug={activeSlug} />
         </>
       )}
     </div>
