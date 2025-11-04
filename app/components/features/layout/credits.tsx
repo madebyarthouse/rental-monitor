@@ -22,7 +22,7 @@ export const Credits = ({ className }: { className?: string }) => {
         sind{" "}
         <a
           className="underline font-semibold"
-          href="https://github.com/madebyarthouse/momentum-coalition-compass"
+          href="https://github.com/madebyarthouse/rental-monitor"
           target="_blank"
           rel="noopener"
         >
