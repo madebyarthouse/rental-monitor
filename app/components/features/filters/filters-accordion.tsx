@@ -41,7 +41,9 @@ function setParams(
 export function FiltersAccordion({ className }: { className?: string }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [accordionValue, setAccordionValue] = React.useState<string | undefined>(undefined);
+  const [accordionValue, setAccordionValue] = React.useState<
+    string | undefined
+  >(undefined);
   const [local, setLocal] = React.useState<ActiveFilters>(() => {
     const parsed = parseActiveFilters(location.search);
     // Ensure at least one checkbox is always checked
@@ -61,9 +63,12 @@ export function FiltersAccordion({ className }: { className?: string }) {
     setLocal(parsed);
   }, [location.search]);
 
-  const handleAccordionChange = React.useCallback((value: string | undefined) => {
-    setAccordionValue(value);
-  }, []);
+  const handleAccordionChange = React.useCallback(
+    (value: string | undefined) => {
+      setAccordionValue(value);
+    },
+    []
+  );
 
   const open = accordionValue === "filters";
 
@@ -140,7 +145,9 @@ export function FiltersAccordion({ className }: { className?: string }) {
         <AccordionItem value="filters">
           <div className="sticky top-0 z-30 bg-background section-header-border">
             <AccordionTrigger className="px-2 py-2">
-              <span className="text-xl font-medium text-muted-foreground">Filter</span>
+              <span className="text-xl font-medium text-muted-foreground">
+                Filter
+              </span>
             </AccordionTrigger>
           </div>
           {!open && hasAnyActive && (
@@ -235,7 +242,11 @@ export function FiltersAccordion({ className }: { className?: string }) {
                 </label>
               </div>
 
-              <div className="flex items-center gap-4" role="group" aria-label="Befristet / Unbefristet">
+              <div
+                className="flex items-center gap-4"
+                role="group"
+                aria-label="Befristet / Unbefristet"
+              >
                 <label className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={local.limited === true}
