@@ -1,12 +1,13 @@
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listings, priceHistory } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { RunTracker } from "../run-tracker";
 import {
   fetchOverview,
   parseOverview,
   extractOverviewDebug,
 } from "../sources/willhaben/overview";
+import type { BatchItem } from "drizzle-orm/batch";
 
 function formatD1Error(error: unknown): {
   name: string;
@@ -133,58 +134,80 @@ export async function runSweep(
         break;
       }
 
-      for (const item of items) {
-        const now = new Date();
-        const row = await db
-          .select({ id: listings.id, price: listings.price })
-          .from(listings)
-          .where(eq(listings.platformListingId, item.id))
-          .get();
+      // Bulk fetch existing listings for all items on this page
+      const now = new Date();
+      const itemIds = items.map((it) => it.id);
+      const existingRows = await db
+        .select({
+          id: listings.id,
+          price: listings.price,
+          platformListingId: listings.platformListingId,
+        })
+        .from(listings)
+        .where(inArray(listings.platformListingId, itemIds))
+        .all();
 
-        if (!row?.id) {
-          // Sweep does not create new listings; skip unknown entries
-          continue;
-        }
+      const idToRow = new Map<string, { id: number; price: number | null }>();
+      for (const r of existingRows) {
+        idToRow.set(String(r.platformListingId), { id: r.id, price: r.price });
+      }
+
+      // Prepare batched updates/inserts
+      const updateStatements: BatchItem[] = [];
+      const insertStatements: BatchItem[] = [];
+
+      for (const item of items) {
+        const row = idToRow.get(item.id);
+        if (!row) continue; // Sweep does not create new listings; skip unknown
 
         const hasPrice =
           typeof item.price === "number" && Number.isFinite(item.price);
+        if (!hasPrice) continue;
+
         const isChange =
-          hasPrice && typeof row.price === "number" && row.price !== item.price;
-        if (hasPrice) {
-          await runWithRetry(
-            "listings.update",
-            { id: row.id, price: item.price ?? null },
-            () =>
-              db
-                .update(listings)
-                .set({
-                  lastSeenAt: now,
-                  lastScrapedAt: now,
-                  price: hasPrice ? item.price : 0,
-                  isActive: true,
-                })
-                .where(eq(listings.id, row.id))
-                .run()
-          );
+          typeof row.price === "number" && row.price !== item.price;
 
-          await runWithRetry(
-            "price_history.insert",
-            { listingId: row.id, price: item.price ?? 0 },
-            () =>
-              db
-                .insert(priceHistory)
-                .values({
-                  listingId: row.id,
-                  price: item.price ?? 0,
-                  observedAt: now,
-                })
-                .run()
-          );
-          metrics.priceHistoryInserted++;
-          if (isChange) metrics.priceChangesDetected++;
+        updateStatements.push(
+          db
+            .update(listings)
+            .set({
+              lastSeenAt: now,
+              lastScrapedAt: now,
+              price: item.price,
+              isActive: true,
+            })
+            .where(eq(listings.id, row.id))
+        );
 
-          metrics.listingsUpdated++;
-        }
+        insertStatements.push(
+          db.insert(priceHistory).values({
+            listingId: row.id,
+            price: item.price ?? 0,
+            observedAt: now,
+          })
+        );
+
+        metrics.listingsUpdated++;
+        metrics.priceHistoryInserted++;
+        if (isChange) metrics.priceChangesDetected++;
+      }
+
+      // Execute batched statements to minimize API calls
+      if (updateStatements.length > 0) {
+        await runWithRetry(
+          "listings.update.batch",
+          { count: updateStatements.length },
+          // @ts-expect-error - batch item type is weird
+          () => db.batch(updateStatements)
+        );
+      }
+      if (insertStatements.length > 0) {
+        await runWithRetry(
+          "price_history.insert.batch",
+          { count: insertStatements.length },
+          // @ts-expect-error - batch item type is weird
+          () => db.batch(insertStatements)
+        );
       }
 
       await runWithRetry(

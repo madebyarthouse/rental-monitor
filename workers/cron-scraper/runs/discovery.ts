@@ -1,6 +1,7 @@
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { listings, priceHistory } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 import { RunTracker } from "../run-tracker";
 import {
   fetchOverview,
@@ -88,7 +89,7 @@ export async function runDiscovery(
     let page = 1;
     let newFoundOnPage = 0;
     let consecutiveNoNew = 0;
-    const maxPages = 10; // safety cap
+    const maxPages = 15; // safety cap
 
     while (page <= maxPages && consecutiveNoNew < 3) {
       const html = await fetchOverview(page, rowsPerPage);
@@ -112,148 +113,188 @@ export async function runDiscovery(
       metrics.overviewPagesVisited++;
       if (items.length === 0) break;
 
-      newFoundOnPage = 0;
-      for (const item of items) {
-        const existing = await db
-          .select({ id: listings.id })
-          .from(listings)
-          .where(eq(listings.platformListingId, item.id))
-          .get();
+      // Compute now once per page for consistency
+      const now = new Date();
 
-        if (!existing) {
-          const now = new Date();
+      // Bulk fetch existing rows for all items on this page
+      const itemIds = items.map((it) => it.id);
+      const existingRows = await db
+        .select({
+          id: listings.id,
+          platformListingId: listings.platformListingId,
+        })
+        .from(listings)
+        .where(inArray(listings.platformListingId, itemIds))
+        .all();
+      const existingMap = new Map<string, number>();
+      for (const r of existingRows)
+        existingMap.set(String(r.platformListingId), r.id);
 
-          // Minimal seller upsert if available from overview
-          const minimalSellerId = item.platformSellerId
-            ? await upsertSeller(db, "willhaben", {
-                platformSellerId: item.platformSellerId,
-              })
-            : null;
+      // Prepare batched statements
+      const touchExistingStatements: BatchItem[] = [];
+      const listingInsertStatements: BatchItem[] = [];
+      const priceHistoryInsertStatements: BatchItem[] = [];
+      const detailUpdateStatements: BatchItem[] = [];
 
-          await runWithRetry(
-            "listings.upsert",
-            { platformListingId: item.id, url: item.url },
-            () =>
-              db
-                .insert(listings)
-                .values({
-                  platformListingId: item.id,
-                  title: item.title,
-                  price: item.price ?? 0,
-                  area: item.area ?? null,
-                  rooms: item.rooms ?? null,
-                  zipCode: item.zipCode ?? null,
-                  city: item.city ?? null,
-                  district: item.district ?? null,
-                  state: item.state ?? null,
-                  latitude: item.latitude ?? null,
-                  longitude: item.longitude ?? null,
-                  // Duration populated after detail fetch
-                  isLimited: false,
-                  durationMonths: null,
-                  platform: "willhaben",
-                  url: item.url,
-                  externalId: item.id,
-                  sellerId: minimalSellerId ?? null,
-                  firstSeenAt: now,
-                  lastSeenAt: now,
-                  lastScrapedAt: now,
-                  isActive: true,
-                  verificationStatus: "active",
-                })
-                .onConflictDoUpdate({
-                  target: listings.url,
-                  set: {
-                    title: item.title,
-                    price: item.price ?? 0,
-                    area: item.area ?? null,
-                    rooms: item.rooms ?? null,
-                    zipCode: item.zipCode ?? null,
-                    city: item.city ?? null,
-                    district: item.district ?? null,
-                    state: item.state ?? null,
-                    latitude: item.latitude ?? null,
-                    longitude: item.longitude ?? null,
-                    lastSeenAt: now,
-                    lastScrapedAt: now,
-                    isActive: true,
-                    verificationStatus: "active",
-                  },
-                })
-                .run()
-          );
+      const newItems = items.filter((it) => !existingMap.has(it.id));
+      const existingItems = items.filter((it) => existingMap.has(it.id));
 
-          // Fetch listing id to insert price history
-          const row = await db
-            .select({ id: listings.id })
-            .from(listings)
-            .where(eq(listings.platformListingId, item.id))
-            .get();
-          if (row?.id) {
-            await runWithRetry(
-              "price_history.insert",
-              { listingId: row.id, price: item.price ?? 0 },
-              () =>
-                db
-                  .insert(priceHistory)
-                  .values({
-                    listingId: row.id,
-                    price: item.price ?? 0,
-                    observedAt: now,
-                  })
-                  .run()
-            );
-            metrics.priceHistoryInserted++;
-          }
+      newFoundOnPage = newItems.length;
+      metrics.listingsDiscovered += newItems.length;
+      metrics.listingsUpdated += existingItems.length;
 
-          // Fetch details only to enrich duration and seller info
-          const detailHtml = await fetchDetail(item.url);
-          const detail = parseDetail(detailHtml);
-          if (detail) {
-            metrics.detailPagesFetched++;
-            const enrichedSellerId = await upsertSeller(
-              db,
-              "willhaben",
-              detail.seller
-            );
+      // Touch existing: lastSeenAt only
+      for (const it of existingItems) {
+        const id = existingMap.get(it.id)!;
+        touchExistingStatements.push(
+          db
+            .update(listings)
+            .set({ lastSeenAt: now })
+            .where(eq(listings.id, id))
+        );
+      }
 
-            await runWithRetry(
-              "listings.detail_update",
-              {
-                platformListingId: item.id,
-                enrichedSellerId: enrichedSellerId ?? null,
-                minimalSellerId: minimalSellerId ?? null,
+      // Insert new listings (on conflict update) without seller, seller is set after detail
+      for (const it of newItems) {
+        listingInsertStatements.push(
+          db
+            .insert(listings)
+            .values({
+              platformListingId: it.id,
+              title: it.title,
+              price: it.price ?? 0,
+              area: it.area ?? null,
+              rooms: it.rooms ?? null,
+              zipCode: it.zipCode ?? null,
+              city: it.city ?? null,
+              district: it.district ?? null,
+              state: it.state ?? null,
+              latitude: it.latitude ?? null,
+              longitude: it.longitude ?? null,
+              isLimited: false,
+              durationMonths: null,
+              platform: "willhaben",
+              url: it.url,
+              externalId: it.id,
+              sellerId: null,
+              firstSeenAt: now,
+              lastSeenAt: now,
+              lastScrapedAt: now,
+              isActive: true,
+              verificationStatus: "active",
+            })
+            .onConflictDoUpdate({
+              target: listings.url,
+              set: {
+                title: it.title,
+                price: it.price ?? 0,
+                area: it.area ?? null,
+                rooms: it.rooms ?? null,
+                zipCode: it.zipCode ?? null,
+                city: it.city ?? null,
+                district: it.district ?? null,
+                state: it.state ?? null,
+                latitude: it.latitude ?? null,
+                longitude: it.longitude ?? null,
+                lastSeenAt: now,
+                lastScrapedAt: now,
+                isActive: true,
+                verificationStatus: "active",
               },
-              () =>
-                db
-                  .update(listings)
-                  .set({
-                    isLimited: !!detail.duration?.isLimited,
-                    durationMonths: detail.duration?.months ?? null,
-                    sellerId: enrichedSellerId ?? minimalSellerId ?? null,
-                    lastScrapedAt: now,
-                  })
-                  .where(eq(listings.platformListingId, item.id))
-                  .run()
-            );
-          }
+            })
+        );
+      }
 
-          metrics.listingsDiscovered++;
-          newFoundOnPage++;
-        } else {
-          // Touch lastSeenAt for existing, but discovery focuses on new
-          const now = new Date();
-          await runWithRetry(
-            "listings.touch_last_seen",
-            { id: existing.id },
-            () =>
-              db
-                .update(listings)
-                .set({ lastSeenAt: now })
-                .where(eq(listings.id, existing.id))
-                .run()
+      // Execute batched statements for existing touches and new inserts
+      if (touchExistingStatements.length > 0) {
+        await runWithRetry(
+          "listings.touch_last_seen.batch",
+          { count: touchExistingStatements.length },
+          // @ts-expect-error - batch item type is weird
+          () => db.batch(touchExistingStatements)
+        );
+      }
+      if (listingInsertStatements.length > 0) {
+        await runWithRetry(
+          "listings.upsert.batch",
+          { count: listingInsertStatements.length },
+          // @ts-expect-error - batch item type is weird
+          () => db.batch(listingInsertStatements)
+        );
+      }
+
+      // After inserts, bulk fetch ids for new items and insert price history in batch
+      if (newItems.length > 0) {
+        const newIdsRows = await db
+          .select({
+            id: listings.id,
+            platformListingId: listings.platformListingId,
+          })
+          .from(listings)
+          .where(
+            inArray(
+              listings.platformListingId,
+              newItems.map((n) => n.id)
+            )
+          )
+          .all();
+        const newIdMap = new Map<string, number>();
+        for (const r of newIdsRows)
+          newIdMap.set(String(r.platformListingId), r.id);
+
+        for (const it of newItems) {
+          const id = newIdMap.get(it.id);
+          if (!id) continue;
+          priceHistoryInsertStatements.push(
+            db.insert(priceHistory).values({
+              listingId: id,
+              price: it.price ?? 0,
+              observedAt: now,
+            })
           );
-          metrics.listingsUpdated++;
+        }
+
+        if (priceHistoryInsertStatements.length > 0) {
+          await runWithRetry(
+            "price_history.insert.batch",
+            { count: priceHistoryInsertStatements.length },
+            // @ts-expect-error - batch item type is weird
+            () => db.batch(priceHistoryInsertStatements)
+          );
+          metrics.priceHistoryInserted += priceHistoryInsertStatements.length;
+        }
+
+        // Fetch details and prepare batched updates for new items
+        for (const it of newItems) {
+          const detailHtml = await fetchDetail(it.url);
+          const detail = parseDetail(detailHtml);
+          if (!detail) continue;
+          metrics.detailPagesFetched++;
+          const enrichedSellerId = await upsertSeller(
+            db,
+            "willhaben",
+            detail.seller
+          );
+          detailUpdateStatements.push(
+            db
+              .update(listings)
+              .set({
+                isLimited: !!detail.duration?.isLimited,
+                durationMonths: detail.duration?.months ?? null,
+                sellerId: enrichedSellerId ?? null,
+                lastScrapedAt: now,
+              })
+              .where(eq(listings.platformListingId, it.id))
+          );
+        }
+
+        if (detailUpdateStatements.length > 0) {
+          await runWithRetry(
+            "listings.detail_update.batch",
+            { count: detailUpdateStatements.length },
+            // @ts-expect-error - batch item type is weird
+            () => db.batch(detailUpdateStatements)
+          );
         }
       }
 

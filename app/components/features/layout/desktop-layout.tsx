@@ -22,6 +22,7 @@ export default function DesktopLayout({
 }) {
   const location = useLocation();
   const isListingsView = location.pathname.includes("/inserate");
+  const isMethodikView = location.pathname === "/methodik";
   const buildFilteredUrl = useFilteredUrl();
   const activeTitle = useMemo(() => {
     const path = location.pathname.replace(/^\/+|\/+$/g, "");
@@ -70,12 +71,23 @@ export default function DesktopLayout({
               })}
               className={cn(
                 "px-6 py-2 text-base font-medium transition-colors h-full flex items-center",
-                isListingsView
+                isListingsView || isMethodikView
                   ? "bg-secondary text-secondary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
               )}
             >
               Inserate
+            </Link>
+            <Link
+              to="/methodik"
+              className={cn(
+                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center",
+                isMethodikView
+                  ? "bg-secondary text-secondary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              )}
+            >
+              Methodik
             </Link>
           </div>
         </header>
