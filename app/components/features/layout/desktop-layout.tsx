@@ -27,6 +27,7 @@ export default function DesktopLayout({
   const activeTitle = useMemo(() => {
     const path = location.pathname.replace(/^\/+|\/+$/g, "");
     if (!path || path === "inserate") return "Österreich";
+    if (path === "methodik") return "Methodik";
     const parts = path.split("/");
     const stateSlug = parts[0];
     const districtSlug =
@@ -58,7 +59,7 @@ export default function DesktopLayout({
               })}
               className={cn(
                 "px-6 py-2 text-base font-medium transition-colors h-full flex items-center",
-                !isListingsView
+                !isListingsView && !isMethodikView
                   ? "bg-secondary text-secondary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
               )}
@@ -71,7 +72,7 @@ export default function DesktopLayout({
               })}
               className={cn(
                 "px-6 py-2 text-base font-medium transition-colors h-full flex items-center",
-                isListingsView || isMethodikView
+                isListingsView
                   ? "bg-secondary text-secondary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
               )}
