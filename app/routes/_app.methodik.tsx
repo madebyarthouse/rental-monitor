@@ -1,8 +1,6 @@
 export default function Methodik() {
   return (
     <div className="w-[75ch] max-w-full mx-auto py-10 px-4 sm:px-6">
-      <h1 className="text-2xl font-semibold tracking-tight mb-4">Methodik</h1>
-
       <p className="text-muted-foreground mb-8">
         Der Mietmonitor erfasst täglich Mietwohnungsinserate auf Willhaben und
         analysiert, wie sich Befristung und regionale Lage auf die Mietpreise
@@ -80,6 +78,18 @@ export default function Methodik() {
             rel="noreferrer noopener"
           >
             github.com/madebyarthouse/rental-monitor
+          </a>
+        </p>
+      </section>
+
+      <section className="space-y-2 mb-8">
+        <h2 id="data" className="text-lg font-medium">
+          Datenexport
+        </h2>
+        <p className="text-muted-foreground">
+          Aktueller Export aller aktiven Inserate:
+          <a className="underline ml-2" href="/data/export.csv">
+            export.csv
           </a>
         </p>
       </section>

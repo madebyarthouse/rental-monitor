@@ -15,7 +15,11 @@ export const Credits = ({ className }: { className?: string }) => {
         </a>{" "}
       </p>
       <p>
-        Code sowie Daten sind{" "}
+        Code sowie{" "}
+        <a className="underline font-semibold" href="/methodik#data">
+          Daten
+        </a>{" "}
+        sind{" "}
         <a
           className="underline font-semibold"
           href="https://github.com/madebyarthouse/momentum-coalition-compass"
@@ -23,7 +27,7 @@ export const Credits = ({ className }: { className?: string }) => {
           rel="noopener"
         >
           open-source
-        </a>{" "}
+        </a>
       </p>
     </div>
   );
