@@ -50,7 +50,7 @@ export default function DesktopSidebar({
         </div>
       </SidebarContent>
       <SidebarFooter className="sticky bottom-0 z-10 bg-background border-t border-sidebar-border group-data-[state=collapsed]:hidden">
-        <div className="p-4 flex flex-col gap-3 text-xs text-muted-foreground">
+        <div className="p-4 flex flex-col gap-3 text-sm text-muted-foreground">
           <SocialBar />
           <Credits />
         </div>

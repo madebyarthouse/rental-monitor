@@ -1,6 +1,7 @@
 export default function Methodik() {
   return (
     <div className="w-[75ch] max-w-full mx-auto py-10 px-4 sm:px-6">
+      <strong>WORK IN PROGRESS, NICHT FINAL</strong>
       <h1 className="text-2xl font-semibold tracking-tight mb-4">Methodik</h1>
       <p className="text-sm text-muted-foreground mb-8">
         Der Mietmonitor soll Entwicklungen am Mietwohnungsmarkt nachvollziehbar
