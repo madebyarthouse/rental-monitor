@@ -38,7 +38,6 @@ export async function loader({ context }: Route.LoaderArgs) {
     Plattform: r.platform,
     URL: r.url,
     "Externe ID": r.externalId ?? "",
-    "Erstmalig gesehen": r.firstSeenAt,
     "Zuletzt gesehen": r.lastSeenAt,
     Region: r.regionName ?? "",
   }));
