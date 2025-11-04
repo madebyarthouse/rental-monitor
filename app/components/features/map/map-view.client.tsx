@@ -309,20 +309,6 @@ export default function MapView(props: MapViewProps) {
     props.districts,
   ]);
 
-  const onSelectRegion = (slug: string, stateSlug?: string) => {
-    // If we're at state context, navigate to /:state/:district using current state and clicked district
-    if (props.context === "state" || props.context === "district") {
-      const stateSlug =
-        props.context === "state" ? props.state.slug : props.state.slug;
-      navigate(`/${stateSlug}/${slug}`);
-      return;
-    }
-    // If country view, we need state slug to navigate to /:state/:district
-    if (props.context === "country" && stateSlug) {
-      navigate(`/${stateSlug}/${slug}`);
-    }
-  };
-
   const getFillColor = useMemo(() => {
     const h = props.heatmap;
     if (!h) return undefined;
@@ -397,20 +383,6 @@ export default function MapView(props: MapViewProps) {
     };
     return mapper;
   }, [props.heatmap]);
-
-  const getHeatmapValue = (slug: string): number | null => {
-    const h = props.heatmap;
-    if (!h) return null;
-    let values: Record<string, number | null> | undefined;
-    if ("values" in h) {
-      values = h.values as Record<string, number | null>;
-    } else if ("byRegion" in h && Array.isArray(h.byRegion)) {
-      values = Object.fromEntries(
-        h.byRegion.map((x) => [x.slug, x.value])
-      ) as Record<string, number | null>;
-    }
-    return values?.[slug] ?? null;
-  };
 
   const getFilteredUrl = useFilteredUrl();
 
