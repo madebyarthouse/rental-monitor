@@ -168,7 +168,10 @@ export async function runDiscovery(
         );
       }
       // Fetch details first for new items; skip any that fail
-      const newWithDetail: Array<{ item: (typeof items)[number]; detail: ReturnType<typeof parseDetail> }> = [];
+      const newWithDetail: Array<{
+        item: (typeof items)[number];
+        detail: ReturnType<typeof parseDetail>;
+      }> = [];
       for (const it of newItems) {
         try {
           const detailHtml = await fetchDetail(it.url);
@@ -187,8 +190,12 @@ export async function runDiscovery(
         .map((nd) => nd.detail?.seller)
         .filter((s): s is NonNullable<typeof s> => !!s && !!s.platformSellerId);
 
-      const sellerByPlatformId = new Map<string, typeof sellerInputs[number]>();
-      for (const s of sellerInputs) sellerByPlatformId.set(String(s.platformSellerId), s);
+      const sellerByPlatformId = new Map<
+        string,
+        (typeof sellerInputs)[number]
+      >();
+      for (const s of sellerInputs)
+        sellerByPlatformId.set(String(s.platformSellerId), s);
       const platformSellerIds = Array.from(sellerByPlatformId.keys());
 
       const sellerUpdateStatements: BatchItem[] = [];
@@ -197,7 +204,10 @@ export async function runDiscovery(
 
       if (platformSellerIds.length > 0) {
         const existingSellers = await db
-          .select({ id: sellers.id, platformSellerId: sellers.platformSellerId })
+          .select({
+            id: sellers.id,
+            platformSellerId: sellers.platformSellerId,
+          })
           .from(sellers)
           .where(
             and(
@@ -234,27 +244,25 @@ export async function runDiscovery(
             );
           } else {
             sellerInsertStatements.push(
-              db
-                .insert(sellers)
-                .values({
-                  platformSellerId: s.platformSellerId!,
-                  platform: "willhaben",
-                  name: s.name ?? null,
-                  isPrivate: s.isPrivate ?? null,
-                  isVerified: false,
-                  registerDate: s.registerDate ?? null,
-                  location: s.location ?? null,
-                  activeAdCount: s.activeAdCount ?? null,
-                  totalAdCount: null,
-                  organisationName: s.organisationName ?? null,
-                  organisationPhone: s.organisationPhone ?? null,
-                  organisationEmail: s.organisationEmail ?? null,
-                  organisationWebsite: s.organisationWebsite ?? null,
-                  hasProfileImage: s.hasProfileImage ?? null,
-                  firstSeenAt: now,
-                  lastSeenAt: now,
-                  lastUpdatedAt: now,
-                })
+              db.insert(sellers).values({
+                platformSellerId: s.platformSellerId!,
+                platform: "willhaben",
+                name: s.name ?? null,
+                isPrivate: s.isPrivate ?? null,
+                isVerified: false,
+                registerDate: s.registerDate ?? null,
+                location: s.location ?? null,
+                activeAdCount: s.activeAdCount ?? null,
+                totalAdCount: null,
+                organisationName: s.organisationName ?? null,
+                organisationPhone: s.organisationPhone ?? null,
+                organisationEmail: s.organisationEmail ?? null,
+                organisationWebsite: s.organisationWebsite ?? null,
+                hasProfileImage: s.hasProfileImage ?? null,
+                firstSeenAt: now,
+                lastSeenAt: now,
+                lastUpdatedAt: now,
+              })
             );
           }
         }
@@ -278,7 +286,10 @@ export async function runDiscovery(
 
         // Reselect to map platformSellerId -> sellerId
         const allSellerRows = await db
-          .select({ id: sellers.id, platformSellerId: sellers.platformSellerId })
+          .select({
+            id: sellers.id,
+            platformSellerId: sellers.platformSellerId,
+          })
           .from(sellers)
           .where(
             and(
@@ -317,10 +328,12 @@ export async function runDiscovery(
         const listingInsertStatements: BatchItem[] = [];
         for (const nd of newWithDetail) {
           const sId = nd.detail?.seller?.platformSellerId
-            ? sellerIdByPlatformId.get(String(nd.detail.seller.platformSellerId)) ?? null
+            ? sellerIdByPlatformId.get(
+                String(nd.detail.seller.platformSellerId)
+              ) ?? null
             : null;
           const it = nd.item;
-          const d = nd.detail;
+          const d = nd.detail!;
           listingInsertStatements.push(
             db
               .insert(listings)
@@ -383,7 +396,10 @@ export async function runDiscovery(
         // Fetch ids for new listings with detail and batch price history
         if (newWithDetail.length > 0) {
           const newIdsRows = await db
-            .select({ id: listings.id, platformListingId: listings.platformListingId })
+            .select({
+              id: listings.id,
+              platformListingId: listings.platformListingId,
+            })
             .from(listings)
             .where(
               inArray(
@@ -392,8 +408,9 @@ export async function runDiscovery(
               )
             )
             .all();
-        const newIdMap = new Map<string, number>();
-        for (const r of newIdsRows) newIdMap.set(String(r.platformListingId), r.id);
+          const newIdMap = new Map<string, number>();
+          for (const r of newIdsRows)
+            newIdMap.set(String(r.platformListingId), r.id);
 
           for (const nd of newWithDetail) {
             const id = newIdMap.get(nd.item.id);
@@ -420,23 +437,11 @@ export async function runDiscovery(
           metrics.listingsDiscovered += newWithDetail.length;
         }
       } else {
-        // No sellers to upsert; still compute listing inserts directly from details
+        // No sellers to upsert; reuse already-fetched details and insert listings with sellerId=null
         const listingInsertStatements: BatchItem[] = [];
-        const newWithDetail: Array<{ item: (typeof items)[number]; detail: ReturnType<typeof parseDetail> }> = [];
-        for (const it of newItems) {
-          try {
-            const detailHtml = await fetchDetail(it.url);
-            const detail = parseDetail(detailHtml);
-            if (!detail) continue;
-            metrics.detailPagesFetched++;
-            newWithDetail.push({ item: it, detail });
-          } catch {
-            continue;
-          }
-        }
         for (const nd of newWithDetail) {
           const it = nd.item;
-          const d = nd.detail;
+          const d = nd.detail!;
           listingInsertStatements.push(
             db
               .insert(listings)
@@ -498,7 +503,10 @@ export async function runDiscovery(
 
         if (newWithDetail.length > 0) {
           const newIdsRows = await db
-            .select({ id: listings.id, platformListingId: listings.platformListingId })
+            .select({
+              id: listings.id,
+              platformListingId: listings.platformListingId,
+            })
             .from(listings)
             .where(
               inArray(
@@ -508,7 +516,8 @@ export async function runDiscovery(
             )
             .all();
           const newIdMap = new Map<string, number>();
-          for (const r of newIdsRows) newIdMap.set(String(r.platformListingId), r.id);
+          for (const r of newIdsRows)
+            newIdMap.set(String(r.platformListingId), r.id);
           for (const nd of newWithDetail) {
             const id = newIdMap.get(nd.item.id);
             if (!id) continue;
