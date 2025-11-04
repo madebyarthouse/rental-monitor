@@ -77,16 +77,21 @@ export function StatsSummary() {
     },
   ];
 
-  function renderRow() {
+  // Split items into two groups of 3 for responsive layout
+  const firstRow = items.slice(0, 3);
+  const secondRow = items.slice(3);
+
+  function renderRow(rowItems: typeof items, isFirstRow = false) {
     return (
       <div className="flex divide-x divide-black overflow-x-auto">
         <div className="flex-1" />
-        {items.map(({ label, value, Icon }, index) => (
+        {rowItems.map(({ label, value, Icon }, index) => (
           <div
             key={label}
             className={cn(
               "px-4 py-3 min-w-40",
-              index === items.length - 1 && "border-r border-black"
+              index === rowItems.length - 1 && "border-r border-black",
+              isFirstRow && "border-b border-black"
             )}
           >
             <div className="flex items-center gap-2">
@@ -101,9 +106,48 @@ export function StatsSummary() {
     );
   }
 
+  function renderGridTwoCols() {
+    return (
+      <div className="grid grid-cols-2">
+        {items.map(({ label, value, Icon }, index) => {
+          const isLeftCol = index % 2 === 0;
+          const isLastRow = index >= items.length - 2; // with 2 columns
+          return (
+            <div
+              key={label}
+              className={cn(
+                "px-4 py-3",
+                isLeftCol && "border-r border-black",
+                !isLastRow && "border-b border-black"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Icon className="size-4 text-muted-foreground" aria-hidden />
+                <div className="font-semibold text-lg sm:text-xl">{value}</div>
+              </div>
+              <div className="text-muted-foreground text-sm">{label}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
-    <div className="border-b border-black bg-background">
-      <div className="mx-auto max-w-screen-2xl px-4">{renderRow()}</div>
+    <div className="border-t border-b border-black bg-background">
+      <div className="mx-auto max-w-screen-2xl min-[810px]:px-4 px-0">
+        {/* Single row above 1400px, two rows below */}
+        <div className="hidden min-[1400px]:block">
+          {renderRow(items)}
+        </div>
+        <div className="hidden min-[810px]:flex min-[1400px]:hidden flex-col">
+          {renderRow(firstRow, true)}
+          {renderRow(secondRow)}
+        </div>
+        <div className="min-[810px]:hidden">
+          {renderGridTwoCols()}
+        </div>
+      </div>
     </div>
   );
 }
