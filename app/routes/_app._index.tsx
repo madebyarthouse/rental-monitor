@@ -134,23 +134,25 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 export default function RootMap(props: Route.ComponentProps) {
   return (
-    <div className="py-4 px-4 flex flex-col gap-10">
-      <ClientOnly>
-        {() => (
-          <MapView
-            context="country"
-            country={props.loaderData.country}
-            districts={props.loaderData.districts}
-            states={props.loaderData.states}
-            heatmap={props.loaderData.heatmap}
-            districtStats={
-              new Map(
-                props.loaderData.districtStats.map((g) => [g.slug, g.stats])
-              )
-            }
-          />
-        )}
-      </ClientOnly>
+    <div className="flex flex-col gap-10">
+      <div className="px-4 pt-8 pb-8">
+        <ClientOnly>
+          {() => (
+            <MapView
+              context="country"
+              country={props.loaderData.country}
+              districts={props.loaderData.districts}
+              states={props.loaderData.states}
+              heatmap={props.loaderData.heatmap}
+              districtStats={
+                new Map(
+                  props.loaderData.districtStats.map((g) => [g.slug, g.stats])
+                )
+              }
+            />
+          )}
+        </ClientOnly>
+      </div>
       <StatsSummary />
       <MapCharts
         priceHistogram={props.loaderData.priceHistogram}
