@@ -22,6 +22,14 @@ type ChartContextProps = {
 
 const ChartContext = React.createContext<ChartContextProps | null>(null)
 
+function hasFill(value: unknown): value is { fill?: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Object.prototype.hasOwnProperty.call(value, "fill")
+  )
+}
+
 function useChart() {
   const context = React.useContext(ChartContext)
 
@@ -171,7 +179,7 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        "border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl",
+        "border-border/50 bg-background grid min-w-32 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl",
         className
       )}
     >
@@ -182,7 +190,8 @@ function ChartTooltipContent({
           .map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
-            const indicatorColor = color || item.payload.fill || item.color
+            const indicatorColor = color || (hasFill(item.payload) ? item.payload.fill : undefined) || item.color
+            const isSingle = payload.length === 1 && !formatter
 
             return (
               <div
@@ -220,24 +229,37 @@ function ChartTooltipContent({
                         />
                       )
                     )}
-                    <div
-                      className={cn(
-                        "flex flex-1 justify-between leading-none",
-                        nestLabel ? "items-end" : "items-center"
-                      )}
-                    >
-                      <div className="grid gap-1.5">
-                        {nestLabel ? tooltipLabel : null}
+                    {isSingle ? (
+                      <div className="flex flex-1 items-center gap-2 leading-none">
+                        {item.value && (
+                          <span className="text-foreground font-mono font-medium tabular-nums">
+                            {item.value.toLocaleString()}
+                          </span>
+                        )}
                         <span className="text-muted-foreground">
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
-                      {item.value && (
-                        <span className="text-foreground font-mono font-medium tabular-nums">
-                          {item.value.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
+                    ) : (
+                      <div
+                        className={cn(
+                          "flex flex-1 justify-between leading-none",
+                          nestLabel ? "items-end" : "items-center"
+                        )}
+                      >
+                        <div className="grid gap-1.5">
+                          {nestLabel ? tooltipLabel : null}
+                          <span className="text-muted-foreground">
+                            {itemConfig?.label || item.name}
+                          </span>
+                        </div>
+                        {item.value && (
+                          <span className="text-foreground font-mono font-medium tabular-nums">
+                            {item.value.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -282,7 +304,7 @@ function ChartLegendContent({
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
           return (
-            <div
+              <div
               key={item.value}
               className={cn(
                 "[&>svg]:text-muted-foreground flex items-center gap-3 text-sm [&>svg]:h-6 [&>svg]:w-6"
@@ -294,7 +316,8 @@ function ChartLegendContent({
                 <div
                   className="h-4 w-4 shrink-0 rounded-[2px]"
                   style={{
-                    backgroundColor: item.color || (item.payload && item.payload.fill),
+                    backgroundColor:
+                      item.color || (hasFill(item.payload) ? item.payload.fill : undefined),
                   }}
                 />
               )}
