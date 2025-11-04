@@ -129,7 +129,7 @@ export function StatisticsTable({
                   key={stat.slug}
                   className={cn(
                     "border-b border-border/50 hover:bg-muted/50",
-                    stat.slug === activeSlug && "bg-muted/40 font-semibold"
+                    stat.slug === activeSlug && "bg-accent font-semibold"
                   )}
                 >
                   <td className="py-2 px-2 font-medium">{stat.name}</td>
