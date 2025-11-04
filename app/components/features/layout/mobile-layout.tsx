@@ -44,7 +44,7 @@ export default function MobileLayout({
   return (
     <>
       {/* Sticky top header: Logo + menu toggle */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-1000 border-b border-border bg-background">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-1100 border-b border-border bg-background">
         <div className="flex items-center justify-between px-4 h-14 gap-4">
           <Link to="/" className="block h-full py-2">
             <img
@@ -84,7 +84,7 @@ export default function MobileLayout({
               "transition-opacity duration-200 ease-out",
               menuOpen ? "opacity-100" : "opacity-0"
             )}
-            style={{ maxHeight: "calc(100vh - 56px)" }}
+            style={{ height: "calc(100dvh - 56px)" }}
           >
             <div className="flex flex-col h-full">
               <div className="flex-1 overflow-auto py-3 px-2 space-y-4">
@@ -109,8 +109,7 @@ export default function MobileLayout({
 
       {/* Main content spacing accounts for header + region bar */}
       <div className="flex flex-col min-h-screen pt-[104px] pb-20">
-        <StatsSummary />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pt-5">{children}</main>
       </div>
 
       {/* Bottom sticky tabs: Map, Listings, Methodik */}
