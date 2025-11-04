@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { StatisticsSummary } from "@/services/statistics-service";
+import { cn } from "@/lib/utils";
 
 function formatNumber(
   n: number | null | undefined,
@@ -18,9 +19,11 @@ type GroupedStat = {
 export function StatisticsTable({
   groupedStats,
   className,
+  activeSlug,
 }: {
   groupedStats: GroupedStat[];
   className?: string;
+  activeSlug?: string;
 }) {
   const [sortBy, setSortBy] = React.useState<keyof StatisticsSummary | null>(
     null
@@ -124,7 +127,10 @@ export function StatisticsTable({
               {sortedStats.map((stat) => (
                 <tr
                   key={stat.slug}
-                  className="border-b border-border/50 hover:bg-muted/50"
+                  className={cn(
+                    "border-b border-border/50 hover:bg-muted/50",
+                    stat.slug === activeSlug && "bg-muted/40 font-semibold"
+                  )}
                 >
                   <td className="py-2 px-2 font-medium">{stat.name}</td>
                   <td className="py-2 px-2 text-right">
