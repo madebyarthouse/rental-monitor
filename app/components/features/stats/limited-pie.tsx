@@ -50,12 +50,17 @@ export function LimitedPie({
           data={data}
           dataKey="value"
           nameKey="label"
-          innerRadius="70%"
+          innerRadius={0}
           outerRadius="95%"
-          paddingAngle={2}
+          paddingAngle={0}
         >
           {data.map((entry) => (
-            <Cell key={entry.key} fill={`var(--color-${entry.key})`} />
+            <Cell
+              key={entry.key}
+              fill={`var(--color-${entry.key})`}
+              stroke={"hsl(var(--background))"}
+              strokeWidth={1}
+            />
           ))}
         </Pie>
         <ChartLegend content={<ChartLegendContent nameKey="key" />} />
