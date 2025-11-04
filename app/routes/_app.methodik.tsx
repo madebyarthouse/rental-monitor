@@ -1,87 +1,97 @@
 export default function Methodik() {
   return (
     <div className="w-[75ch] max-w-full mx-auto py-10 px-4 sm:px-6">
-      <strong>WORK IN PROGRESS, NICHT FINAL</strong>
       <h1 className="text-2xl font-semibold tracking-tight mb-4">Methodik</h1>
+
       <p className="text-sm text-muted-foreground mb-8">
-        Der Mietmonitor soll Entwicklungen am Mietwohnungsmarkt nachvollziehbar
-        machen. Wir dokumentieren hier die Herkunft der Daten, die wichtigsten
-        Verarbeitungsschritte sowie zentrale Einschränkungen – für Transparenz
-        und eine sachliche Einordnung der Ergebnisse.
+        Der Mietmonitor erfasst täglich Mietwohnungsinserate auf Willhaben und
+        analysiert, wie sich Befristung und regionale Lage auf die Mietpreise
+        auswirken.
       </p>
 
       <section className="space-y-2 mb-8">
-        <h2 className="text-lg font-medium">Datenquelle</h2>
+        <h2 className="text-lg font-medium">Datengrundlage</h2>
         <p className="text-sm text-muted-foreground">
-          Die Auswertungen basieren auf Angeboten für Mietwohnungen auf der
-          Plattform Willhaben. Es werden ausschließlich Wohnungen
-          berücksichtigt. Inserate für Häuser sind nicht Teil der Analyse.
+          Ausgewertet werden ausschließlich Inserate für private Mietwohnungen.
+          Häuser und betriebliche Vermietungen sind ausgeschlossen.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Die Erhebung von neuen Daten erfolgt täglich. Als einfach Heuristik
+          werden Inserate über 50.000 € Monatsmiete nicht erfasst, da es sich
+          wahrscheinlich um Kaufinserate handelt die falsch kategorisiert
+          wurden.
         </p>
       </section>
 
       <section className="space-y-2 mb-8">
-        <h2 className="text-lg font-medium">Zeitraum und Aktualisierung</h2>
+        <h2 className="text-lg font-medium">Einschränkungen</h2>
         <p className="text-sm text-muted-foreground">
-          Die Erhebung läuft fortlaufend seit dem 01.01.2024. Die Daten werden
-          täglich automatisiert aktualisiert. Neue Inserate und Änderungen
-          bestehender Inserate fließen damit zeitnah in den Mietmonitor ein.
+          Die Daten zeigen Angebotspreise, nicht die tatsächlich vereinbarten
+          Mieten. Kurzfristige technische Ausfälle bei der Datenerfassung können
+          zu Lücken führen. Da die Daten täglich upgedated werden kann es zu
+          leichten Abweichungen zwischen Mietmonitor und aktuellen
+          Willhaben-Daten führen.
         </p>
       </section>
 
       <section className="space-y-2 mb-8">
-        <h2 className="text-lg font-medium">
-          Aufbereitung und Qualitätssicherung
-        </h2>
-        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-2">
-          <li>
-            Dubletten werden entfernt, soweit technisch möglich (z. B.
-            Mehrfachschaltungen desselben Objekts).
-          </li>
-          <li>
-            Plausibilitätsprüfungen identifizieren Ausreißer, etwa auffällige
-            Kombinationen aus Preis und Fläche.
-          </li>
-          <li>
-            Basisangaben (z. B. Wohnfläche, Gesamtmiete) werden harmonisiert, um
-            Vergleiche über Regionen zu erleichtern.
-          </li>
-        </ul>
-      </section>
-
-      <section className="space-y-2 mb-8">
-        <h2 className="text-lg font-medium">Abdeckung und Ausschlüsse</h2>
+        <h2 className="text-lg font-medium">Ziel</h2>
         <p className="text-sm text-muted-foreground">
-          Der Mietmonitor bildet das veröffentlichte Angebot ab. Spezifische
-          Segmente (z. B. möblierte Kurzzeitmieten) oder unvollständig
-          beschriebene Inserate können – je nach Datenlage – anders gewichtet
-          sein. Häuser sind explizit ausgeschlossen; betrachtet werden
-          ausschließlich Mietwohnungen.
+          Der Mietmonitor macht transparent, wie Befristung und regionale
+          Unterschiede die Mietpreise beeinflussen – als Grundlage für
+          öffentliche Debatte, Politik und Wissenschaft.
         </p>
       </section>
 
       <section className="space-y-2 mb-8">
-        <h2 className="text-lg font-medium">Interpretation und Grenzen</h2>
-        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-2">
-          <li>
-            Inserate spiegeln Angebotspreise wider, nicht notwendigerweise die
-            tatsächlich vereinbarten Mieten.
-          </li>
-          <li>
-            Angebot und Nachfrage können sich rasch ändern; kurzfristige
-            Schwankungen sind möglich.
-          </li>
-          <li>
-            Zeitliche Lücken (z. B. aufgrund technischer Störungen) werden
-            dokumentiert, soweit relevant.
-          </li>
-        </ul>
+        <h2 className="text-lg font-medium">Entwicklung</h2>
+        <p className="text-sm text-muted-foreground">
+          Der Mietmonitor ist eine gemeinsame Entwicklung vom{" "}
+          <a
+            className="underline"
+            href="https://www.momentum-institut.at"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Momentum Institut
+          </a>{" "}
+          und{" "}
+          <a
+            className="underline"
+            href="https://madebyarthouse.com"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Arthouse
+          </a>
+          .
+        </p>
+      </section>
+
+      <section className="space-y-2 mb-8">
+        <h2 className="text-lg font-medium">Code & Daten</h2>
+        <p className="text-sm text-muted-foreground">
+          Code sowie Daten des Mietmonitor sind open-source und auf GitHub
+          verfügbar:{" "}
+          <a
+            className="underline"
+            href="https://github.com/madebyarthouse/rental-monitor"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            github.com/madebyarthouse/rental-monitor
+          </a>
+        </p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-medium">Rückfragen und Feedback</h2>
+        <h2 className="text-lg font-medium">Kontakt</h2>
         <p className="text-sm text-muted-foreground">
-          Hinweise zur Datenqualität und methodische Anregungen sind willkommen.
-          Sie helfen, den Mietmonitor laufend zu verbessern.
+          Für Fragen und Feedback kannst du uns unter{" "}
+          <a className="underline" href="mailto:kontakt@momentum-institut.at">
+            kontakt@momentum-institut.at
+          </a>{" "}
+          erreichen.
         </p>
       </section>
     </div>
