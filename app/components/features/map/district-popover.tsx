@@ -1,4 +1,13 @@
-import { X, ChevronRight } from "lucide-react";
+import {
+  X,
+  ChevronRight,
+  List,
+  CheckCircle2,
+  Euro,
+  Ruler,
+  Calculator,
+  Timer,
+} from "lucide-react";
 import * as React from "react";
 import { useNavigate } from "react-router";
 import { useFilteredUrl } from "@/hooks/use-filtered-url";
@@ -79,7 +88,7 @@ export function DistrictPopover({
 
   return (
     <div
-      className={`text-sm bg-background rounded-md shadow-lg border border-border ${
+      className={`text-sm bg-background rounded-none shadow-lg border border-border ${
         isMobileView ? "w-full" : "w-[300px]"
       } relative`}
     >
@@ -91,13 +100,13 @@ export function DistrictPopover({
             }
           }}
           onClick={onClose}
-          className="absolute right-2 top-2 p-1 rounded-sm hover:bg-accent transition-colors"
+          className="absolute right-3 top-3 p-1 rounded-sm hover:bg-accent transition-colors"
           aria-label="Schließen"
         >
           <X className="size-4 text-muted-foreground" />
         </button>
       )}
-      <div className="px-3 pt-2.5">
+      <div className="px-4 pt-3 pb-3">
         {effectiveStateSlug &&
         slug &&
         !(context === "district" && activeDistrictSlug === slug) ? (
@@ -139,10 +148,14 @@ export function DistrictPopover({
           </>
         )}
       </div>
+      <div className="border-b border-black"></div>
       {stats && (
-        <div className="space-y-1.5 px-3 py-2.5 ">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Inserate gesamt</span>
+        <div className="space-y-2 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <List className="size-4" aria-hidden />
+              Inserate gesamt
+            </span>
             <span
               className={`font-medium ${
                 metric === "totalListings" ? "text-primary font-semibold" : ""
@@ -151,20 +164,29 @@ export function DistrictPopover({
               {formatNumber(stats.total)}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Ø Preis</span>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <Euro className="size-4" aria-hidden />
+              Preis (Durchschnitt)
+            </span>
             <span className="font-medium">
               {formatNumber(stats.avgPrice, { maximumFractionDigits: 0 })} €
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Ø Fläche</span>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <Ruler className="size-4" aria-hidden />
+              Fläche (Durchschnitt)
+            </span>
             <span className="font-medium">
               {formatNumber(stats.avgArea, { maximumFractionDigits: 1 })} m²
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Ø €/m²</span>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <Calculator className="size-4" aria-hidden />
+              €/m² (Durchschnitt)
+            </span>
             <span
               className={`font-medium ${
                 metric === "avgPricePerSqm" ? "text-primary font-semibold" : ""
@@ -175,8 +197,11 @@ export function DistrictPopover({
               })}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">% befristet</span>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <Timer className="size-4" aria-hidden />
+              % befristet
+            </span>
             <span
               className={`font-medium ${
                 metric === "limitedPercentage"
@@ -194,7 +219,7 @@ export function DistrictPopover({
         </div>
       )}
       {!stats && heatmapValue != null && Number.isFinite(heatmapValue) && (
-        <div className="mt-1 text-sm text-muted-foreground">
+        <div className="px-4 py-3 text-sm text-muted-foreground">
           {metric === "limitedPercentage" &&
             `${Math.round(heatmapValue)}% befristet`}
           {metric === "avgPricePerSqm" && `${Math.round(heatmapValue)} €/m²`}

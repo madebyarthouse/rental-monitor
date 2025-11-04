@@ -6,6 +6,7 @@ import { MapService } from "@/services/map-service";
 import { StatisticsService } from "@/services/statistics-service";
 import { parseMapQuery } from "@/lib/params";
 import { MapCharts } from "@/components/features/charts/map-charts";
+import { StatsSummary } from "@/components/features/layout/stats-summary";
 
 type BoundsTuple = [[number, number], [number, number]];
 type RegionDTO = {
@@ -136,7 +137,7 @@ export default function DistrictMapView(props: Route.ComponentProps) {
     <div className="flex flex-col gap-10">
       <ClientOnly>
         {() => (
-          <div className="p-8">
+          <div className="px-8 py-8">
             <MapView
               context="district"
               state={props.loaderData.state}
@@ -152,6 +153,7 @@ export default function DistrictMapView(props: Route.ComponentProps) {
           </div>
         )}
       </ClientOnly>
+      <StatsSummary />
       <MapCharts
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}

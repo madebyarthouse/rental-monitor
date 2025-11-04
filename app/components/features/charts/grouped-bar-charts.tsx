@@ -71,7 +71,7 @@ export function GroupedBarCharts({
     <div className={className}>
       <div className="grid border-t border-l border-black md:grid-cols-3">
         {/* Stacked bar chart: Limited/Unlimited */}
-        <div className="border-r border-b border-black p-3">
+        <div className="border-r border-b border-black p-8">
           <div className="mb-2 text-sm font-medium">
             % Befristet/Unbefristet
           </div>
@@ -120,7 +120,7 @@ export function GroupedBarCharts({
         </div>
 
         {/* Bar chart: Price per sqm */}
-        <div className="border-r border-b border-black p-3">
+        <div className="border-r border-b border-black p-8">
           <div className="mb-2 text-sm font-medium">Ø €/m²</div>
           <ChartContainer
             config={{
@@ -145,7 +145,7 @@ export function GroupedBarCharts({
         </div>
 
         {/* Bar chart: Number of units */}
-        <div className="border-b border-black p-3">
+        <div className="border-b border-black p-8">
           <div className="mb-2 text-sm font-medium">Anzahl Inserate</div>
           <ChartContainer
             config={{
