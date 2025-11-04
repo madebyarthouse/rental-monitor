@@ -157,8 +157,9 @@ export default function DistrictMapView(props: Route.ComponentProps) {
       <MapCharts
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}
-        groupedStats={undefined}
-        groupLevel={undefined}
+        groupedStats={props.loaderData.groupedStats}
+        groupLevel="district"
+        activeSlug={props.loaderData.activeDistrictSlug}
       />
     </div>
   );

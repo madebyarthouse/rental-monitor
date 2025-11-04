@@ -6,6 +6,7 @@ import {
   XAxis,
   YAxis,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 import {
   ChartContainer,
@@ -26,9 +27,11 @@ type GroupedStat = {
 export function GroupedBarCharts({
   groupedStats,
   className,
+  activeSlug,
 }: {
   groupedStats: GroupedStat[];
   className?: string;
+  activeSlug?: string;
 }) {
   // Sort by total descending for better readability
   const sortedStats = React.useMemo(() => {
@@ -44,6 +47,7 @@ export function GroupedBarCharts({
       const limitedPct = total > 0 ? (limited / total) * 100 : 0;
       const unlimitedPct = total > 0 ? (unlimited / total) * 100 : 0;
       return {
+        slug: stat.slug,
         name: stat.name,
         limited: limitedPct,
         unlimited: unlimitedPct,
@@ -54,6 +58,7 @@ export function GroupedBarCharts({
   // Price per sqm data
   const pricePerSqmData = React.useMemo(() => {
     return sortedStats.map((stat) => ({
+      slug: stat.slug,
       name: stat.name,
       value: stat.stats.avgPricePerSqm ?? 0,
     }));
@@ -62,6 +67,7 @@ export function GroupedBarCharts({
   // Number of units data
   const unitsData = React.useMemo(() => {
     return sortedStats.map((stat) => ({
+      slug: stat.slug,
       name: stat.name,
       value: stat.stats.total,
     }));
@@ -110,12 +116,28 @@ export function GroupedBarCharts({
                 dataKey="limited"
                 stackId="a"
                 fill={chartColors.limited}
-              />
+              >
+                {limitedData.map((d) => (
+                  <Cell
+                    key={`limited-${d.slug}`}
+                    fill={chartColors.limited}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                  />
+                ))}
+              </Bar>
               <Bar
                 dataKey="unlimited"
                 stackId="a"
                 fill={chartColors.unlimited}
-              />
+              >
+                {limitedData.map((d) => (
+                  <Cell
+                    key={`unlimited-${d.slug}`}
+                    fill={chartColors.unlimited}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ChartContainer>
         </div>
@@ -142,7 +164,15 @@ export function GroupedBarCharts({
               />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey="value" fill={chartColors.price} />
+              <Bar dataKey="value" fill={chartColors.price}>
+                {pricePerSqmData.map((d) => (
+                  <Cell
+                    key={`price-${d.slug}`}
+                    fill={chartColors.price}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ChartContainer>
         </div>
@@ -174,7 +204,15 @@ export function GroupedBarCharts({
               />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey="value" fill={chartColors.tertiary} />
+              <Bar dataKey="value" fill={chartColors.tertiary}>
+                {unitsData.map((d) => (
+                  <Cell
+                    key={`units-${d.slug}`}
+                    fill={chartColors.tertiary}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ChartContainer>
         </div>
