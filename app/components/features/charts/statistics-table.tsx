@@ -53,7 +53,7 @@ export function StatisticsTable({
 
   return (
     <div className={className}>
-      <div className="rounded-md border p-3">
+      <div className="border p-3">
         <div className="mb-3 text-sm font-medium">Regionen im Vergleich</div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">

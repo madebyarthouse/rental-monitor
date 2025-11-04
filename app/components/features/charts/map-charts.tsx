@@ -29,11 +29,11 @@ export function MapCharts({
   return (
     <div className={className}>
       <div className="grid border-t  border-black md:grid-cols-2">
-        <div className="border-r border-b border-black p-3">
+        <div className="border-r border-b border-black p-8">
           <div className="mb-2 text-base font-medium">Preisverteilung</div>
           <PriceHistogram buckets={priceHistogram.buckets} />
         </div>
-        <div className="border-b border-black p-3">
+        <div className="border-b border-black p-8">
           <div className="mb-2 text-base font-medium">
             Befristet vs. Unbefristet
           </div>

@@ -3,6 +3,7 @@ import { RegionService } from "@/services/region-service";
 import MapView from "@/components/features/map/map-view.client";
 import { ClientOnly } from "@/components/client-only";
 import { MapCharts } from "@/components/features/charts/map-charts";
+import { StatsSummary } from "@/components/features/layout/stats-summary";
 import { MapService } from "@/services/map-service";
 import { StatisticsService } from "@/services/statistics-service";
 import { parseMapQuery } from "@/lib/params";
@@ -124,22 +125,26 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
 export default function StateMapView(props: Route.ComponentProps) {
   return (
-    <div className="py-4 px-4 flex flex-col gap-10">
-      <ClientOnly>
-        {() => (
-          <MapView
-            context="state"
-            state={props.loaderData.state}
-            districts={props.loaderData.districts}
-            heatmap={props.loaderData.heatmap}
-            districtStats={
-              new Map(
-                props.loaderData.groupedStats.map((g) => [g.slug, g.stats])
-              )
-            }
-          />
-        )}
-      </ClientOnly>
+    <div className="flex flex-col gap-10">
+   
+      <div className="px-4 pt-8 pb-8">
+        <ClientOnly>
+          {() => (
+            <MapView
+              context="state"
+              state={props.loaderData.state}
+              districts={props.loaderData.districts}
+              heatmap={props.loaderData.heatmap}
+              districtStats={
+                new Map(
+                  props.loaderData.groupedStats.map((g) => [g.slug, g.stats])
+                )
+              }
+            />
+          )}
+        </ClientOnly>
+      </div>
+      <StatsSummary />
       <MapCharts
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}

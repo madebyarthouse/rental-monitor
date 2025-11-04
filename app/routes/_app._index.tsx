@@ -7,6 +7,7 @@ import { parseMapQuery } from "@/lib/params";
 import MapView from "@/components/features/map/map-view.client";
 import { ClientOnly } from "@/components/client-only";
 import { MapCharts } from "@/components/features/charts/map-charts";
+import { StatsSummary } from "@/components/features/layout/stats-summary";
 
 type BoundsTuple = [[number, number], [number, number]];
 type RegionDTO = {
@@ -150,6 +151,7 @@ export default function RootMap(props: Route.ComponentProps) {
           />
         )}
       </ClientOnly>
+      <StatsSummary />
       <MapCharts
         priceHistogram={props.loaderData.priceHistogram}
         limitedCounts={props.loaderData.limitedCounts}

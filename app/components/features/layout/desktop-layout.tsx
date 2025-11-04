@@ -11,7 +11,6 @@ import type { RegionHierarchy } from "@/services/region-service";
 import { getTabUrl } from "./utils";
 import { useFilteredUrl } from "@/hooks/use-filtered-url";
 import { useMemo } from "react";
-import { StatsSummary } from "./stats-summary";
 
 export default function DesktopLayout({
   statesWithDistricts,
@@ -46,11 +45,11 @@ export default function DesktopLayout({
       <DesktopSidebar statesWithDistricts={statesWithDistricts} />
 
       <SidebarInset>
-        <header className="sticky top-0 z-1000 flex h-16 items-center justify-between border-b border-border bg-background px-4">
+        <header className="sticky top-0 z-1000 flex h-16 items-center justify-between border-b border-border bg-background pl-4">
           <div className="text-xl md:text-2xl font-semibold tracking-tight border-r border-border pr-4 h-full flex items-center">
             {activeTitle}
           </div>
-          <div className="flex gap-2 h-full">
+          <div className="flex  h-full">
             <Link
               to={buildFilteredUrl(getTabUrl("map", location.pathname), {
                 target: "map",
@@ -79,7 +78,6 @@ export default function DesktopLayout({
             </Link>
           </div>
         </header>
-        <StatsSummary />
         <main className="flex-1">{children}</main>
       </SidebarInset>
     </SidebarProvider>
