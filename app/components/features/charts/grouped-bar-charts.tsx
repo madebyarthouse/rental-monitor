@@ -69,7 +69,7 @@ export function GroupedBarCharts({
 
   return (
     <div className={className}>
-      <div className="grid border-t border-l border-r border-black grid-cols-1 xl:grid-cols-2">
+      <div className="grid border-t md:border-l-0 border-l border-r border-black grid-cols-1 xl:grid-cols-2">
         {/* Stacked bar chart: Limited/Unlimited */}
         <div className="border-b border-black xl:border-r p-4 md:p-8">
           <div className="mb-2 text-base font-medium">

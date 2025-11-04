@@ -53,10 +53,11 @@ export function StatisticsTable({
 
   return (
     <div className={className}>
-      <div className="border p-3">
-        <div className="mb-3 text-sm font-medium">Regionen im Vergleich</div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+      <div className="border-t md:border-l-0 border-l border-r border-black">
+        <div className="border-b border-black p-4 md:p-8">
+          <div className="mb-2 text-base font-medium">Regionen im Vergleich</div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left py-2 px-2 font-medium text-muted-foreground">
@@ -156,7 +157,8 @@ export function StatisticsTable({
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
     </div>
