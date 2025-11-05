@@ -18,6 +18,11 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     "sankt pölten": "sankt-polten-stadt",
     "wiener neustadt": "wiener-neustadt-stadt",
     rust: "rust-stadt",
+    // ensure land districts map to land, not stadt
+    "steyr-land": "steyr-land",
+    "steyr land": "steyr-land",
+    "wels-land": "wels-land",
+    "wels land": "wels-land",
   };
 
   // Include both human-readable names and slug-like variants (e.g., "sankt pölten" and "sankt-poelten")
@@ -53,7 +58,9 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   for (const r of allRegions) slugToRegionId.set(r.slug, r.id);
 
   // Case-insensitive LIKE patterns for candidate selection
-  const likeKeys = Object.keys(variantToInternal);
+  const likeKeys = Object.keys(variantToInternal).sort(
+    (a, b) => b.length - a.length
+  );
   const likeExprs = likeKeys.map(
     (k) => sql`lower(${listings.district}) like ${"%" + k + "%"}`
   );
