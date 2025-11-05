@@ -1,5 +1,11 @@
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { listings, priceHistory, sellers, sellerHistory } from "@/db/schema";
+import {
+  listings,
+  priceHistory,
+  sellers,
+  sellerHistory,
+  regions,
+} from "@/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { RunTracker } from "../run-tracker";
@@ -9,6 +15,10 @@ import {
   extractOverviewDebug,
 } from "../sources/willhaben/overview";
 import { fetchDetail, parseDetail } from "../sources/willhaben/detail";
+import {
+  buildRegionIndices as buildRegionIndicesShared,
+  resolveRegionSlug,
+} from "@/lib/region-matching";
 
 type OverviewItem = ReturnType<typeof parseOverview>[number];
 type DetailResult = NonNullable<ReturnType<typeof parseDetail>>;
@@ -300,6 +310,7 @@ function buildListingUpsert(
   it: OverviewItem,
   d: DetailResult,
   sellerId: number | null,
+  regionId: number | null,
   now: Date
 ): BatchItem {
   return db
@@ -321,6 +332,7 @@ function buildListingUpsert(
       platform: "willhaben",
       url: it.url,
       externalId: it.id,
+      regionId: regionId,
       sellerId: sellerId,
       firstSeenAt: now,
       lastSeenAt: now,
@@ -343,6 +355,7 @@ function buildListingUpsert(
         longitude: it.longitude ?? null,
         isLimited: !!d.duration?.isLimited,
         durationMonths: d.duration?.months ?? null,
+        regionId: regionId,
         lastSeenAt: now,
         lastScrapedAt: now,
         isActive: true,
@@ -355,6 +368,8 @@ async function upsertListings(
   db: DrizzleD1Database<typeof import("@/db/schema")>,
   details: Array<{ item: OverviewItem; detail: DetailResult }>,
   sellerIdByPlatformId: Map<string, number>,
+  indices: ReturnType<typeof buildRegionIndicesShared>,
+  slugToRegionId: Map<string, number>,
   now: Date
 ): Promise<string[]> {
   if (details.length === 0) return [];
@@ -362,11 +377,28 @@ async function upsertListings(
   for (const nd of details) {
     const it = nd.item;
     const d = nd.detail;
+    const resolvedSlug = resolveRegionSlug(indices, {
+      state: it.state ?? null,
+      district: it.district ?? null,
+      city: it.city ?? null,
+    });
+    const regionId = resolvedSlug
+      ? slugToRegionId.get(resolvedSlug) ?? null
+      : null;
+    if (!regionId) {
+      console.warn(
+        `[discovery] region not resolved id=${it.id} url=${it.url} state=${
+          it.state ?? ""
+        } district=${it.district ?? ""} city=${it.city ?? ""}`
+      );
+    }
     const sellerId = nd.detail?.seller?.platformSellerId
       ? sellerIdByPlatformId.get(String(nd.detail.seller.platformSellerId)) ??
         null
       : null;
-    listingInsertStatements.push(buildListingUpsert(db, it, d, sellerId, now));
+    listingInsertStatements.push(
+      buildListingUpsert(db, it, d, sellerId, regionId, now)
+    );
   }
   if (listingInsertStatements.length > 0) {
     await runWithRetry(
@@ -429,7 +461,9 @@ async function processPage(
     listingsDiscovered: number;
     listingsUpdated: number;
     priceHistoryInserted: number;
-  }
+  },
+  indices: ReturnType<typeof buildRegionIndicesShared>,
+  slugToRegionId: Map<string, number>
 ): Promise<{ newFoundOnPage: number; shouldStop: boolean }> {
   const { items, debug } = await fetchOverviewPage(page, rowsPerPage);
   console.log(`[discovery] page=${page} items=${items.length}`);
@@ -484,6 +518,8 @@ async function processPage(
       db,
       newWithDetail,
       sellerIdByPlatformId,
+      indices,
+      slugToRegionId,
       now
     );
     await insertPriceHistory(
@@ -506,6 +542,28 @@ export async function runDiscovery(
   const tracker = new RunTracker(db);
   const started = await tracker.startRun("discovery");
   console.log(`[discovery] start`);
+  // Build region indices and slug->id map once for the run
+  const allRegions = await db
+    .select({
+      id: regions.id,
+      name: regions.name,
+      slug: regions.slug,
+      type: regions.type,
+      parentId: regions.parentId,
+    })
+    .from(regions)
+    .all();
+  const indices = buildRegionIndicesShared(
+    allRegions.map((r) => ({
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      type: r.type,
+      parentId: r.parentId,
+    }))
+  );
+  const slugToRegionId = new Map<string, number>();
+  for (const r of allRegions) slugToRegionId.set(r.slug, r.id);
   const metrics = {
     overviewPagesVisited: 0,
     detailPagesFetched: 0,
@@ -529,7 +587,9 @@ export async function runDiscovery(
         page,
         rowsPerPage,
         now,
-        metrics
+        metrics,
+        indices,
+        slugToRegionId
       );
 
       if (shouldStop) break;
