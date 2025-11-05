@@ -1,6 +1,12 @@
 /// <reference types="node" />
 import fs from "fs";
 import path from "path";
+import {
+  looseNormalize,
+  DISTRICT_NORMALIZATION,
+  buildRegionIndices as buildRegionIndicesShared,
+  resolveRegionSlug,
+} from "../lib/region-matching";
 // region base entries are now provided via JSON generated from geojson
 const regionsJsonPath = path.join(
   process.cwd(),
@@ -130,108 +136,19 @@ type UnmatchedListingRecord = {
   normalizedDistrict: string | null;
 };
 
-// Explicit normalization for certain Willhaben district names
-const DISTRICT_NORMALIZATION: Record<string, string> = {
-  braunauaminn: "braunau",
-  kirchdorfanderkrems: "kirchdorf",
-  riediminnkreis: "ried",
-  graz: "graz-stadt",
-};
-
-function looseNormalize(raw: string | null | undefined): string | null {
-  if (!raw) return null;
-  let s = raw.toLowerCase();
-  s = s.replace(/st\.?\s+/g, "sankt ");
-  s = s
-    .replace(/ä/g, "a")
-    .replace(/ö/g, "o")
-    .replace(/ü/g, "u")
-    .replace(/ß/g, "ss")
-    .replace(/ae/g, "a")
-    .replace(/oe/g, "o")
-    .replace(/ue/g, "u");
-  s = s.replace(/\(.*?\)/g, "");
-  s = s.replace(/[^a-z0-9]/g, "");
-  return s;
-}
-
 function buildRegionIndices() {
-  const idToRegion = new Map<string, RegionBaseEntry>();
-  for (const r of regionBase as RegionBaseEntry[]) {
-    idToRegion.set(r.id, r);
-  }
-
-  const stateKeyToSlug = new Map<string, string>();
-  for (const r of regionBase as RegionBaseEntry[]) {
-    if (r.type !== "state") continue;
-    const bySlug = looseNormalize(r.slug);
-    const byName = looseNormalize(r.name);
-    if (bySlug) stateKeyToSlug.set(bySlug, r.slug);
-    if (byName) stateKeyToSlug.set(byName, r.slug);
-  }
-
-  const compositeToDistrictSlug = new Map<string, string>();
-  const districtKeyToSlug = new Map<string, string>();
-  for (const r of regionBase as RegionBaseEntry[]) {
-    if (r.type !== "district") continue;
-    const parent = r.parent_id ? idToRegion.get(r.parent_id) : undefined;
-    if (!parent) continue;
-
-    const stateKeys = new Set<string>();
-    const sk1 = looseNormalize(parent.slug);
-    const sk2 = looseNormalize(parent.name);
-    if (sk1) stateKeys.add(sk1);
-    if (sk2) stateKeys.add(sk2);
-
-    const districtCandidates = new Set<string>();
-    const d1 = looseNormalize(r.slug);
-    const d2 = looseNormalize(r.name);
-    if (d1) districtCandidates.add(d1);
-    if (d2) districtCandidates.add(d2);
-    const baseName = r.name.replace(/\(.*?\)/g, "").trim();
-    const d3 = looseNormalize(baseName);
-    if (d3) districtCandidates.add(d3);
-    const suffixBase = r.slug.replace(/-(stadt|land|umgebung)$/g, "");
-    const d4 = looseNormalize(suffixBase);
-    if (d4) districtCandidates.add(d4);
-    // Add last token of slug (e.g., 'wien-12-meidling' -> 'meidling')
-    const lastSlugToken = r.slug.split("-").pop();
-    const d5 = looseNormalize(lastSlugToken ?? null);
-    if (d5) districtCandidates.add(d5);
-    // Vienna-specific: add trailing name part after comma (e.g., 'Wien 12.,Meidling' -> 'Meidling')
-    const parentIsVienna =
-      looseNormalize(parent.slug) === "wien" ||
-      looseNormalize(parent.name) === "wien";
-    if (parentIsVienna) {
-      const m = r.name.match(/Wien\s*\d+\.,\s*(.+)$/i);
-      if (m && m[1]) {
-        const d6 = looseNormalize(m[1]);
-        if (d6) districtCandidates.add(d6);
-      }
-    }
-
-    for (const sk of stateKeys) {
-      for (const dk of districtCandidates) {
-        const key = `${sk}::${dk}`;
-        if (!compositeToDistrictSlug.has(key)) {
-          compositeToDistrictSlug.set(key, r.slug);
-        }
-      }
-    }
-
-    // State-agnostic district lookup for simplification/fallback
-    for (const dk of districtCandidates) {
-      if (!districtKeyToSlug.has(dk)) {
-        districtKeyToSlug.set(dk, r.slug);
-      }
-    }
-  }
-
-  return { stateKeyToSlug, compositeToDistrictSlug, districtKeyToSlug };
+  const rows = (regionBase as RegionBaseEntry[]).map((r) => ({
+    id: r.id,
+    name: r.name,
+    slug: r.slug,
+    type: r.type,
+    parentId: r.parent_id,
+  }));
+  return buildRegionIndicesShared(rows);
 }
 
 function resolveRegionSlugForListing(
-  indices: ReturnType<typeof buildRegionIndices>,
+  indices: ReturnType<typeof buildRegionIndicesShared>,
   location: JsonListing["location"] | null | undefined
 ): string | null {
   if (!location) return null;
@@ -252,32 +169,11 @@ function resolveRegionSlugForListing(
     }
   }
 
-  for (const cand of candidates) {
-    const districtKeyRaw = looseNormalize(cand);
-    let districtKey = districtKeyRaw
-      ? DISTRICT_NORMALIZATION[districtKeyRaw] ?? districtKeyRaw
-      : null;
-    // Re-normalize after mapping to keep keys compatible with indices
-    if (districtKey) districtKey = looseNormalize(districtKey);
-    if (!districtKey) continue;
-    const slug = indices.compositeToDistrictSlug.get(
-      `${stateKey}::${districtKey}`
-    );
-    if (slug) return slug;
-
-    // Fallback: try state-agnostic district matching if composite failed
-    const byDistrictOnly = indices.districtKeyToSlug.get(districtKey);
-    if (byDistrictOnly) return byDistrictOnly;
-  }
-
-  // Fallback: if no district/city provided, use the state slug
-  const noDistrictOrCity = !location.district && !location.city;
-  if (noDistrictOrCity) {
-    const stateSlug = indices.stateKeyToSlug.get(stateKey);
-    if (stateSlug) return stateSlug;
-  }
-
-  return null;
+  return resolveRegionSlug(indices, {
+    state: location.state ?? null,
+    district: location.district ?? null,
+    city: location.city ?? null,
+  });
 }
 
 function getFiles(dir: string, pattern: RegExp): string[] {
