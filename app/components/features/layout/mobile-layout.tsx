@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -28,6 +28,8 @@ export default function MobileLayout({
     () => getActiveRegionTitle(statesWithDistricts, location.pathname),
     [statesWithDistricts, location.pathname]
   );
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading";
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -109,7 +111,15 @@ export default function MobileLayout({
 
       {/* Main content spacing accounts for header + region bar */}
       <div className="flex flex-col min-h-screen pt-[104px] pb-20">
-        <main className="flex-1 pt-5">{children}</main>
+        <main className="flex-1 pt-5">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20" role="status" aria-label="Lädt">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          ) : (
+            children
+          )}
+        </main>
       </div>
 
       {/* Bottom sticky tabs: Map, Listings, Methodik */}
