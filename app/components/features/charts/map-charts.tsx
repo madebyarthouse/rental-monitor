@@ -81,6 +81,9 @@ export function MapCharts({
           {groupLevel === "state"
             ? "Vergleich zwischen den Bundesländern"
             : "Vergleich zwischen den Bezirken"}
+          <p className="text-sm text-gray-500">
+            Sortiert nach % der Befristung absteigend
+          </p>
         </div>
       )}
 
