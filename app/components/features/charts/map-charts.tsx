@@ -61,11 +61,11 @@ export function MapCharts({
   return (
     <div className={className}>
       <div className="grid border-t  border-black md:grid-cols-2">
-        <div className="border-r border-b border-black p-8">
+        <div className="border-r border-b border-black p-4 lg:p-8">
           <div className="mb-2 text-base font-medium">Preisverteilung</div>
           <PriceHistogram buckets={priceHistogram.buckets} />
         </div>
-        <div className="border-b border-black p-8">
+        <div className="border-b border-black p-4 lg:p-8">
           <div className="mb-2 text-base font-medium">
             Befristet vs. Unbefristet
           </div>
@@ -77,7 +77,7 @@ export function MapCharts({
       </div>
 
       {groupedStats && groupedStats.length > 0 && (
-        <div className="my-6 px-8 text-base font-medium">
+        <div className="my-6 px-4 lg:px-8 text-base font-medium">
           {groupLevel === "state"
             ? "Vergleich zwischen den Bundesländern"
             : "Vergleich zwischen den Bezirken"}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { MapContainer, useMap, Marker } from "react-leaflet";
+import { MapContainer, useMap, Marker, ZoomControl } from "react-leaflet";
 import L from "leaflet";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import "leaflet/dist/leaflet.css";
@@ -156,6 +156,7 @@ function escapeHtml(input: string): string {
 export default function MapView(props: MapViewProps) {
   if (typeof window === "undefined") return null;
 
+  const isAustria = props.context === "country";
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const bounds: BoundsTuple | undefined = useMemo(() => {
@@ -504,7 +505,7 @@ export default function MapView(props: MapViewProps) {
                 value={mobileSelectValue}
                 onValueChange={handleMobileSelectChange}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full border-black rounded-none shadow-none">
                   <SelectValue placeholder="Region auswählen" />
                 </SelectTrigger>
                 <SelectContent className="z-900">
@@ -535,7 +536,7 @@ export default function MapView(props: MapViewProps) {
       )}
       <div
         className={`w-full h-[350px] md:h-[500px]`}
-        style={{ touchAction: "pan-y" }}
+        style={{ touchAction: isMobile ? "none" : "pan-y" }}
         ref={setMapAreaRef}
       >
         <MapContainer
@@ -548,8 +549,8 @@ export default function MapView(props: MapViewProps) {
               ? [props.state.centerLat, props.state.centerLng]
               : [47.5162, 14.5501]
           }
-          zoom={9}
-          minZoom={6}
+          zoom={isMobile && !isAustria ? 12 : 9}
+          minZoom={isMobile && !isAustria ? 9 : 6}
           maxZoom={13}
           scrollWheelZoom={false}
           doubleClickZoom={false}
@@ -563,7 +564,8 @@ export default function MapView(props: MapViewProps) {
           )}
           maxBoundsViscosity={1.0}
         >
-          <ChangeView bounds={bounds} dragging={false} />
+          {isMobile && <ZoomControl position="topright" />}
+          <ChangeView bounds={bounds} dragging={isMobile} />
           <MapClickHandler onMapClick={handleMapClick} />
           <BoundaryLayer
             items={props.districts.map((d) => ({

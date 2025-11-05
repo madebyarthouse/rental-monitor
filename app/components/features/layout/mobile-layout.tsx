@@ -49,7 +49,7 @@ export default function MobileLayout({
       {/* Sticky top header: Logo + menu toggle */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-1100 border-b border-border bg-background">
         <div className="flex items-center justify-between px-4 h-14 gap-4">
-          <Link to="/" className="block h-full py-2">
+          <Link to="/" className="block h-full py-2 order-2 md:order-1">
             <img
               src="/momentum-institut-logo.png"
               alt="Momentum Institut"
@@ -63,7 +63,7 @@ export default function MobileLayout({
             size="icon"
             onClick={() => setMenuOpen((o) => !o)}
             aria-label="Menü öffnen"
-            className="shrink-0"
+            className="shrink-0 order-1 md:order-2"
           >
             {menuOpen ? (
               <X className="size-8" strokeWidth={2} />
@@ -99,7 +99,7 @@ export default function MobileLayout({
                   />
                 </div>
               </div>
-              <div className="border-t py-5 flex text-xl flex-col gap-3">
+              <div className="border-t py-5 flex text-lg flex-col gap-3">
                 <div className="mb-3 text-xs text-muted-foreground">
                   <SocialBar size={30} />
                 </div>
@@ -112,8 +112,8 @@ export default function MobileLayout({
       </div>
 
       {/* Main content spacing accounts for header + region bar */}
-      <div className="flex flex-col min-h-screen pt-[104px] pb-20">
-        <main className="flex-1 pt-5">
+      <div className="flex flex-col min-h-screen pt-[113px] pb-20">
+        <main className="flex-1">
           {isLoading ? (
             <div
               className="flex items-center justify-center py-20"
