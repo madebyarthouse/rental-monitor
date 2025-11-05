@@ -7,7 +7,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { FilterChips, type ActiveFilters } from "./filter-chips";
 
@@ -46,20 +52,12 @@ export function FiltersAccordion({ className }: { className?: string }) {
   >(undefined);
   const [local, setLocal] = React.useState<ActiveFilters>(() => {
     const parsed = parseActiveFilters(location.search);
-    // Ensure at least one checkbox is always checked
-    if (parsed.limited !== true && parsed.unlimited !== true) {
-      parsed.limited = true;
-    }
     return parsed;
   });
 
   React.useEffect(() => {
     // Sync when URL changes externally
     const parsed = parseActiveFilters(location.search);
-    // Ensure at least one checkbox is always checked
-    if (parsed.limited !== true && parsed.unlimited !== true) {
-      parsed.limited = true;
-    }
     setLocal(parsed);
   }, [location.search]);
 
@@ -84,9 +82,7 @@ export function FiltersAccordion({ className }: { className?: string }) {
   };
 
   const clearAll = () => {
-    const cleared: ActiveFilters = {
-      limited: true, // Ensure at least one checkbox is always checked
-    };
+    const cleared: ActiveFilters = {} as ActiveFilters;
     setLocal(cleared);
     const sp = new URLSearchParams(location.search);
     [
@@ -97,7 +93,6 @@ export function FiltersAccordion({ className }: { className?: string }) {
       "limited",
       "unlimited",
     ].forEach((k) => sp.delete(k));
-    sp.set("limited", "true");
     navigate({ pathname: location.pathname, search: sp.toString() });
   };
 
@@ -105,15 +100,6 @@ export function FiltersAccordion({ className }: { className?: string }) {
     const next: ActiveFilters = { ...local };
     if (key === "platforms") next.platforms = [];
     else {
-      // If removing limited or unlimited, ensure at least one remains checked
-      if (key === "limited" && next.unlimited !== true) {
-        // Don't allow removing the last checked checkbox
-        return;
-      }
-      if (key === "unlimited" && next.limited !== true) {
-        // Don't allow removing the last checked checkbox
-        return;
-      }
       next[key] = undefined;
     }
     setLocal(next);
@@ -140,10 +126,11 @@ export function FiltersAccordion({ className }: { className?: string }) {
         type="single"
         collapsible
         value={accordionValue}
+        className="section-header-border"
         onValueChange={handleAccordionChange}
       >
         <AccordionItem value="filters">
-          <div className="sticky top-0 z-30 bg-background section-header-border">
+          <div className="sticky top-0 z-30 bg-background ">
             <AccordionTrigger className="px-2 py-2">
               <span className="text-xl font-medium text-muted-foreground">
                 Filter
@@ -242,51 +229,36 @@ export function FiltersAccordion({ className }: { className?: string }) {
                 </label>
               </div>
 
-              <div
-                className="flex items-center gap-4"
-                role="group"
-                aria-label="Befristet / Unbefristet"
-              >
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox
-                    checked={local.limited === true}
-                    onCheckedChange={(checked) =>
-                      setLocal((s) => {
-                        // Prevent unchecking if this is the last checked checkbox
-                        if (checked === false && s.unlimited !== true) {
-                          return s;
-                        }
-                        return {
-                          ...s,
-                          limited: checked === true ? true : undefined,
-                        };
-                      })
-                    }
-                    className="rounded-full size-[1.2rem]"
-                    iconClassName="size-3"
-                  />
-                  <span className="text-sm">Befristet</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox
-                    checked={local.unlimited === true}
-                    onCheckedChange={(checked) =>
-                      setLocal((s) => {
-                        // Prevent unchecking if this is the last checked checkbox
-                        if (checked === false && s.limited !== true) {
-                          return s;
-                        }
-                        return {
-                          ...s,
-                          unlimited: checked === true ? true : undefined,
-                        };
-                      })
-                    }
-                    className="rounded-full size-[1.2rem]"
-                    iconClassName="size-3"
-                  />
-                  <span className="text-sm">Unbefristet</span>
-                </label>
+              <div className="flex items-center gap-4">
+                <Select
+                  value={
+                    local.limited === true && local.unlimited !== true
+                      ? "limited"
+                      : local.unlimited === true && local.limited !== true
+                      ? "unlimited"
+                      : "all"
+                  }
+                  onValueChange={(val) => {
+                    setLocal((s) => {
+                      if (val === "limited") {
+                        return { ...s, limited: true, unlimited: undefined };
+                      }
+                      if (val === "unlimited") {
+                        return { ...s, unlimited: true, limited: undefined };
+                      }
+                      return { ...s, limited: undefined, unlimited: undefined };
+                    });
+                  }}
+                >
+                  <SelectTrigger aria-label="Befristung wählen">
+                    <SelectValue placeholder="Alle" />
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    <SelectItem value="all">Alle Befristungen</SelectItem>
+                    <SelectItem value="unlimited">Unbefristet</SelectItem>
+                    <SelectItem value="limited">Befristet</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
