@@ -1,5 +1,6 @@
 @import "tailwindcss" source(".");
 @import "tw-animate-css";
+@plugin "tailwind-scrollbar";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -156,12 +157,12 @@ body {
   --text-xs: 12px;
   --text-sm: 14px;
   --text-base: 16px; /* body mobile */
-  --text-xl: 18px;   /* h3 mobile */
-  --text-2xl: 22px;  /* h2 mobile */
-  --text-5xl: 36px;  /* h1 mobile */
+  --text-xl: 18px; /* h3 mobile */
+  --text-2xl: 22px; /* h2 mobile */
+  --text-5xl: 36px; /* h1 mobile */
 
   --leading-normal: 1.5; /* body mobile */
-  --leading-snug: 1.36;   /* headings */
+  --leading-snug: 1.36; /* headings */
 }
 
 /* Desktop typography overrides (md and up) */
@@ -170,7 +171,7 @@ body {
     --text-base: 18px; /* body desktop */
     --leading-normal: 1.4; /* body desktop */
 
-    --text-xl: 20px;  /* h3 desktop */
+    --text-xl: 20px; /* h3 desktop */
     --text-2xl: 28px; /* h2 desktop */
     --text-5xl: 50px; /* h1 desktop */
   }

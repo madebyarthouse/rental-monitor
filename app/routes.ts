@@ -17,5 +17,9 @@ export default [
       ":state/:district/inserate",
       "routes/_app.$state.$district.inserate.tsx"
     ),
+
+    route("data/export.csv", "routes/export[.]csv.ts"),
+    route("robots.txt", "routes/robots[.]txt.ts"),
+    route("sitemap.xml", "routes/sitemap[.]xml.ts"),
   ]),
 ] satisfies RouteConfig;
