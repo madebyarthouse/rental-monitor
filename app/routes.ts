@@ -21,5 +21,10 @@ export default [
     route("data/export.csv", "routes/export[.]csv.ts"),
     route("robots.txt", "routes/robots[.]txt.ts"),
     route("sitemap.xml", "routes/sitemap[.]xml.ts"),
+
+    route(
+      "api/repair-city-region-mapping.json",
+      "routes/repair-city-region-mapping[.]json.ts"
+    ),
   ]),
 ] satisfies RouteConfig;
