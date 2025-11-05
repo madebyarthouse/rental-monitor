@@ -194,7 +194,7 @@ export default function RootMap(props: Route.ComponentProps) {
       {canonical ? <meta property="og:url" content={canonical} /> : null}
       <meta name="robots" content={robots} />
       <div className="flex flex-col gap-10">
-        <div className="px-4 pt-8 pb-8 min-h-[350px] md:min-h-[500px]">
+        <div className="px-4 lg:px-8 pt-6 md:pt-8 pb-6 md:pb-8 min-h-[350px] md:min-h-[500px]">
           <ClientOnly>
             {() => (
               <MapView

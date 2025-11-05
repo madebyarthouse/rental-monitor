@@ -77,7 +77,7 @@ export function StatisticsTable({
 
   return (
     <div className={className}>
-      <div className="border-t md:border-l-0 border-l border-black">
+      <div className="border-t md:border-l-0 border-black">
         <div className="border-b border-black p-4 md:p-8">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
