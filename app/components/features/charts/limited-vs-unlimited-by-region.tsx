@@ -17,11 +17,13 @@ type RegionAvg = {
 };
 
 export function LimitedVsUnlimitedByRegion({
+  style,
   data,
   activeSlug,
   className,
   preserveOrder,
 }: {
+  style?: React.CSSProperties;
   data: RegionAvg[];
   activeSlug?: string;
   className?: string;
@@ -37,19 +39,26 @@ export function LimitedVsUnlimitedByRegion({
     if (preserveOrder) return mapped;
     // sort by higher of the two to bring larger bars to top
     return mapped.sort(
-      (a, b) => Math.max(b.limited, b.unlimited) - Math.max(a.limited, a.unlimited)
+      (a, b) =>
+        Math.max(b.limited, b.unlimited) - Math.max(a.limited, a.unlimited)
     );
   }, [data, preserveOrder]);
 
   return (
     <ChartContainer
+      style={style}
       className={className}
       config={{
         limited: { label: "Befristet", color: chartColors.limited },
         unlimited: { label: "Unbefristet", color: chartColors.unlimited },
       }}
     >
-      <BarChart data={chartData} layout="vertical" barSize={40} barCategoryGap="10%">
+      <BarChart
+        data={chartData}
+        layout="vertical"
+        barSize={40}
+        barCategoryGap="10%"
+      >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis type="number" tickLine={false} axisLine={false} />
         <YAxis
@@ -85,5 +94,3 @@ export function LimitedVsUnlimitedByRegion({
     </ChartContainer>
   );
 }
-
-

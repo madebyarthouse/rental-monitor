@@ -51,7 +51,7 @@ export default function RegionAccordion({
             value={state.state.slug}
             className="border-b-0"
           >
-            <AccordionTrigger className="py-2 text-base">
+            <AccordionTrigger className="py-2 text-lg md:text-base">
               {state.state.name}
             </AccordionTrigger>
             <AccordionContent>
@@ -63,7 +63,7 @@ export default function RegionAccordion({
                   onClick={onNavigate}
                   ref={isActive && !currentDistrictSlug ? activeItemRef : null}
                   className={cn(
-                    "rounded-md px-2 py-2 hover:bg-sidebar-accent text-base hover:text-sidebar-accent-foreground transition-colors",
+                    "rounded-md px-2 py-2 hover:bg-sidebar-accent text-lg md:text-base hover:text-sidebar-accent-foreground transition-colors",
                     isActive &&
                       !currentDistrictSlug &&
                       "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
@@ -84,7 +84,7 @@ export default function RegionAccordion({
                       onClick={onNavigate}
                       ref={isDistrictActive ? activeItemRef : null}
                       className={cn(
-                        "px-2 py-2 text-base hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                        "px-2 py-2 text-lg md:text-base hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
                         isDistrictActive &&
                           "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
                       )}

@@ -110,6 +110,9 @@ export function GroupedBarCharts({
     }));
   }, [sortedStats]);
 
+  const idealHeight = unitsData.length * 35 + 100;
+  const height = Math.max(idealHeight, 450);
+
   return (
     <div className={className}>
       <div className="grid border-t  border-black grid-cols-1 xl:grid-cols-2">
@@ -119,7 +122,10 @@ export function GroupedBarCharts({
             % Befristet/Unbefristet
           </div>
           <ChartContainer
-            className="min-h-[600px] w-full"
+            style={{
+              height,
+            }}
+            className="w-full"
             config={{
               limited: {
                 label: "Befristet",
@@ -187,7 +193,10 @@ export function GroupedBarCharts({
               Ø €/m² nach Befristung
             </div>
             <LimitedVsUnlimitedByRegion
-              className="min-h-[600px] w-full"
+              style={{
+                height,
+              }}
+              className="w-full"
               data={orderBySlug(
                 groupedLimitedPremium,
                 (g) => g.slug,
@@ -210,7 +219,10 @@ export function GroupedBarCharts({
             Durchschnittliche Miete €/m²
           </div>
           <ChartContainer
-            className="min-h-[600px] w-full"
+            style={{
+              height,
+            }}
+            className="w-full"
             config={{
               value: { label: "Ø €/m²", color: chartColors.price },
             }}
@@ -253,7 +265,10 @@ export function GroupedBarCharts({
         <div className="border-b border-black p-4 md:p-8">
           <div className="mb-2 text-base font-medium">Anzahl Inserate</div>
           <ChartContainer
-            className="min-h-[600px] w-full"
+            style={{
+              height,
+            }}
+            className="w-full"
             config={{
               value: { label: "Anzahl", color: chartColors.tertiary },
             }}
