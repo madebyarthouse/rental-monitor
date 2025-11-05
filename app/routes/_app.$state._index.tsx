@@ -46,7 +46,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     },
     districtIds
   );
-  const [stats, limitedCounts, priceHistogram, groupedStats] =
+  const [stats, limitedCounts, priceHistogram, groupedStats, limitedVsUnlimited, groupedLimitedPremium] =
     await Promise.all([
       statisticsService.getStatistics(
         { level: "state", districtIds },
@@ -97,6 +97,31 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
         },
         "district"
       ),
+      statisticsService.getLimitedVsUnlimitedAverages(
+        { level: "state", districtIds },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getGroupedLimitedPremium(
+        { level: "state", districtIds },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        },
+        "district"
+      ),
     ]);
 
   return {
@@ -120,6 +145,8 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     limitedCounts,
     priceHistogram,
     groupedStats,
+    limitedVsUnlimited,
+    groupedLimitedPremium,
   };
 }
 
@@ -150,6 +177,8 @@ export default function StateMapView(props: Route.ComponentProps) {
         limitedCounts={props.loaderData.limitedCounts}
         groupedStats={props.loaderData.groupedStats}
         groupLevel="district"
+        limitedVsUnlimited={props.loaderData.limitedVsUnlimited}
+        groupedLimitedPremium={props.loaderData.groupedLimitedPremium}
       />
     </div>
   );

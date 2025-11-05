@@ -25,6 +25,25 @@ export type StatisticsSummary = {
   avgPricePerSqm: number | null;
 };
 
+export type LimitedVsUnlimitedAverages = {
+  limitedAvgPricePerSqm: number | null;
+  unlimitedAvgPricePerSqm: number | null;
+  premiumPct: number | null; // (limited - unlimited) / unlimited * 100
+};
+
+export type DualPriceHistogram = {
+  buckets: Array<{ start: number; end: number | null; limited: number; unlimited: number }>;
+  range: { min: number | null; max: number | null };
+};
+
+export type GroupedLimitedPremium = Array<{
+  slug: string;
+  name: string;
+  limitedAvgPricePerSqm: number | null;
+  unlimitedAvgPricePerSqm: number | null;
+  premiumPct: number | null;
+}>;
+
 export class StatisticsService extends BaseService {
   constructor(d1Database: D1Database) {
     super(d1Database);
@@ -125,6 +144,248 @@ export class StatisticsService extends BaseService {
       avgArea: convertAvg(r?.avgArea),
       avgPricePerSqm: convertAvg(r?.avgPricePerSqm),
     };
+  }
+
+  async getLimitedVsUnlimitedAverages(
+    region: RegionContext,
+    filters: StatisticsFilters
+  ): Promise<LimitedVsUnlimitedAverages> {
+    const regionWhere = this.buildRegionWhere(region);
+    const filterWhere = this.buildFilterWhere(filters);
+    const activeWhere = eq(listings.isActive, true);
+    const combined =
+      regionWhere && filterWhere
+        ? and(regionWhere, filterWhere)
+        : regionWhere || filterWhere;
+    const whereExpr = combined
+      ? and(combined as any, activeWhere)
+      : (activeWhere as any);
+
+    const rows = await this.db
+      .select({
+        limitedAvg: avg(sql<number>`CASE WHEN ${listings.isLimited} AND ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`),
+        unlimitedAvg: avg(sql<number>`CASE WHEN NOT ${listings.isLimited} AND ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`),
+      })
+      .from(listings)
+      .where(whereExpr as any)
+      .limit(1);
+
+    const convertAvg = (val: unknown): number | null => {
+      if (val == null) return null;
+      if (typeof val === "number") return Number.isFinite(val) ? val : null;
+      if (typeof val === "string") {
+        const num = Number.parseFloat(val);
+        return Number.isFinite(num) ? num : null;
+      }
+      return null;
+    };
+
+    const limitedAvg = convertAvg(rows[0]?.limitedAvg);
+    const unlimitedAvg = convertAvg(rows[0]?.unlimitedAvg);
+    const premiumPct =
+      unlimitedAvg && unlimitedAvg > 0 && limitedAvg != null
+        ? Math.round(((limitedAvg - unlimitedAvg) / unlimitedAvg) * 1000) / 10
+        : null;
+
+    return {
+      limitedAvgPricePerSqm: limitedAvg,
+      unlimitedAvgPricePerSqm: unlimitedAvg,
+      premiumPct,
+    };
+  }
+
+  async getDualPriceHistogram(
+    region: RegionContext,
+    filters: StatisticsFilters
+  ): Promise<DualPriceHistogram> {
+    const regionWhere = this.buildRegionWhere(region);
+    const filterWhere = this.buildFilterWhere(filters);
+    const activeWhere = eq(listings.isActive, true);
+    const combined =
+      regionWhere && filterWhere
+        ? and(regionWhere, filterWhere)
+        : regionWhere || filterWhere;
+    const whereExpr = combined
+      ? and(combined as any, activeWhere)
+      : (activeWhere as any);
+
+    const row = await this.db
+      .select({
+        // Limited buckets
+        l0: sql<number>`SUM(CASE WHEN ${listings.isLimited} AND ${listings.price} >= 0 AND ${listings.price} < 500 THEN 1 ELSE 0 END)` as any,
+        l1: sql<number>`SUM(CASE WHEN ${listings.isLimited} AND ${listings.price} >= 500 AND ${listings.price} < 1000 THEN 1 ELSE 0 END)` as any,
+        l2: sql<number>`SUM(CASE WHEN ${listings.isLimited} AND ${listings.price} >= 1000 AND ${listings.price} < 1500 THEN 1 ELSE 0 END)` as any,
+        l3: sql<number>`SUM(CASE WHEN ${listings.isLimited} AND ${listings.price} >= 1500 AND ${listings.price} < 2000 THEN 1 ELSE 0 END)` as any,
+        l4: sql<number>`SUM(CASE WHEN ${listings.isLimited} AND ${listings.price} >= 2000 AND ${listings.price} < 2500 THEN 1 ELSE 0 END)` as any,
+        l5: sql<number>`SUM(CASE WHEN ${listings.isLimited} AND ${listings.price} >= 2500 THEN 1 ELSE 0 END)` as any,
+        // Unlimited buckets
+        u0: sql<number>`SUM(CASE WHEN NOT ${listings.isLimited} AND ${listings.price} >= 0 AND ${listings.price} < 500 THEN 1 ELSE 0 END)` as any,
+        u1: sql<number>`SUM(CASE WHEN NOT ${listings.isLimited} AND ${listings.price} >= 500 AND ${listings.price} < 1000 THEN 1 ELSE 0 END)` as any,
+        u2: sql<number>`SUM(CASE WHEN NOT ${listings.isLimited} AND ${listings.price} >= 1000 AND ${listings.price} < 1500 THEN 1 ELSE 0 END)` as any,
+        u3: sql<number>`SUM(CASE WHEN NOT ${listings.isLimited} AND ${listings.price} >= 1500 AND ${listings.price} < 2000 THEN 1 ELSE 0 END)` as any,
+        u4: sql<number>`SUM(CASE WHEN NOT ${listings.isLimited} AND ${listings.price} >= 2000 AND ${listings.price} < 2500 THEN 1 ELSE 0 END)` as any,
+        u5: sql<number>`SUM(CASE WHEN NOT ${listings.isLimited} AND ${listings.price} >= 2500 THEN 1 ELSE 0 END)` as any,
+        min: sql<number>`MIN(${listings.price})`,
+        max: sql<number>`MAX(${listings.price})`,
+      })
+      .from(listings)
+      .where(whereExpr as any)
+      .limit(1);
+
+    const r = row[0] as any;
+    const buckets = [
+      { start: 0, end: 500, limited: (r?.l0 as number) ?? 0, unlimited: (r?.u0 as number) ?? 0 },
+      { start: 500, end: 1000, limited: (r?.l1 as number) ?? 0, unlimited: (r?.u1 as number) ?? 0 },
+      { start: 1000, end: 1500, limited: (r?.l2 as number) ?? 0, unlimited: (r?.u2 as number) ?? 0 },
+      { start: 1500, end: 2000, limited: (r?.l3 as number) ?? 0, unlimited: (r?.u3 as number) ?? 0 },
+      { start: 2000, end: 2500, limited: (r?.l4 as number) ?? 0, unlimited: (r?.u4 as number) ?? 0 },
+      { start: 2500, end: null, limited: (r?.l5 as number) ?? 0, unlimited: (r?.u5 as number) ?? 0 },
+    ];
+
+    return { buckets, range: { min: r?.min ?? null, max: r?.max ?? null } };
+  }
+
+  async getGroupedLimitedPremium(
+    region: RegionContext,
+    filters: StatisticsFilters,
+    groupLevel: "state" | "district"
+  ): Promise<GroupedLimitedPremium> {
+    const filterWhere = this.buildFilterWhere(filters);
+
+    const convertAvg = (val: unknown): number | null => {
+      if (val == null) return null;
+      if (typeof val === "number") return Number.isFinite(val) ? val : null;
+      if (typeof val === "string") {
+        const num = Number.parseFloat(val);
+        return Number.isFinite(num) ? num : null;
+      }
+      return null;
+    };
+
+    if (groupLevel === "district") {
+      const regionWhere = this.buildRegionWhere(region);
+      const activeWhere = eq(listings.isActive, true);
+      const combined =
+        regionWhere && filterWhere
+          ? and(regionWhere, filterWhere)
+          : regionWhere || filterWhere;
+      const whereExpr = combined
+        ? and(combined as any, activeWhere)
+        : (activeWhere as any);
+
+      const rows = await this.db
+        .select({
+          regionId: listings.regionId,
+          limitedAvg: avg(sql<number>`CASE WHEN ${listings.isLimited} AND ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`),
+          unlimitedAvg: avg(sql<number>`CASE WHEN NOT ${listings.isLimited} AND ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`),
+        })
+        .from(listings)
+        .where(whereExpr as any)
+        .groupBy(listings.regionId);
+
+      const ids = rows
+        .map((r) => r.regionId)
+        .filter((x): x is number => x != null);
+
+      const batchSize = 99;
+      const statements: Array<ReturnType<typeof this.db.select>> = [] as any;
+      for (let i = 0; i < ids.length; i += batchSize) {
+        const batch = ids.slice(i, i + batchSize);
+        statements.push(
+          this.db
+            .select({ id: regions.id, slug: regions.slug, name: regions.name })
+            .from(regions)
+            .where(inArray(regions.id, batch))
+        );
+      }
+      const regionRowsBatches = statements.length
+        ? await this.db.batch(statements)
+        : ([] as Array<Array<{ id: number; slug: string; name: string }>>);
+      const regionRows: Array<{ id: number; slug: string; name: string }> = (
+        regionRowsBatches as Array<
+          Array<{ id: number; slug: string; name: string }>
+        >
+      ).flat();
+
+      const idToRegion = new Map(
+        regionRows.map((r) => [r.id, { slug: r.slug, name: r.name }] as const)
+      );
+
+      return rows
+        .map((r) => {
+          const regionInfo = idToRegion.get(r.regionId ?? 0);
+          if (!regionInfo) return null;
+          const limited = convertAvg((r as any).limitedAvg);
+          const unlimited = convertAvg((r as any).unlimitedAvg);
+          const premiumPct =
+            unlimited && unlimited > 0 && limited != null
+              ? Math.round(((limited - unlimited) / unlimited) * 1000) / 10
+              : null;
+          return {
+            slug: regionInfo.slug,
+            name: regionInfo.name,
+            limitedAvgPricePerSqm: limited,
+            unlimitedAvgPricePerSqm: unlimited,
+            premiumPct,
+          };
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null);
+    } else {
+      const state = alias(regions, "state");
+      const district = alias(regions, "district");
+
+      const activeWhere = eq(listings.isActive, true);
+      let baseWhere = filterWhere
+        ? and(filterWhere as any, activeWhere)
+        : (activeWhere as any);
+      if (region.level === "district") {
+        baseWhere = baseWhere
+          ? and(baseWhere, eq(listings.regionId, region.districtId))
+          : and(eq(listings.regionId, region.districtId), activeWhere);
+      } else if (region.level === "state") {
+        if (region.districtIds.length) {
+          baseWhere = baseWhere
+            ? and(baseWhere, inArray(listings.regionId, region.districtIds))
+            : and(inArray(listings.regionId, region.districtIds), activeWhere);
+        }
+      }
+
+      const rows = await this.db
+        .select({
+          stateId: state.id,
+          stateSlug: state.slug,
+          stateName: state.name,
+          limitedAvg: avg(sql<number>`CASE WHEN ${listings.isLimited} AND ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`),
+          unlimitedAvg: avg(sql<number>`CASE WHEN NOT ${listings.isLimited} AND ${listings.area} IS NOT NULL AND ${listings.area} > 0 THEN ${listings.price} / ${listings.area} ELSE NULL END`),
+        })
+        .from(listings)
+        .innerJoin(district, eq(listings.regionId, district.id))
+        .innerJoin(
+          state,
+          and(
+            eq(state.type, "state"),
+            eq(district.parentId, sql<string>`cast(${state.id} as text)`) 
+          )
+        )
+        .where(baseWhere as any)
+        .groupBy(state.id);
+
+      return rows.map((r) => {
+        const limited = convertAvg((r as any).limitedAvg);
+        const unlimited = convertAvg((r as any).unlimitedAvg);
+        const premiumPct =
+          unlimited && unlimited > 0 && limited != null
+            ? Math.round(((limited - unlimited) / unlimited) * 1000) / 10
+            : null;
+        return {
+          slug: r.stateSlug ?? "",
+          name: r.stateName ?? "",
+          limitedAvgPricePerSqm: limited,
+          unlimitedAvgPricePerSqm: unlimited,
+          premiumPct,
+        };
+      });
+    }
   }
 
   async getLimitedCounts(
