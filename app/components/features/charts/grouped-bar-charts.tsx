@@ -149,7 +149,7 @@ export function GroupedBarCharts({
 
         {/* Bar chart: Price per sqm */}
         <div className="border-b border-black p-4 md:p-8">
-          <div className="mb-2 text-base font-medium">Ø €/m²</div>
+          <div className="mb-2 text-base font-medium">Durchschnittliche Miete €/m²</div>
           <ChartContainer
             config={{
               value: { label: "Ø €/m²", color: chartColors.price },
