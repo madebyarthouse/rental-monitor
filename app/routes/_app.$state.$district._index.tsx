@@ -202,7 +202,7 @@ export default function DistrictMapView(props: Route.ComponentProps) {
       <div className="flex flex-col gap-10 min-h-[350px] md:min-h-[500px]">
         <ClientOnly>
           {() => (
-            <div className="px-4 pt-8 pb-8 min-h-[350px] md:min-h-[500px]">
+            <div className="px-4 pt-6 md:pt-8  min-h-[350px] md:min-h-[500px]">
               <MapView
                 context="district"
                 state={props.loaderData.state}
