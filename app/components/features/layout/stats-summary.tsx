@@ -112,13 +112,15 @@ export function StatsSummary() {
         {items.map(({ label, value, Icon }, index) => {
           const isLeftCol = index % 2 === 0;
           const isLastRow = index >= items.length - 2; // with 2 columns
+          const isPreviousToLastRow = index === items.length - 2;
           return (
             <div
               key={label}
               className={cn(
                 "px-4 py-3",
                 isLeftCol && "border-r border-black",
-                !isLastRow && "border-b border-black"
+                !isLastRow && "border-b border-black",
+                isPreviousToLastRow && "border-b border-black"
               )}
             >
               <div className="flex items-center gap-2">
@@ -137,16 +139,12 @@ export function StatsSummary() {
     <div className="border-t border-b border-black bg-background">
       <div className="mx-auto max-w-screen-2xl min-[810px]:px-4 px-0">
         {/* Single row above 1400px, two rows below */}
-        <div className="hidden min-[1400px]:block">
-          {renderRow(items)}
-        </div>
+        <div className="hidden min-[1400px]:block">{renderRow(items)}</div>
         <div className="hidden min-[810px]:flex min-[1400px]:hidden flex-col">
           {renderRow(firstRow, true)}
           {renderRow(secondRow)}
         </div>
-        <div className="min-[810px]:hidden">
-          {renderGridTwoCols()}
-        </div>
+        <div className="min-[810px]:hidden">{renderGridTwoCols()}</div>
       </div>
     </div>
   );

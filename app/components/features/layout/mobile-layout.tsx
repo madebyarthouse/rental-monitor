@@ -11,6 +11,7 @@ import { FiltersAccordion } from "../filters/filters-accordion";
 import { StatsSummary } from "./stats-summary";
 import { Credits } from "./credits";
 import { SocialBar } from "./social-bar";
+import { LegalLinks } from "./legal-links";
 
 export default function MobileLayout({
   statesWithDistricts,
@@ -86,7 +87,7 @@ export default function MobileLayout({
               "transition-opacity duration-200 ease-out",
               menuOpen ? "opacity-100" : "opacity-0"
             )}
-            style={{ height: "calc(100dvh - 56px)" }}
+            style={{ height: "calc(100dvh - 60px)" }}
           >
             <div className="flex flex-col h-full">
               <div className="flex-1 overflow-auto scrollbar-thin scrollbar-track-transparent py-3 px-2 space-y-4">
@@ -98,11 +99,12 @@ export default function MobileLayout({
                   />
                 </div>
               </div>
-              <div className="border-t p-3">
+              <div className="border-t py-5 flex text-xl flex-col gap-3">
                 <div className="mb-3 text-xs text-muted-foreground">
-                  <SocialBar />
+                  <SocialBar size={30} />
                 </div>
                 <Credits />
+                <LegalLinks />
               </div>
             </div>
           </div>
@@ -113,7 +115,11 @@ export default function MobileLayout({
       <div className="flex flex-col min-h-screen pt-[104px] pb-20">
         <main className="flex-1 pt-5">
           {isLoading ? (
-            <div className="flex items-center justify-center py-20" role="status" aria-label="Lädt">
+            <div
+              className="flex items-center justify-center py-20"
+              role="status"
+              aria-label="Lädt"
+            >
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
           ) : (
