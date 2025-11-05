@@ -47,7 +47,15 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       platforms: query.platforms,
     }
   );
-  const [stats, limitedCounts, priceHistogram, groupedStats, districtStats] =
+  const [
+    stats,
+    limitedCounts,
+    priceHistogram,
+    groupedStats,
+    districtStats,
+    limitedVsUnlimited,
+    groupedLimitedPremium,
+  ] =
     await Promise.all([
       statisticsService.getStatistics(
         { level: "country" },
@@ -111,6 +119,31 @@ export async function loader({ context, request }: Route.LoaderArgs) {
         },
         "district"
       ),
+      statisticsService.getLimitedVsUnlimitedAverages(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        }
+      ),
+      statisticsService.getGroupedLimitedPremium(
+        { level: "country" },
+        {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+          minArea: query.minArea,
+          maxArea: query.maxArea,
+          limited: query.limited,
+          unlimited: query.unlimited,
+          platforms: query.platforms,
+        },
+        "state"
+      ),
     ]);
   return {
     country: { name: country.name, slug: country.slug, bounds: country.bounds },
@@ -129,6 +162,8 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     priceHistogram,
     groupedStats,
     districtStats,
+    limitedVsUnlimited,
+    groupedLimitedPremium,
   };
 }
 
@@ -159,6 +194,8 @@ export default function RootMap(props: Route.ComponentProps) {
         limitedCounts={props.loaderData.limitedCounts}
         groupedStats={props.loaderData.groupedStats}
         groupLevel="state"
+        limitedVsUnlimited={props.loaderData.limitedVsUnlimited}
+        groupedLimitedPremium={props.loaderData.groupedLimitedPremium}
       />
     </div>
   );

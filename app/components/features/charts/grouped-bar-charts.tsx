@@ -126,7 +126,7 @@ export function GroupedBarCharts({
                   <Cell
                     key={`limited-${d.slug}`}
                     fill={chartColors.limited}
-                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.7) : 1}
                   />
                 ))}
               </Bar>
@@ -139,7 +139,7 @@ export function GroupedBarCharts({
                   <Cell
                     key={`unlimited-${d.slug}`}
                     fill={chartColors.unlimited}
-                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.7) : 1}
                   />
                 ))}
               </Bar>
@@ -174,7 +174,7 @@ export function GroupedBarCharts({
                   <Cell
                     key={`price-${d.slug}`}
                     fill={chartColors.price}
-                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.7) : 1}
                   />
                 ))}
               </Bar>
@@ -214,7 +214,7 @@ export function GroupedBarCharts({
                   <Cell
                     key={`units-${d.slug}`}
                     fill={chartColors.tertiary}
-                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.4) : 1}
+                    fillOpacity={activeSlug ? (d.slug === activeSlug ? 1 : 0.7) : 1}
                   />
                 ))}
               </Bar>
