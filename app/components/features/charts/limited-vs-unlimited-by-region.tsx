@@ -20,22 +20,26 @@ export function LimitedVsUnlimitedByRegion({
   data,
   activeSlug,
   className,
+  preserveOrder,
 }: {
   data: RegionAvg[];
   activeSlug?: string;
   className?: string;
+  preserveOrder?: boolean;
 }) {
   const chartData = React.useMemo(() => {
-    return [...data]
-      .map((d) => ({
-        slug: d.slug,
-        name: d.name,
-        limited: d.limitedAvgPricePerSqm ?? 0,
-        unlimited: d.unlimitedAvgPricePerSqm ?? 0,
-      }))
-      // sort by higher of the two to bring larger bars to top
-      .sort((a, b) => Math.max(b.limited, b.unlimited) - Math.max(a.limited, a.unlimited));
-  }, [data]);
+    const mapped = [...data].map((d) => ({
+      slug: d.slug,
+      name: d.name,
+      limited: d.limitedAvgPricePerSqm ?? 0,
+      unlimited: d.unlimitedAvgPricePerSqm ?? 0,
+    }));
+    if (preserveOrder) return mapped;
+    // sort by higher of the two to bring larger bars to top
+    return mapped.sort(
+      (a, b) => Math.max(b.limited, b.unlimited) - Math.max(a.limited, a.unlimited)
+    );
+  }, [data, preserveOrder]);
 
   return (
     <ChartContainer
