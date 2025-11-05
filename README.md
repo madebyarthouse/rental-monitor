@@ -32,4 +32,4 @@ pnpm dev
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+AGPL v3 — see [LICENSE](LICENSE).
