@@ -4,6 +4,12 @@ import { ListingsService } from "@/services/listings-service";
 import { parseListingsQuery } from "@/lib/params";
 import { ListingsPage } from "@/components/features/listings/listings-page";
 import { StatisticsService } from "@/services/statistics-service";
+import {
+  buildTitle,
+  buildDescription,
+  canonicalFrom,
+  hasFilterParams,
+} from "@/lib/seo";
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const regionService = new RegionService(
@@ -45,6 +51,10 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       platforms: query.platforms,
     }
   );
+  const urlObj = new URL(request.url);
+  const canonical = canonicalFrom(urlObj);
+  const hasFilters = hasFilterParams(urlObj.searchParams);
+
   return {
     level: "state" as const,
     state: stateData.state,
@@ -64,11 +74,29 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
         platforms: query.platforms,
       }
     ),
+    canonical,
+    hasFilters,
   };
 }
 
 export default function StateListingsView({
   loaderData,
 }: Route.ComponentProps) {
-  return <ListingsPage data={loaderData.listings} />;
+  const stateName = loaderData.state?.name as string | undefined;
+  const title = buildTitle(["Inserate", stateName ?? ""]);
+  const description = buildDescription({ scope: "listings" });
+  const canonical = loaderData.canonical as string | undefined;
+  const robots = loaderData.hasFilters ? "noindex,follow" : "index,follow";
+
+  return (
+    <>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      {canonical ? <meta property="og:url" content={canonical} /> : null}
+      <meta name="robots" content={robots} />
+      <ListingsPage data={loaderData.listings} />
+    </>
+  );
 }
