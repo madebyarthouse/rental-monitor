@@ -7,6 +7,12 @@ import { StatsSummary } from "@/components/features/layout/stats-summary";
 import { MapService } from "@/services/map-service";
 import { StatisticsService } from "@/services/statistics-service";
 import { parseMapQuery } from "@/lib/params";
+import {
+  buildTitle,
+  buildDescription,
+  canonicalFrom,
+  hasFilterParams,
+} from "@/lib/seo";
 
 type BoundsTuple = [[number, number], [number, number]];
 type RegionDTO = {
@@ -99,6 +105,10 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       ),
     ]);
 
+  const urlObj = new URL(request.url);
+  const canonical = canonicalFrom(urlObj);
+  const hasFilters = hasFilterParams(urlObj.searchParams);
+
   return {
     state: {
       name: stateData.state.name,
@@ -120,37 +130,54 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     limitedCounts,
     priceHistogram,
     groupedStats,
+    canonical,
+    hasFilters,
   };
 }
 
 export default function StateMapView(props: Route.ComponentProps) {
+  const stateName = props.loaderData.state?.name as string | undefined;
+  const title = buildTitle([stateName ?? ""]);
+  const description = buildDescription({ scope: "state", name: stateName });
+  const canonical = props.loaderData.canonical as string | undefined;
+  const robots = props.loaderData.hasFilters
+    ? "noindex,follow"
+    : "index,follow";
+
   return (
-    <div className="flex flex-col gap-10">
-   
-      <div className="px-4 pt-8 pb-8">
-        <ClientOnly>
-          {() => (
-            <MapView
-              context="state"
-              state={props.loaderData.state}
-              districts={props.loaderData.districts}
-              heatmap={props.loaderData.heatmap}
-              districtStats={
-                new Map(
-                  props.loaderData.groupedStats.map((g) => [g.slug, g.stats])
-                )
-              }
-            />
-          )}
-        </ClientOnly>
+    <>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      {canonical ? <meta property="og:url" content={canonical} /> : null}
+      <meta name="robots" content={robots} />
+      <div className="flex flex-col gap-10">
+        <div className="px-4 pt-8 pb-8 min-h-[350px] md:min-h-[500px]">
+          <ClientOnly>
+            {() => (
+              <MapView
+                context="state"
+                state={props.loaderData.state}
+                districts={props.loaderData.districts}
+                heatmap={props.loaderData.heatmap}
+                districtStats={
+                  new Map(
+                    props.loaderData.groupedStats.map((g) => [g.slug, g.stats])
+                  )
+                }
+              />
+            )}
+          </ClientOnly>
+        </div>
+        <StatsSummary />
+        <MapCharts
+          priceHistogram={props.loaderData.priceHistogram}
+          limitedCounts={props.loaderData.limitedCounts}
+          groupedStats={props.loaderData.groupedStats}
+          groupLevel="district"
+        />
       </div>
-      <StatsSummary />
-      <MapCharts
-        priceHistogram={props.loaderData.priceHistogram}
-        limitedCounts={props.loaderData.limitedCounts}
-        groupedStats={props.loaderData.groupedStats}
-        groupLevel="district"
-      />
-    </div>
+    </>
   );
 }
