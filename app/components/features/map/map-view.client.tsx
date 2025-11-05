@@ -558,7 +558,7 @@ export default function MapView(props: MapViewProps) {
         </>
       )}
       <div
-        className={`w-full ${isMobile ? "h-[350px]" : "h-[500px]"}`}
+        className={`w-full h-[350px] md:h-[500px]`}
         style={{ touchAction: "pan-y" }}
         ref={setMapAreaRef}
       >

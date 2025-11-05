@@ -4,6 +4,12 @@ import { ListingsService } from "@/services/listings-service";
 import { parseListingsQuery } from "@/lib/params";
 import { ListingsPage } from "@/components/features/listings/listings-page";
 import { StatisticsService } from "@/services/statistics-service";
+import {
+  buildTitle,
+  buildDescription,
+  canonicalFrom,
+  hasFilterParams,
+} from "@/lib/seo";
 
 export async function loader({ context, request }: Route.LoaderArgs) {
   const regionService = new RegionService(
@@ -49,14 +55,35 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       platforms: query.platforms,
     }
   );
+
+  const canonical = canonicalFrom(url);
+  const hasFilters = hasFilterParams(url.searchParams);
+
   return {
     level: "country" as const,
     regions: states,
     listings,
     stats,
+    canonical,
+    hasFilters,
   };
 }
 
 export default function ListingsView({ loaderData }: Route.ComponentProps) {
-  return <ListingsPage data={loaderData.listings} />;
+  const title = buildTitle(["Inserate"]);
+  const description = buildDescription({ scope: "listings" });
+  const canonical = loaderData.canonical as string | undefined;
+  const robots = loaderData.hasFilters ? "noindex,follow" : "index,follow";
+
+  return (
+    <>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      {canonical ? <meta property="og:url" content={canonical} /> : null}
+      <meta name="robots" content={robots} />
+      <ListingsPage data={loaderData.listings} />
+    </>
+  );
 }
