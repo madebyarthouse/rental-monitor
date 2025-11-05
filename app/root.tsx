@@ -9,8 +9,32 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { buildTitle, buildDescription } from "@/lib/seo";
 
-export const links: Route.LinksFunction = () => [];
+export async function loader({ request }: Route.LoaderArgs) {
+  const url = new URL(request.url);
+  return {
+    origin: url.origin,
+  };
+}
+
+export const meta: Route.MetaFunction = ({ data }) => {
+  const origin = data?.origin || "";
+  const defaultTitle = buildTitle([]);
+  const defaultDescription = buildDescription({ scope: "country" });
+
+  return [
+    { title: defaultTitle },
+    { name: "description", content: defaultDescription },
+    { property: "og:type", content: "website" },
+    { property: "og:site_name", content: "Momentum Mietmonitor" },
+    { property: "og:locale", content: "de_AT" },
+    { property: "og:title", content: defaultTitle },
+    { property: "og:description", content: defaultDescription },
+    { property: "og:image", content: `${origin}/og.png` },
+    { name: "twitter:card", content: "summary_large_image" },
+  ];
+};
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -34,11 +58,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta
-          name="description"
-          content="Diese Seite visualisiert die Antworten von wahlkabine.at."
-        />
-        <title>Momentum Mietmonitor</title>
         <Meta />
         <Links />
       </head>

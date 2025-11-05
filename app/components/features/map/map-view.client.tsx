@@ -5,7 +5,11 @@ import type { Feature, FeatureCollection, Geometry } from "geojson";
 import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router";
 import BoundaryLayer from "./boundary-layer";
-import { createColorScale } from "./color-scale";
+import {
+  createAvgPricePerSqmScale,
+  createColorScale,
+  createLimitedPercentageScale,
+} from "./color-scale";
 import type { HeatmapResult } from "@/services/map-service";
 import type { StatisticsSummary } from "@/services/statistics-service";
 import { HeatmapToggles } from "./heatmap-toggles";
@@ -309,20 +313,6 @@ export default function MapView(props: MapViewProps) {
     props.districts,
   ]);
 
-  const onSelectRegion = (slug: string, stateSlug?: string) => {
-    // If we're at state context, navigate to /:state/:district using current state and clicked district
-    if (props.context === "state" || props.context === "district") {
-      const stateSlug =
-        props.context === "state" ? props.state.slug : props.state.slug;
-      navigate(`/${stateSlug}/${slug}`);
-      return;
-    }
-    // If country view, we need state slug to navigate to /:state/:district
-    if (props.context === "country" && stateSlug) {
-      navigate(`/${stateSlug}/${slug}`);
-    }
-  };
-
   const getFillColor = useMemo(() => {
     const h = props.heatmap;
     if (!h) return undefined;
@@ -339,7 +329,7 @@ export default function MapView(props: MapViewProps) {
     if (!values) return undefined;
 
     if (h.metric === "limitedPercentage") {
-      const scale = createColorScale(0, 100);
+      const scale = createLimitedPercentageScale();
       const mapper = (slug: string) => {
         const raw = values[slug];
         const v =
@@ -359,7 +349,7 @@ export default function MapView(props: MapViewProps) {
 
     if (h.metric === "avgPricePerSqm") {
       // Fixed bins for €/m²: 0-5, 5-10, 10-15, 15-20, 20+
-      const scale = createColorScale(0, 20);
+      const scale = createAvgPricePerSqmScale();
       const mapper = (slug: string) => {
         const raw = values[slug];
         const v =
@@ -367,7 +357,7 @@ export default function MapView(props: MapViewProps) {
         if (v == null || !Number.isFinite(v)) return "#B8C1CC";
         // Determine bin
         const bin = v <= 5 ? 0 : v <= 10 ? 1 : v <= 15 ? 2 : v <= 20 ? 3 : 4;
-        const midpoints = [2.5, 7.5, 12.5, 17.5, 20];
+        const midpoints = [2.5, 7.5, 12.5, 17.5, 22.5];
         const color = scale(midpoints[bin]);
 
         return color;
@@ -397,20 +387,6 @@ export default function MapView(props: MapViewProps) {
     };
     return mapper;
   }, [props.heatmap]);
-
-  const getHeatmapValue = (slug: string): number | null => {
-    const h = props.heatmap;
-    if (!h) return null;
-    let values: Record<string, number | null> | undefined;
-    if ("values" in h) {
-      values = h.values as Record<string, number | null>;
-    } else if ("byRegion" in h && Array.isArray(h.byRegion)) {
-      values = Object.fromEntries(
-        h.byRegion.map((x) => [x.slug, x.value])
-      ) as Record<string, number | null>;
-    }
-    return values?.[slug] ?? null;
-  };
 
   const getFilteredUrl = useFilteredUrl();
 
@@ -558,7 +534,7 @@ export default function MapView(props: MapViewProps) {
         </>
       )}
       <div
-        className={`w-full ${isMobile ? "h-[350px]" : "h-[500px]"}`}
+        className={`w-full h-[350px] md:h-[500px]`}
         style={{ touchAction: "pan-y" }}
         ref={setMapAreaRef}
       >

@@ -1,5 +1,6 @@
 export type ColorScaleOptions = {
   alpha?: number; // 0..1 transparency, optional
+  palette?: readonly string[]; // optional custom palette
 };
 
 const HEATMAP_COLORS: readonly string[] = [
@@ -7,7 +8,23 @@ const HEATMAP_COLORS: readonly string[] = [
   "#6ed0b1", // low-good
   "#F4A262", // medium
   "#E94E4B", // low-bad
-  "#E94E4B", // bad
+  "#cc100c", // bad
+];
+
+export const LIMITED_COLORS: readonly string[] = [
+  "#529F86", // good
+  "#FFD54F", // okay
+  "#F4A262", // okay-bad
+  "#E94E4B", // low-bad
+  "#cc100c", // bad
+];
+
+export const PRICE_PER_SQM_COLORS: readonly string[] = [
+  "#529F86",
+  "#6ed0b1",
+  "#F4A262",
+  "#E94E4B",
+  "#cc100c",
 ];
 
 function applyAlpha(hex: string, alpha?: number): string {
@@ -27,7 +44,8 @@ export function createColorScale(
 ) {
   const clampedMin = Number.isFinite(min) ? min : 0;
   const clampedMax = Number.isFinite(max) && max !== min ? max : clampedMin + 1;
-  const palette = HEATMAP_COLORS.map((c) => applyAlpha(c, options?.alpha));
+  const base = options?.palette ?? HEATMAP_COLORS;
+  const palette = base.map((c) => applyAlpha(c, options?.alpha));
 
   return (value: number | null | undefined): string => {
     if (value == null || !Number.isFinite(value)) return "#B8C1CC"; // muted
@@ -56,4 +74,17 @@ export function createColorScale(
     );
     return palette[idx];
   };
+}
+
+// Convenience creators for common metrics with distinct palettes
+export function createLimitedPercentageScale(
+  options?: Omit<ColorScaleOptions, "palette">
+) {
+  return createColorScale(0, 100, { ...options, palette: LIMITED_COLORS });
+}
+
+export function createAvgPricePerSqmScale(
+  options?: Omit<ColorScaleOptions, "palette">
+) {
+  return createColorScale(0, 20, { ...options, palette: PRICE_PER_SQM_COLORS });
 }

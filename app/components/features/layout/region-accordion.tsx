@@ -46,12 +46,16 @@ export default function RegionAccordion({
       {statesWithDistricts.map((state) => {
         const isActive = state.state.slug === currentStateSlug;
         return (
-          <AccordionItem key={state.state.id} value={state.state.slug} className="border-b-0">
+          <AccordionItem
+            key={state.state.id}
+            value={state.state.slug}
+            className="border-b-0"
+          >
             <AccordionTrigger className="py-2 text-base">
               {state.state.name}
             </AccordionTrigger>
             <AccordionContent>
-              <div className="flex flex-col gap-1 overflow-y-auto scroll-thin-primary">
+              <div className="flex flex-col gap-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
                 <Link
                   to={buildFilteredUrl(`/${state.state.slug}`, {
                     target: "map",

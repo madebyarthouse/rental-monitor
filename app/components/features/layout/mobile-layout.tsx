@@ -87,7 +87,7 @@ export default function MobileLayout({
             style={{ height: "calc(100dvh - 56px)" }}
           >
             <div className="flex flex-col h-full">
-              <div className="flex-1 overflow-auto py-3 px-2 space-y-4">
+              <div className="flex-1 overflow-auto scrollbar-thin scrollbar-track-transparent py-3 px-2 space-y-4">
                 <FiltersAccordion />
                 <div className="px-2">
                   <RegionAccordion

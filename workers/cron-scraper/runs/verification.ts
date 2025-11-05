@@ -82,7 +82,7 @@ export async function runVerification(
       .where(
         and(eq(listings.isActive, true), lt(listings.lastSeenAt, cutoffDate))
       )
-      .limit(100)
+      .limit(200)
       .all();
     console.log(`[verification] candidates=${candidates.length}`);
 
