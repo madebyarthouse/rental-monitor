@@ -19,7 +19,7 @@ export default function Methodik(props: Route.ComponentProps) {
       <meta property="og:description" content={description} />
       {canonical ? <meta property="og:url" content={canonical} /> : null}
       <meta name="robots" content="index,follow" />
-      <div className="w-[75ch] max-w-full mx-auto py-10 px-4 sm:px-6">
+      <div className="max-w-[75ch] w-full mx-auto py-6 lg:py-10 px-4 sm:px-6">
         <p className="text-muted-foreground mb-8">
           Der Mietmonitor erfasst täglich Mietwohnungsinserate auf Willhaben und
           analysiert, wie sich Befristung und regionale Lage auf die Mietpreise
