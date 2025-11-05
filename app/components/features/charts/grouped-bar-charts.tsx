@@ -119,6 +119,7 @@ export function GroupedBarCharts({
             % Befristet/Unbefristet
           </div>
           <ChartContainer
+            className="min-h-[600px] w-full"
             config={{
               limited: {
                 label: "Befristet",
@@ -134,7 +135,7 @@ export function GroupedBarCharts({
               data={limitedDataSorted}
               layout="vertical"
               barSize={50}
-              barCategoryGap="5%"
+              barCategoryGap="10%"
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
@@ -186,6 +187,7 @@ export function GroupedBarCharts({
               Ø €/m² nach Befristung
             </div>
             <LimitedVsUnlimitedByRegion
+              className="min-h-[600px] w-full"
               data={orderBySlug(
                 groupedLimitedPremium,
                 (g) => g.slug,
@@ -208,6 +210,7 @@ export function GroupedBarCharts({
             Durchschnittliche Miete €/m²
           </div>
           <ChartContainer
+            className="min-h-[600px] w-full"
             config={{
               value: { label: "Ø €/m²", color: chartColors.price },
             }}
@@ -216,7 +219,7 @@ export function GroupedBarCharts({
               data={pricePerSqmData}
               layout="vertical"
               barSize={50}
-              barCategoryGap="5%"
+              barCategoryGap="10%"
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" tickLine={false} axisLine={false} />
@@ -250,6 +253,7 @@ export function GroupedBarCharts({
         <div className="border-b border-black p-4 md:p-8">
           <div className="mb-2 text-base font-medium">Anzahl Inserate</div>
           <ChartContainer
+            className="min-h-[600px] w-full"
             config={{
               value: { label: "Anzahl", color: chartColors.tertiary },
             }}
@@ -258,7 +262,7 @@ export function GroupedBarCharts({
               data={unitsData}
               layout="vertical"
               barSize={50}
-              barCategoryGap="5%"
+              barCategoryGap="10%"
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
