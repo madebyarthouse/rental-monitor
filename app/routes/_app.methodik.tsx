@@ -124,6 +124,30 @@ export default function Methodik(props: Route.ComponentProps) {
             erreichen.
           </p>
         </section>
+
+        <section className="space-y-2 mt-4">
+          <p className="text-muted-foreground">
+            Rechtliches: Siehe{" "}
+            <a
+              className="underline"
+              href="https://www.momentum-institut.at/impressum/"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Impressum
+            </a>{" "}
+            und{" "}
+            <a
+              className="underline"
+              href="https://www.momentum-institut.at/datenschutzerklaerung/"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Datenschutz
+            </a>{" "}
+            des Momentum Instituts.
+          </p>
+        </section>
       </div>
     </>
   );

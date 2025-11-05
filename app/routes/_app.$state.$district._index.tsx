@@ -59,59 +59,90 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     },
     districtIds
   );
-  const [stats, limitedCounts, priceHistogram, groupedStats] =
-    await Promise.all([
-      statisticsService.getStatistics(
-        { level: "district", districtId: activeDistrict.id },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        }
-      ),
-      statisticsService.getLimitedCounts(
-        { level: "district", districtId: activeDistrict.id },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        }
-      ),
-      statisticsService.getPriceHistogram(
-        { level: "district", districtId: activeDistrict.id },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        }
-      ),
-      // Fetch grouped stats for all districts in state for popup data
-      statisticsService.getGroupedStatistics(
-        { level: "state", districtIds },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        },
-        "district"
-      ),
-    ]);
+  const [
+    stats,
+    limitedCounts,
+    priceHistogram,
+    groupedStats,
+    limitedVsUnlimited,
+    groupedLimitedPremium,
+  ] = await Promise.all([
+    statisticsService.getStatistics(
+      { level: "district", districtId: activeDistrict.id },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getLimitedCounts(
+      { level: "district", districtId: activeDistrict.id },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getPriceHistogram(
+      { level: "district", districtId: activeDistrict.id },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    // Fetch grouped stats for all districts in state for popup data
+    statisticsService.getGroupedStatistics(
+      { level: "state", districtIds },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      },
+      "district"
+    ),
+    statisticsService.getLimitedVsUnlimitedAverages(
+      { level: "district", districtId: activeDistrict.id },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getGroupedLimitedPremium(
+      { level: "state", districtIds },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      },
+      "district"
+    ),
+  ]);
 
   const urlObj = new URL(request.url);
   const canonical = canonicalFrom(urlObj);
@@ -139,6 +170,8 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     limitedCounts,
     priceHistogram,
     groupedStats,
+    limitedVsUnlimited,
+    groupedLimitedPremium,
     districtName: activeDistrict.name,
     canonical,
     hasFilters,
@@ -169,7 +202,7 @@ export default function DistrictMapView(props: Route.ComponentProps) {
       <div className="flex flex-col gap-10 min-h-[350px] md:min-h-[500px]">
         <ClientOnly>
           {() => (
-            <div className="px-8 py-8">
+            <div className="px-4 pt-8 pb-8 min-h-[350px] md:min-h-[500px]">
               <MapView
                 context="district"
                 state={props.loaderData.state}
@@ -192,6 +225,7 @@ export default function DistrictMapView(props: Route.ComponentProps) {
           groupedStats={props.loaderData.groupedStats}
           groupLevel="district"
           activeSlug={props.loaderData.activeDistrictSlug}
+          groupedLimitedPremium={props.loaderData.groupedLimitedPremium}
         />
       </div>
     </>

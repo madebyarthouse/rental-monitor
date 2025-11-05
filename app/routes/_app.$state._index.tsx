@@ -52,58 +52,89 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     },
     districtIds
   );
-  const [stats, limitedCounts, priceHistogram, groupedStats] =
-    await Promise.all([
-      statisticsService.getStatistics(
-        { level: "state", districtIds },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        }
-      ),
-      statisticsService.getLimitedCounts(
-        { level: "state", districtIds },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        }
-      ),
-      statisticsService.getPriceHistogram(
-        { level: "state", districtIds },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        }
-      ),
-      statisticsService.getGroupedStatistics(
-        { level: "state", districtIds },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        },
-        "district"
-      ),
-    ]);
+  const [
+    stats,
+    limitedCounts,
+    priceHistogram,
+    groupedStats,
+    limitedVsUnlimited,
+    groupedLimitedPremium,
+  ] = await Promise.all([
+    statisticsService.getStatistics(
+      { level: "state", districtIds },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getLimitedCounts(
+      { level: "state", districtIds },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getPriceHistogram(
+      { level: "state", districtIds },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getGroupedStatistics(
+      { level: "state", districtIds },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      },
+      "district"
+    ),
+    statisticsService.getLimitedVsUnlimitedAverages(
+      { level: "state", districtIds },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getGroupedLimitedPremium(
+      { level: "state", districtIds },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      },
+      "district"
+    ),
+  ]);
 
   const urlObj = new URL(request.url);
   const canonical = canonicalFrom(urlObj);
@@ -130,6 +161,8 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     limitedCounts,
     priceHistogram,
     groupedStats,
+    limitedVsUnlimited,
+    groupedLimitedPremium,
     canonical,
     hasFilters,
   };
@@ -176,6 +209,7 @@ export default function StateMapView(props: Route.ComponentProps) {
           limitedCounts={props.loaderData.limitedCounts}
           groupedStats={props.loaderData.groupedStats}
           groupLevel="district"
+          groupedLimitedPremium={props.loaderData.groupedLimitedPremium}
         />
       </div>
     </>
