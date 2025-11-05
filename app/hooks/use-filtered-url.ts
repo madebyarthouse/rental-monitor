@@ -11,6 +11,8 @@ const COMMON_FILTER_KEYS = [
   "limited",
   "unlimited",
   "platforms",
+
+  "metric",
 ] as const;
 
 const LISTINGS_EXTRA_KEYS = ["sortBy", "order", "perPage"] as const;
