@@ -53,71 +53,103 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       platforms: query.platforms,
     }
   );
-  const [stats, limitedCounts, priceHistogram, groupedStats, districtStats] =
-    await Promise.all([
-      statisticsService.getStatistics(
-        { level: "country" },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        }
-      ),
-      statisticsService.getLimitedCounts(
-        { level: "country" },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        }
-      ),
-      statisticsService.getPriceHistogram(
-        { level: "country" },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        }
-      ),
-      statisticsService.getGroupedStatistics(
-        { level: "country" },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        },
-        "state"
-      ),
-      statisticsService.getGroupedStatistics(
-        { level: "country" },
-        {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-          minArea: query.minArea,
-          maxArea: query.maxArea,
-          limited: query.limited,
-          unlimited: query.unlimited,
-          platforms: query.platforms,
-        },
-        "district"
-      ),
-    ]);
+  const [
+    stats,
+    limitedCounts,
+    priceHistogram,
+    groupedStats,
+    districtStats,
+    limitedVsUnlimited,
+    groupedLimitedPremium,
+  ] = await Promise.all([
+    statisticsService.getStatistics(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getLimitedCounts(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getPriceHistogram(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getGroupedStatistics(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      },
+      "state"
+    ),
+    statisticsService.getGroupedStatistics(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      },
+      "district"
+    ),
+    statisticsService.getLimitedVsUnlimitedAverages(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getGroupedLimitedPremium(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        platforms: query.platforms,
+      },
+      "state"
+    ),
+  ]);
   const canonical = canonicalFrom(url);
   const hasFilters = hasFilterParams(url.searchParams);
 
@@ -138,6 +170,8 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     priceHistogram,
     groupedStats,
     districtStats,
+    limitedVsUnlimited,
+    groupedLimitedPremium,
     canonical,
     hasFilters,
   };
@@ -184,6 +218,7 @@ export default function RootMap(props: Route.ComponentProps) {
           limitedCounts={props.loaderData.limitedCounts}
           groupedStats={props.loaderData.groupedStats}
           groupLevel="state"
+          groupedLimitedPremium={props.loaderData.groupedLimitedPremium}
         />
       </div>
     </>

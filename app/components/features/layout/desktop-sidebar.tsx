@@ -11,6 +11,7 @@ import { SocialBar } from "./social-bar";
 import { Credits } from "./credits";
 import { Link } from "react-router";
 import { FiltersAccordion } from "../filters/filters-accordion";
+import { LegalLinks } from "./legal-links";
 
 export default function DesktopSidebar({
   statesWithDistricts,
@@ -53,6 +54,7 @@ export default function DesktopSidebar({
         <div className="p-4 flex flex-col gap-3 text-sm text-muted-foreground">
           <SocialBar />
           <Credits />
+          <LegalLinks />
         </div>
       </SidebarFooter>
     </Sidebar>
