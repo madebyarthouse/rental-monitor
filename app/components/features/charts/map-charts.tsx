@@ -13,6 +13,22 @@ type GroupedStat = {
   stats: StatisticsSummary;
 };
 
+function computeLimitedPctSortOrder(
+  groupedStats?: GroupedStat[]
+): string[] | undefined {
+  if (!groupedStats || groupedStats.length === 0) return undefined;
+  const byLimitedPctDesc = [...groupedStats].sort((a, b) => {
+    const aTotal = a.stats.total;
+    const bTotal = b.stats.total;
+    const aLimited = a.stats.limitedCount;
+    const bLimited = b.stats.limitedCount;
+    const aPct = aTotal > 0 ? aLimited / aTotal : 0;
+    const bPct = bTotal > 0 ? bLimited / bTotal : 0;
+    return bPct - aPct;
+  });
+  return byLimitedPctDesc.map((g) => g.slug);
+}
+
 export function MapCharts({
   priceHistogram,
   limitedCounts,
@@ -30,8 +46,18 @@ export function MapCharts({
   groupLevel?: "state" | "district";
   activeSlug?: string;
   className?: string;
-  groupedLimitedPremium?: Array<{ slug: string; name: string; premiumPct: number | null; limitedAvgPricePerSqm: number | null; unlimitedAvgPricePerSqm: number | null }>;
+  groupedLimitedPremium?: Array<{
+    slug: string;
+    name: string;
+    premiumPct: number | null;
+    limitedAvgPricePerSqm: number | null;
+    unlimitedAvgPricePerSqm: number | null;
+  }>;
 }) {
+  const sortOrder = React.useMemo(
+    () => computeLimitedPctSortOrder(groupedStats),
+    [groupedStats]
+  );
   return (
     <div className={className}>
       <div className="grid border-t  border-black md:grid-cols-2">
@@ -49,30 +75,30 @@ export function MapCharts({
           />
         </div>
       </div>
-      
-      {activeSlug && groupedStats && groupedStats.length > 0 && (
+
+      {groupedStats && groupedStats.length > 0 && (
         <div className="my-6 px-8 text-base font-medium">
-          Vergleich mit anderen Bezirken
+          {groupLevel === "state"
+            ? "Vergleich zwischen den Bundesländern"
+            : "Vergleich zwischen den Bezirken"}
         </div>
       )}
-      {groupedLimitedPremium && groupedLimitedPremium.length > 0 && (
-        <div className="border-t border-black p-4 md:p-8">
-          <div className="mb-2 text-base font-medium">Ø €/m² nach Befristung — Regionenvergleich</div>
-          <LimitedVsUnlimitedByRegion
-            data={groupedLimitedPremium.map((g) => ({
-              slug: g.slug,
-              name: g.name,
-              limitedAvgPricePerSqm: g.limitedAvgPricePerSqm,
-              unlimitedAvgPricePerSqm: g.unlimitedAvgPricePerSqm,
-            }))}
-            activeSlug={activeSlug}
-          />
-        </div>
-      )}
+
       {groupedStats && groupedStats.length > 0 && groupLevel && (
         <>
-          <GroupedBarCharts groupedStats={groupedStats} className="mt-6" activeSlug={activeSlug} />
-          <StatisticsTable groupedStats={groupedStats} className="mt-6" activeSlug={activeSlug} />
+          <GroupedBarCharts
+            groupedStats={groupedStats}
+            className="mt-6"
+            activeSlug={activeSlug}
+            groupedLimitedPremium={groupedLimitedPremium}
+            sortOrder={sortOrder}
+          />
+          <StatisticsTable
+            groupedStats={groupedStats}
+            className="mt-6"
+            activeSlug={activeSlug}
+            sortOrder={sortOrder}
+          />
         </>
       )}
     </div>

@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 export const Credits = ({ className }: { className?: string }) => {
   return (
-    <div className={cn("text-center text-gray-700", className)}>
+    <div className={cn("text-center", className)}>
       <p>
         Entwickelt von{" "}
         <a
