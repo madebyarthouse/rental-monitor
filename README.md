@@ -1,4 +1,4 @@
-## Momentum Institut - Rental Monitor
+# Momentum Institut - Rental Monitor
 
 ![Application preview](docs/preview.gif)
 
@@ -6,7 +6,7 @@ Made by [Arthouse](https://madebyarthouse.com) in collaboration with [Momentum I
 
 Application for analyzing and visualizing Austria’s rental market using data scraped from [Willhaben.at](https://www.willhaben.at). Explore trends by state and district with interactive maps, charts, and statistics. Built for the edge on Cloudflare Workers.
 
-### Stack
+## Stack
 
 - **Frontend**:
   - TypeScript
@@ -18,7 +18,7 @@ Application for analyzing and visualizing Austria’s rental market using data s
   - Cloudflare Workers
   - Cloudflare D1 (SQLite) with Drizzle ORM
 
-### Development
+## Development
 
 ```bash
 # install
@@ -30,6 +30,6 @@ pnpm install
 pnpm dev
 ```
 
-### License
+## License
 
 MIT — see [LICENSE](LICENSE).
