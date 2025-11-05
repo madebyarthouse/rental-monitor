@@ -1,5 +1,9 @@
 import * as React from "react";
-import { createColorScale } from "./color-scale";
+import {
+  createAvgPricePerSqmScale,
+  createLimitedPercentageScale,
+  createColorScale,
+} from "./color-scale";
 
 export function HeatmapLegend({
   min,
@@ -15,7 +19,7 @@ export function HeatmapLegend({
   className?: string;
 }) {
   if (metric === "limitedPercentage") {
-    const scale = createColorScale(0, 100);
+    const scale = createLimitedPercentageScale();
     const ranges = [
       { label: "0–20%", mid: 10 },
       { label: "21–40%", mid: 30 },
@@ -50,13 +54,13 @@ export function HeatmapLegend({
 
   if (metric === "avgPricePerSqm") {
     // Fixed bins for €/m²: 0–5, 5–10, 10–15, 15–20, 20+
-    const scale = createColorScale(0, 20);
+    const scale = createAvgPricePerSqmScale();
     const ranges = [
       { label: "0–5", mid: 2.5 },
       { label: "5–10", mid: 7.5 },
       { label: "10–15", mid: 12.5 },
       { label: "15–20", mid: 17.5 },
-      { label: "20+", mid: 20 },
+      { label: "20+", mid: 22.5 },
     ];
     return (
       <div className={className}>
