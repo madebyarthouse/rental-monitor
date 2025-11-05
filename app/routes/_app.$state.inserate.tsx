@@ -29,39 +29,30 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   if (!stateData) throw new Response("Not Found", { status: 404 });
 
   // State level: return state + districts
-  const listings = await listingsService.getListings(
-    {
-      level: "state",
-      districtIds: stateData.districts.map((d) => d.id),
-      districtNames: stateData.districts.map((d) => d.name),
-      stateName: stateData.state.name,
-    },
-    {
-      page: query.page,
-      perPage: query.perPage,
-      sortBy: query.sortBy,
-      order: query.order,
-      minPrice: query.minPrice,
-      maxPrice: query.maxPrice,
-      minArea: query.minArea,
-      maxArea: query.maxArea,
-      limited: query.limited,
-      unlimited: query.unlimited,
-      rooms: query.rooms,
-      platforms: query.platforms,
-    }
-  );
-  const urlObj = new URL(request.url);
-  const canonical = canonicalFrom(urlObj);
-  const hasFilters = hasFilterParams(urlObj.searchParams);
-
-  return {
-    level: "state" as const,
-    state: stateData.state,
-    districts: stateData.districts,
-    listings,
-    // stats for summary bar in layout
-    stats: await statisticsService.getStatistics(
+  const [listings, stats] = await Promise.all([
+    listingsService.getListings(
+      {
+        level: "state",
+        districtIds: stateData.districts.map((d) => d.id),
+        districtNames: stateData.districts.map((d) => d.name),
+        stateName: stateData.state.name,
+      },
+      {
+        page: query.page,
+        perPage: query.perPage,
+        sortBy: query.sortBy,
+        order: query.order,
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        rooms: query.rooms,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getStatistics(
       { level: "state", districtIds: stateData.districts.map((d) => d.id) },
       {
         minPrice: query.minPrice,
@@ -74,6 +65,17 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
         platforms: query.platforms,
       }
     ),
+  ]);
+  const urlObj = new URL(request.url);
+  const canonical = canonicalFrom(urlObj);
+  const hasFilters = hasFilterParams(urlObj.searchParams);
+
+  return {
+    level: "state" as const,
+    state: stateData.state,
+    districts: stateData.districts,
+    listings,
+    stats,
     canonical,
     hasFilters,
   };

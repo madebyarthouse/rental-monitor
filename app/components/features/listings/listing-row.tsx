@@ -23,7 +23,7 @@ function formatArea(value: number | null | undefined): string {
 
 function formatRooms(value: number | null | undefined): string {
   if (value == null || !Number.isFinite(value)) return "-";
-  return `${value} Zi.`;
+  return `${value} Zimmer`;
 }
 
 function formatDate(value: Date | number | string | null | undefined): string {
@@ -66,13 +66,15 @@ export function ListingRow({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "group grid grid-cols-[1fr_auto] gap-3 rounded-md border border-border p-3 hover:bg-secondary/40",
+        "group grid grid-cols-[1fr_auto] gap-5 border border-border p-3 md:p-5 lg:p-6 hover:bg-secondary/40",
         className
       )}
     >
       <div className="min-w-0">
-        <div className="font-medium truncate text-foreground">{item.title}</div>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <div className="font-medium md:text-lg xl:text-xl max-w-[60ch] text-foreground">
+          {item.title}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1  md:text-lg text-muted-foreground">
           <span>{formatCurrency(item.price)}</span>
           <span>•</span>
           <span>{formatArea(item.area)}</span>
@@ -83,21 +85,24 @@ export function ListingRow({
             </>
           )}
           <span>•</span>
+          <span>
+            {item.isLimited
+              ? `befristet ${
+                  item.durationMonths
+                    ? `(${item.durationMonths / 12} Jahre)`
+                    : ""
+                }`
+              : "unbefristet"}
+          </span>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span className="uppercase tracking-wide">{item.platform}</span>
           <span>•</span>
-          <span>zuletzt: {formatDate(item.lastSeenAt)}</span>
-          {item.isLimited && (
-            <>
-              <span>•</span>
-              <span className="rounded bg-amber-100 px-1 py-0.5 text-[10px] text-amber-800">
-                befristet
-              </span>
-            </>
-          )}
+          <span>zuletzt gesehen: {formatDate(item.lastSeenAt)}</span>
         </div>
       </div>
-      <div className="flex items-center">
-        <ExternalLink className="size-4 text-muted-foreground group-hover:text-foreground" />
+      <div className="flex items-start pt-1 pr-1">
+        <ExternalLink className="size-5 lg:size-6 text-muted-foreground group-hover:text-foreground" />
       </div>
     </a>
   );

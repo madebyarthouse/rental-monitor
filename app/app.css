@@ -163,6 +163,9 @@ body {
 
   --leading-normal: 1.5; /* body mobile */
   --leading-snug: 1.36; /* headings */
+
+  --breakpoint-xxs: 320px;
+  --breakpoint-xs: 375px;
 }
 
 /* Desktop typography overrides (md and up) */
