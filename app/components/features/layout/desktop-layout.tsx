@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigation } from "react-router";
 import {
   SidebarInset,
   SidebarProvider,
@@ -41,6 +41,8 @@ export default function DesktopLayout({
       ?.districts.find((d) => d.slug === districtSlug);
     return dist ? `${state.name} — ${dist.name}` : state.name;
   }, [location.pathname, statesWithDistricts]);
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading";
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -57,7 +59,7 @@ export default function DesktopLayout({
                 target: "map",
               })}
               className={cn(
-                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center",
+                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center active:bg-secondary/50 active:text-secondary-foreground",
                 !isListingsView && !isMethodikView
                   ? "bg-secondary text-secondary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
@@ -70,7 +72,7 @@ export default function DesktopLayout({
                 target: "listings",
               })}
               className={cn(
-                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center",
+                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center active:bg-secondary/50 active:text-secondary-foreground",
                 isListingsView
                   ? "bg-secondary text-secondary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
@@ -81,7 +83,7 @@ export default function DesktopLayout({
             <Link
               to="/methodik"
               className={cn(
-                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center",
+                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center active:bg-secondary/50 active:text-secondary-foreground",
                 isMethodikView
                   ? "bg-secondary text-secondary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
@@ -91,7 +93,19 @@ export default function DesktopLayout({
             </Link>
           </div>
         </header>
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">
+          {isLoading ? (
+            <div
+              className="flex items-center justify-center py-20"
+              role="status"
+              aria-label="Lädt"
+            >
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          ) : (
+            children
+          )}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );
