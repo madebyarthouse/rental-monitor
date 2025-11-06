@@ -86,8 +86,8 @@ function ChangeView({
       [bounds[0][0], bounds[0][1]],
       [bounds[1][0], bounds[1][1]]
     );
-    map.fitBounds(b, { animate: false });
     map.setMaxBounds(b);
+    map.fitBounds(b, { animate: false });
 
     if (dragging !== undefined) {
       if (dragging) {
