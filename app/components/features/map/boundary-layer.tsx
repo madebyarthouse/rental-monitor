@@ -80,17 +80,9 @@ export default function BoundaryLayer({
             const b = (layer as L.Polygon).getBounds();
             onHover({ slug, name, stateSlug, stateName, bounds: b });
           }
-          if (!isActive)
-            (layer as L.Path).setStyle({
-              weight: 2,
-              fillOpacity: 0.8,
-              fillColor,
-            });
         },
         mouseout: () => {
           if (onHover) onHover(undefined);
-          if (!isActive)
-            (layer as L.Path).setStyle({ ...baseStyle, fillColor });
         },
         click: () => {
           if (slug && onSelect) onSelect(slug, stateSlug);
