@@ -48,7 +48,7 @@ export default function DesktopLayout({
     <SidebarProvider defaultOpen={true}>
       <DesktopSidebar statesWithDistricts={statesWithDistricts} />
 
-      <SidebarInset>
+      <SidebarInset className="overflow-y-clip!">
         <header className="sticky top-0 z-1000 flex h-16 items-center justify-between border-b border-border bg-background pl-4 lg:pl-6">
           <div className="font-semibold tracking-tight border-r border-border pr-4 h-full flex items-center text-xl md:text-[clamp(1.125rem,2vw,1.5rem)]">
             {activeTitle}
@@ -93,7 +93,7 @@ export default function DesktopLayout({
             </Link>
           </div>
         </header>
-        <main className="flex-1">
+        <main className="overflow-y-auto scrollbar-thin scrollbar-track-transparent h-[calc(100dvh-70px)]">
           {isLoading ? (
             <div
               className="flex items-center justify-center py-20"
