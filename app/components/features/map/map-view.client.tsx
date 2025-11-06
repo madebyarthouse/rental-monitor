@@ -86,8 +86,8 @@ function ChangeView({
       [bounds[0][0], bounds[0][1]],
       [bounds[1][0], bounds[1][1]]
     );
-    map.fitBounds(b, { animate: false });
     map.setMaxBounds(b);
+    map.fitBounds(b, { animate: false });
 
     if (dragging !== undefined) {
       if (dragging) {
@@ -499,7 +499,7 @@ export default function MapView(props: MapViewProps) {
       {/* Mobile select and toggle buttons */}
       {isMobile && mobileSelectOptions.length > 0 && (
         <>
-          <div className="flex items-center gap-2 mb-3 relative z-900">
+          <div className="flex xs:items-center flex-col xs:flex-row gap-2 mb-3 relative z-900">
             <div className="flex-1">
               <Select
                 value={mobileSelectValue}
@@ -508,7 +508,7 @@ export default function MapView(props: MapViewProps) {
                 <SelectTrigger className="w-full border-black rounded-none shadow-none">
                   <SelectValue placeholder="Region auswählen" />
                 </SelectTrigger>
-                <SelectContent className="z-900">
+                <SelectContent className="z-900 rounded-none">
                   {mobileSelectOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -684,7 +684,7 @@ export default function MapView(props: MapViewProps) {
             </div>
           </div>
           {props.heatmap && (
-            <div className="pointer-events-none absolute right-0 bg-background bottom-10 z-600">
+            <div className="pointer-events-none absolute right-0 bg-background bottom-0 z-600">
               <div className="pointer-events-auto">
                 <HeatmapLegend
                   min={props.heatmap.range?.min ?? null}

@@ -4,7 +4,7 @@ import { ListingList } from "./listing-list";
 
 export function ListingsPage({ data }: { data: ListingsResult }) {
   return (
-    <div className="py-6 px-4">
+    <div className="py-6 px-4 max-w-[1000px] mx-auto">
       <ListingsToolbar />
       <ListingList data={data} />
     </div>

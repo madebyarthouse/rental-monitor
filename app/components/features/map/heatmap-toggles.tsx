@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "react-router";
 import { cn } from "@/lib/utils";
 
 const OPTIONS = [
-  { key: "limitedPercentage", label: "% befristet" },
-  { key: "avgPricePerSqm", label: "Ø €/m²" },
+  { key: "limitedPercentage", label: "%&nbsp;befristet" },
+  { key: "avgPricePerSqm", label: "Ø&nbsp;€/m²" },
 ] as const;
 
 type MetricKey = (typeof OPTIONS)[number]["key"];
@@ -41,7 +41,7 @@ export function HeatmapToggles({ className }: { className?: string }) {
           )}
           aria-pressed={opt.key === current}
         >
-          {opt.label}
+          <span dangerouslySetInnerHTML={{ __html: opt.label }} />
         </button>
       ))}
     </div>
