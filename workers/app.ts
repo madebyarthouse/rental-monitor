@@ -16,25 +16,43 @@ const requestHandler = createRequestHandler(
 
 export default {
   async fetch(request, env, ctx) {
-    const response = await requestHandler(request, {
-      cloudflare: { env, ctx },
-    });
+    const handlerContext = { cloudflare: { env, ctx } };
 
-    // Add Last-Modified to all successful GET responses
-    if (response.ok && request.method === "GET") {
-      const headers = new Headers(response.headers);
+    if (request.method !== "GET") {
+      return requestHandler(request, handlerContext);
+    }
 
-      if (!headers.has("Last-Modified")) {
-        headers.set("Last-Modified", new Date().toUTCString());
-      }
+    const cache = (caches as unknown as { default: Cache }).default;
+    const cacheKey = new Request(request.url, request);
 
-      return new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
+    const cached = await cache.match(cacheKey);
+    if (cached) {
+      const headers = new Headers(cached.headers);
+      headers.set("X-Worker-Cache", "HIT");
+      return new Response(cached.body, {
+        status: cached.status,
+        statusText: cached.statusText,
         headers,
       });
     }
 
-    return response;
+    const originResponse = await requestHandler(request, handlerContext);
+
+    if (originResponse.ok && !originResponse.headers.has("Set-Cookie")) {
+      const responseForCache = originResponse.clone();
+
+      const headersForClient = new Headers(originResponse.headers);
+      headersForClient.set("X-Worker-Cache", "MISS");
+      const responseForClient = new Response(originResponse.body, {
+        status: originResponse.status,
+        statusText: originResponse.statusText,
+        headers: headersForClient,
+      });
+
+      ctx.waitUntil(cache.put(cacheKey, responseForCache));
+      return responseForClient;
+    }
+
+    return originResponse;
   },
 } satisfies ExportedHandler<Env>;
