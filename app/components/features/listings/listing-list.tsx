@@ -32,13 +32,13 @@ export function ListingList({ data }: { data: ListingsResult }) {
   const { items, page, totalPages } = data;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5">
       {items.length === 0 ? (
         <div className="text-sm text-muted-foreground">
           Keine Inserate gefunden.
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 ">
           {items.map((it) => (
             <ListingRow key={it.id} item={it} />
           ))}

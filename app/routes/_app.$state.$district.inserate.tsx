@@ -32,36 +32,42 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   const district = stateData.districts.find((d) => d.slug === districtSlug);
   if (!district) throw new Response("Not Found", { status: 404 });
 
-  const listings = await listingsService.getListings(
-    { level: "district", districtId: district.id, districtName: district.name },
-    {
-      page: query.page,
-      perPage: query.perPage,
-      sortBy: query.sortBy,
-      order: query.order,
-      minPrice: query.minPrice,
-      maxPrice: query.maxPrice,
-      minArea: query.minArea,
-      maxArea: query.maxArea,
-      limited: query.limited,
-      unlimited: query.unlimited,
-      rooms: query.rooms,
-      platforms: query.platforms,
-    }
-  );
-  const stats = await statisticsService.getStatistics(
-    { level: "district", districtId: district.id },
-    {
-      minPrice: query.minPrice,
-      maxPrice: query.maxPrice,
-      minArea: query.minArea,
-      maxArea: query.maxArea,
-      limited: query.limited,
-      unlimited: query.unlimited,
-      rooms: query.rooms,
-      platforms: query.platforms,
-    }
-  );
+  const [listings, stats] = await Promise.all([
+    listingsService.getListings(
+      {
+        level: "district",
+        districtId: district.id,
+        districtName: district.name,
+      },
+      {
+        page: query.page,
+        perPage: query.perPage,
+        sortBy: query.sortBy,
+        order: query.order,
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        rooms: query.rooms,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getStatistics(
+      { level: "district", districtId: district.id },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        rooms: query.rooms,
+        platforms: query.platforms,
+      }
+    ),
+  ]);
   const urlObj = new URL(request.url);
   const canonical = canonicalFrom(urlObj);
   const hasFilters = hasFilterParams(urlObj.searchParams);

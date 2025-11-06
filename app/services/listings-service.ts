@@ -45,6 +45,7 @@ export type ListingItem = {
   area: number | null;
   rooms: number | null;
   isLimited: boolean;
+  durationMonths: number | null;
   platform: string;
   url: string;
   lastSeenAt: Date;
@@ -172,6 +173,7 @@ export class ListingsService extends BaseService {
         area: listings.area,
         rooms: listings.rooms,
         isLimited: listings.isLimited,
+        durationMonths: listings.durationMonths,
         platform: listings.platform,
         url: listings.url,
         lastSeenAt: listings.lastSeenAt,
@@ -213,6 +215,7 @@ export class ListingsService extends BaseService {
         area: r.area,
         rooms: r.rooms,
         isLimited: r.isLimited,
+        durationMonths: r.durationMonths,
         platform: r.platform,
         url: r.url,
         lastSeenAt: toDate(r.lastSeenAt),

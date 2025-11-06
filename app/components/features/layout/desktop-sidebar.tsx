@@ -12,18 +12,20 @@ import { Credits } from "./credits";
 import { Link } from "react-router";
 import { FiltersAccordion } from "../filters/filters-accordion";
 import { LegalLinks } from "./legal-links";
+import { useFilteredUrl } from "@/hooks/use-filtered-url";
 
 export default function DesktopSidebar({
   statesWithDistricts,
 }: {
   statesWithDistricts: RegionHierarchy;
 }) {
+  const buildFilteredUrl = useFilteredUrl();
   return (
     <Sidebar collapsible="icon" className="group-data-[state=collapsed]:w-16">
       <SidebarHeader className="sticky top-0 z-50 bg-background border-b border-sidebar-border h-16 group-data-[state=collapsed]:w-16">
         <div className="flex h-full items-center justify-between w-full  gap-2 px-2">
           <Link
-            to="/"
+            to={buildFilteredUrl("/", { target: "map" })}
             className="group-data-[state=collapsed]:hidden h-full block py-1"
           >
             <img

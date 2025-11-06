@@ -139,7 +139,7 @@ export function FiltersAccordion({ className }: { className?: string }) {
           </div>
           {!open && hasAnyActive && (
             <FilterChips
-              className="px-2 pt-1"
+              className="px-2 pt-1 pb-3"
               size="md"
               filters={parseActiveFilters(location.search)}
               onRemove={onRemoveChip}

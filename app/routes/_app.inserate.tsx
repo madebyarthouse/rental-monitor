@@ -25,36 +25,38 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   const query = parseListingsQuery(url.searchParams);
   // Austria level: fetch all states
   const states = await regionService.getAllStates();
-  const listings = await listingsService.getListings(
-    { level: "country" },
-    {
-      page: query.page,
-      perPage: query.perPage,
-      sortBy: query.sortBy,
-      order: query.order,
-      minPrice: query.minPrice,
-      maxPrice: query.maxPrice,
-      minArea: query.minArea,
-      maxArea: query.maxArea,
-      limited: query.limited,
-      unlimited: query.unlimited,
-      rooms: query.rooms,
-      platforms: query.platforms,
-    }
-  );
-  const stats = await statisticsService.getStatistics(
-    { level: "country" },
-    {
-      minPrice: query.minPrice,
-      maxPrice: query.maxPrice,
-      minArea: query.minArea,
-      maxArea: query.maxArea,
-      limited: query.limited,
-      unlimited: query.unlimited,
-      rooms: query.rooms,
-      platforms: query.platforms,
-    }
-  );
+  const [listings, stats] = await Promise.all([
+    listingsService.getListings(
+      { level: "country" },
+      {
+        page: query.page,
+        perPage: query.perPage,
+        sortBy: query.sortBy,
+        order: query.order,
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        rooms: query.rooms,
+        platforms: query.platforms,
+      }
+    ),
+    statisticsService.getStatistics(
+      { level: "country" },
+      {
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        minArea: query.minArea,
+        maxArea: query.maxArea,
+        limited: query.limited,
+        unlimited: query.unlimited,
+        rooms: query.rooms,
+        platforms: query.platforms,
+      }
+    ),
+  ]);
 
   const canonical = canonicalFrom(url);
   const hasFilters = hasFilterParams(url.searchParams);
