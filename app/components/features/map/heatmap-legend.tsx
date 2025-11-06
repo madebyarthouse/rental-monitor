@@ -93,11 +93,11 @@ export function HeatmapLegend({
     // Fixed bins for €/m²: 0–5, 5–10, 10–15, 15–20, 20+
     const scale = createAvgPricePerSqmScale();
     const ranges = [
-      { label: "0–5", mid: 2.5 },
-      { label: "5–10", mid: 7.5 },
-      { label: "10–15", mid: 12.5 },
-      { label: "15–20", mid: 17.5 },
-      { label: "20+", mid: 22.5 },
+      { label: "0–5€", mid: 2.5 },
+      { label: "5–10€", mid: 7.5 },
+      { label: "10–15€", mid: 12.5 },
+      { label: "15–20€", mid: 17.5 },
+      { label: "20€+", mid: 22.5 },
     ];
     return (
       <div className={className}>
