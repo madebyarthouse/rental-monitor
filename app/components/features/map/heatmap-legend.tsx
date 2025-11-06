@@ -70,7 +70,7 @@ export function HeatmapLegend({
                   className="flex items-center flex-1 gap-2.5 text-sm text-muted-foreground md:flex-row min-w-0"
                 >
                   <div
-                    className="relative w-full h-6 min-w-12 md:min-w-14 border border-border/50 shrink-0 flex items-center justify-center px-2"
+                    className="relative w-full h-7 min-w-12 md:min-w-14 border border-border/50 shrink-0 flex items-center justify-center px-2"
                     style={{ backgroundColor: bgColor }}
                   >
                     <span
@@ -115,11 +115,11 @@ export function HeatmapLegend({
                   className="flex items-center gap-2.5 text-sm text-muted-foreground md:flex-row"
                 >
                   <div
-                    className="relative w-full h-6 min-w-12 md:min-w-14 border border-border/50 shrink-0 flex items-center justify-center px-2"
+                    className="relative w-full h-7 min-w-12 md:min-w-14 border border-border/50 shrink-0 flex items-center justify-center px-2"
                     style={{ backgroundColor: bgColor }}
                   >
                     <span
-                      className="font-medium text-base md:text-lg"
+                      className="font-medium text-xs md:text-base"
                       style={{ color: textColor }}
                     >
                       {r.label}

@@ -118,13 +118,13 @@ export function DistrictPopover({
                 })
               );
             }}
-            className="flex items-center gap-2 group w-full text-left font-semibold mb-2 text-lg text-foreground pr-6 hover:text-primary transition-colors cursor-pointer"
+            className="flex items-center gap-2 group w-full text-left font-semibold mb-2 text-lg text-foreground pr-6 hover:text-secondary transition-colors cursor-pointer"
           >
             <span>{name}</span>
-            <ChevronRight className="size-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+            <ChevronRight className="size-4 text-muted-foreground group-hover:text-secondary transition-colors shrink-0" />
           </button>
         ) : (
-          <div className="font-semibold mb-2 text-base text-foreground pr-6">
+          <div className="font-semibold mb-2 text-lg text-foreground pr-6">
             {name}
           </div>
         )}
@@ -135,13 +135,13 @@ export function DistrictPopover({
                 onClick={() => {
                   navigate(getFilteredUrl(`/${stateSlug}`, { target: "map" }));
                 }}
-                className="flex items-center gap-2 group w-full text-left text-sm text-muted-foreground mb-2 hover:text-primary transition-colors cursor-pointer"
+                className="flex items-center gap-2 group w-full text-left text-sm text-muted-foreground mb-2 hover:text-secondary transition-colors cursor-pointer"
               >
                 <span>{displayStateName}</span>
-                <ChevronRight className="size-3 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                <ChevronRight className="size-3 text-muted-foreground group-hover:text-secondary transition-colors shrink-0" />
               </button>
             ) : (
-              <div className="text-xs text-muted-foreground mb-2">
+              <div className="text-muted-foreground mb-2">
                 {displayStateName}
               </div>
             )}
@@ -153,7 +153,7 @@ export function DistrictPopover({
         <div className="space-y-2 px-4 py-3">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-2">
-              <List className="size-4" aria-hidden />
+              <List className="size-4 lg:size-5" aria-hidden />
               Inserate gesamt
             </span>
             <span
@@ -166,16 +166,19 @@ export function DistrictPopover({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-2">
-              <Euro className="size-4" aria-hidden />
-              Preis (Durchschnitt)
+              <Timer className="size-4 lg:size-5" aria-hidden />% befristet
             </span>
-            <span className="font-medium">
-              {formatNumber(stats.avgPrice, { maximumFractionDigits: 0 })} €
+            <span className={`font-medium`}>
+              {stats.limitedPct == null
+                ? "-"
+                : `${formatNumber(stats.limitedPct, {
+                    maximumFractionDigits: 1,
+                  })}%`}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-2">
-              <Ruler className="size-4" aria-hidden />
+              <Ruler className="size-4 lg:size-5" aria-hidden />
               Fläche (Durchschnitt)
             </span>
             <span className="font-medium">
@@ -184,7 +187,7 @@ export function DistrictPopover({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-2">
-              <Calculator className="size-4" aria-hidden />
+              <Calculator className="size-4 lg:size-5" aria-hidden />
               €/m² (Durchschnitt)
             </span>
             <span
@@ -195,25 +198,16 @@ export function DistrictPopover({
               {formatNumber(stats.avgPricePerSqm, {
                 maximumFractionDigits: 1,
               })}
+              €
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-2">
-              <Timer className="size-4" aria-hidden />
-              % befristet
+              <Euro className="size-4 lg:size-5" aria-hidden />
+              Preis (Durchschnitt)
             </span>
-            <span
-              className={`font-medium ${
-                metric === "limitedPercentage"
-                  ? "text-primary font-semibold"
-                  : ""
-              }`}
-            >
-              {stats.limitedPct == null
-                ? "-"
-                : `${formatNumber(stats.limitedPct, {
-                    maximumFractionDigits: 1,
-                  })}%`}
+            <span className="font-medium">
+              {formatNumber(stats.avgPrice, { maximumFractionDigits: 0 })} €
             </span>
           </div>
         </div>
