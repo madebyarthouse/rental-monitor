@@ -23,7 +23,7 @@ export default function DesktopSidebar({
   return (
     <Sidebar collapsible="icon" className="group-data-[state=collapsed]:w-16">
       <SidebarHeader className="sticky top-0 z-50 bg-background border-b border-sidebar-border h-16 group-data-[state=collapsed]:w-16">
-        <div className="flex h-full items-center justify-between w-full  gap-2 px-2">
+        <div className="flex h-full items-center justify-between w-full  gap-2 px-4">
           <Link
             to={buildFilteredUrl("/", { target: "map" })}
             className="group-data-[state=collapsed]:hidden h-full block py-1"
@@ -43,11 +43,11 @@ export default function DesktopSidebar({
         <div className="group-data-[state=collapsed]:hidden">
           <FiltersAccordion />
           <div className="sticky top-0 z-20 bg-background  section-header-border">
-            <div className="px-2 py-2 text-xl font-medium text-muted-foreground">
+            <div className="px-4 py-2 text-xl font-medium text-muted-foreground">
               Regionen
             </div>
           </div>
-          <div className="px-2">
+          <div className="px-4">
             <RegionAccordion statesWithDistricts={statesWithDistricts} />
           </div>
         </div>

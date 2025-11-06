@@ -131,7 +131,7 @@ export function FiltersAccordion({ className }: { className?: string }) {
       >
         <AccordionItem value="filters">
           <div className="sticky top-0 z-30 bg-background ">
-            <AccordionTrigger className="px-2 py-2">
+            <AccordionTrigger className="p-4 lg:py-2">
               <span className="text-xl font-medium text-muted-foreground">
                 Filter
               </span>
@@ -139,14 +139,14 @@ export function FiltersAccordion({ className }: { className?: string }) {
           </div>
           {!open && hasAnyActive && (
             <FilterChips
-              className="px-2 pt-1 pb-3"
+              className="px-4 pt-1 pb-3"
               size="md"
               filters={parseActiveFilters(location.search)}
               onRemove={onRemoveChip}
             />
           )}
           <AccordionContent>
-            <div className="grid gap-3 px-2">
+            <div className="grid gap-3 px-4">
               <div className="grid grid-cols-1 gap-2">
                 <label className="grid gap-1">
                   <input
