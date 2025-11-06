@@ -183,6 +183,7 @@ flowchart TD
 5. **Record metrics**: `listingsDiscovered`, `detailPagesFetched`, `overviewPagesVisited`
 
 **Database Operations**:
+
 - INSERT into `listings` (new listings only)
 - UPDATE `lastSeenAt` on `listings` (existing listings)
 - UPSERT into `sellers` (when detail page fetched)
@@ -269,6 +270,7 @@ flowchart TD
 5. **Update metrics**: Track `listingsUpdated`, `priceHistoryInserted`, `priceChangesDetected`
 
 **Database Operations**:
+
 - UPDATE `price`, `lastSeenAt`, `isActive` on `listings`
 - INSERT into `price_history` (on price change)
 - UPDATE `scrape_runs` (tracking)
@@ -344,10 +346,11 @@ flowchart TD
 5. **Update metrics**: Track `listingsVerified`, `listingsNotFound`
 
 **Database Operations**:
+
 - UPDATE `verificationStatus`, `lastVerifiedAt`, `notFoundCount`, `isActive` on `listings`
 - UPDATE `scrape_runs` (tracking)
 
-**Output**: Accurate `isActive` status for all listings, removing stale/deactivated entries.
+**Output**: Accurate `isActive` status for all listings, removing stale/deactivated entries
 
 ---
 
@@ -360,44 +363,45 @@ Willhaben is built with **Next.js**, so all page data is embedded in a `<script 
 #### Overview Pages (Search Results)
 
 **URL Pattern**:
+
 ```
 https://www.willhaben.at/iad/immobilien/mietwohnungen/mietwohnung-angebote?rows=90&page=N
 ```
 
 **Data Location**:
+
 ```html
 <script id="__NEXT_DATA__" type="application/json">
-{
-  "props": {
-    "pageProps": {
-      "searchResult": {
-        "advertSummaryList": {
-          "advertSummary": [
-            {
-              "id": "123456789",
-              "description": "Schöne 2-Zimmer Wohnung...",
-              "attributes": {
-                "attribute": [
-                  {"name": "PRICE", "values": ["850"]},
-                  {"name": "ESTATE_SIZE/LIVING_AREA", "values": ["65"]},
-                  {"name": "NUMBER_OF_ROOMS", "values": ["2"]},
-                  // ... more attributes
-                ]
-              },
-              "contextLinkList": [
-                {"uri": "/iad/immobilien/..."}
-              ]
-            }
-          ]
+  {
+    "props": {
+      "pageProps": {
+        "searchResult": {
+          "advertSummaryList": {
+            "advertSummary": [
+              {
+                "id": "123456789",
+                "description": "Schöne 2-Zimmer Wohnung...",
+                "attributes": {
+                  "attribute": [
+                    { "name": "PRICE", "values": ["850"] },
+                    { "name": "ESTATE_SIZE/LIVING_AREA", "values": ["65"] },
+                    { "name": "NUMBER_OF_ROOMS", "values": ["2"] }
+                    // ... more attributes
+                  ]
+                },
+                "contextLinkList": [{ "uri": "/iad/immobilien/..." }]
+              }
+            ]
+          }
         }
       }
     }
   }
-}
 </script>
 ```
 
 **Extracted Data**:
+
 - `id` - Platform listing ID
 - `description` - Title/description
 - Attributes: price, area, rooms, coordinates, location details
@@ -408,46 +412,49 @@ https://www.willhaben.at/iad/immobilien/mietwohnungen/mietwohnung-angebote?rows=
 #### Detail Pages (Individual Listings)
 
 **URL Pattern**:
+
 ```
 https://www.willhaben.at/iad/immobilien/d/{slug}-{id}
 ```
 
 **Data Location**:
+
 ```html
 <script id="__NEXT_DATA__" type="application/json">
-{
-  "props": {
-    "pageProps": {
-      "advert": {
-        "id": "123456789",
-        "attributes": {
-          "attribute": [
-            {"name": "ADVERT/IS_LIMITED", "values": ["true"]},
-            {"name": "ADVERT/DURATION", "values": ["12"]},
-            // ... location attributes
-          ]
-        },
-        "advertiserInfo": {
-          "id": "seller123",
-          "label": "Wohnbaugesellschaft GmbH",
-          "isPrivate": false,
-          "verifiedByWillhaben": true,
-          "registrationDate": "2020-01-15",
-          "organisation": {
-            "name": "Wohnbau GmbH",
-            "phoneNumber": "+43...",
-            "email": "office@...",
-            "websiteUrl": "https://..."
+  {
+    "props": {
+      "pageProps": {
+        "advert": {
+          "id": "123456789",
+          "attributes": {
+            "attribute": [
+              { "name": "ADVERT/IS_LIMITED", "values": ["true"] },
+              { "name": "ADVERT/DURATION", "values": ["12"] }
+              // ... location attributes
+            ]
+          },
+          "advertiserInfo": {
+            "id": "seller123",
+            "label": "Wohnbaugesellschaft GmbH",
+            "isPrivate": false,
+            "verifiedByWillhaben": true,
+            "registrationDate": "2020-01-15",
+            "organisation": {
+              "name": "Wohnbau GmbH",
+              "phoneNumber": "+43...",
+              "email": "office@...",
+              "websiteUrl": "https://..."
+            }
           }
         }
       }
     }
   }
-}
 </script>
 ```
 
 **Extracted Data**:
+
 - `isLimited` - Whether rental has time limit
 - `durationMonths` - Number of months (if limited)
 - Enhanced location data (postCode, postalName, province)
@@ -463,14 +470,14 @@ https://www.willhaben.at/iad/immobilien/d/{slug}-{id}
 1. **Fetch HTML page** via HTTP GET
 2. **Extract JSON**:
    ```typescript
-   const match = html.match(/<script id="__NEXT_DATA__"[^>]*>(.*?)<\/script>/s)
-   const json = JSON.parse(match[1])
+   const match = html.match(/<script id="__NEXT_DATA__"[^>]*>(.*?)<\/script>/s);
+   const json = JSON.parse(match[1]);
    ```
 3. **Navigate nested structure** using TypeScript interfaces
 4. **Parse attributes array**:
    ```typescript
    function getAttribute(name: string) {
-     return attributes.find(a => a.name === name)?.values[0]
+     return attributes.find((a) => a.name === name)?.values[0];
    }
    ```
 5. **Map to unified model** (standardized across platforms)
@@ -480,12 +487,14 @@ https://www.willhaben.at/iad/immobilien/d/{slug}-{id}
 **Vienna District Handling** ([utils/location-parser.ts](../workers/cron-scraper/utils/location-parser.ts)):
 
 Vienna (Wien) has 23 districts with special ZIP code mapping:
+
 - 1010 = Innere Stadt (1st district)
 - 1020 = Leopoldstadt (2nd district)
 - ...
 - 1230 = Liesing (23rd district)
 
 **Parsing strategies**:
+
 1. From city field: "Wien, 7. Bezirk, Neubau" → district = "Neubau"
 2. From URL slug: "wien-1070-neubauwohnung" → {state: Wien, district: Neubau, zip: 1070}
 3. Bidirectional mapping: ZIP ↔ district name
@@ -497,29 +506,29 @@ Vienna (Wien) has 23 districts with special ZIP code mapping:
 ```typescript
 async function upsertSeller(db, sellerData) {
   const existing = await db.query.sellers.findFirst({
-    where: eq(sellers.platformSellerId, sellerData.platformSellerId)
-  })
+    where: eq(sellers.platformSellerId, sellerData.platformSellerId),
+  });
 
   if (existing) {
-    await db.update(sellers)
+    await db
+      .update(sellers)
       .set({
         name: sellerData.name,
         activeAdCount: sellerData.activeAdCount,
         lastSeenAt: new Date(),
         // ... update fields
       })
-      .where(eq(sellers.id, existing.id))
-    return existing.id
+      .where(eq(sellers.id, existing.id));
+    return existing.id;
   } else {
-    const [newSeller] = await db.insert(sellers)
-      .values(sellerData)
-      .returning()
-    return newSeller.id
+    const [newSeller] = await db.insert(sellers).values(sellerData).returning();
+    return newSeller.id;
   }
 }
 ```
 
 **Strategy**:
+
 - On discovery: minimal seller data from overview page
 - On detail fetch: enrich with organization details
 - On subsequent sweeps: update ad counts and lastSeenAt
@@ -529,6 +538,7 @@ async function upsertSeller(db, sellerData) {
 ### Schema Overview
 
 **7 Tables**:
+
 1. **regions** - Geographic hierarchy (country → states → districts)
 2. **listings** - Core rental listing data
 3. **sellers** - Landlord/seller profiles
@@ -562,31 +572,32 @@ CREATE INDEX idx_price_history_listing_observed ON price_history(listingId, obse
 ```typescript
 await db.transaction(async (tx) => {
   // Insert listing
-  const [listing] = await tx.insert(listings)
+  const [listing] = await tx
+    .insert(listings)
     .values({
       platformListingId: item.id,
       title: item.title,
       price: item.price,
       // ...
     })
-    .returning()
+    .returning();
 
   // Upsert seller
-  const sellerId = await upsertSeller(tx, sellerData)
+  const sellerId = await upsertSeller(tx, sellerData);
 
   // Update listing with sellerId
-  await tx.update(listings)
+  await tx
+    .update(listings)
     .set({ sellerId })
-    .where(eq(listings.id, listing.id))
+    .where(eq(listings.id, listing.id));
 
   // Insert initial price history
-  await tx.insert(priceHistory)
-    .values({
-      listingId: listing.id,
-      price: item.price,
-      observedAt: new Date()
-    })
-})
+  await tx.insert(priceHistory).values({
+    listingId: listing.id,
+    price: item.price,
+    observedAt: new Date(),
+  });
+});
 ```
 
 ## Run Tracking & Monitoring
@@ -600,20 +611,26 @@ await db.transaction(async (tx) => {
 ```typescript
 class RunTracker {
   // Start a new run
-  async startRun(type: 'discovery' | 'sweep' | 'verification'): Promise<Run>
+  async startRun(type: "discovery" | "sweep" | "verification"): Promise<Run>;
 
   // Update metrics during run
-  async updateRun(runId: number, metrics: Partial<RunMetrics>): Promise<void>
+  async updateRun(runId: number, metrics: Partial<RunMetrics>): Promise<void>;
 
   // Finish run with status
-  async finishRun(runId: number, startedAt: Date, status: 'success' | 'error', errorMessage?: string): Promise<void>
+  async finishRun(
+    runId: number,
+    startedAt: Date,
+    status: "success" | "error",
+    errorMessage?: string
+  ): Promise<void>;
 
   // Get last run of type (for resuming)
-  async getLastRunOfType(type: string): Promise<Run | undefined>
+  async getLastRunOfType(type: string): Promise<Run | undefined>;
 }
 ```
 
 **Metrics Tracked**:
+
 - `overviewPagesVisited` - Number of search result pages fetched
 - `detailPagesFetched` - Number of detail pages fetched
 - `listingsDiscovered` - New listings added (discovery only)
@@ -629,6 +646,7 @@ class RunTracker {
 ### Monitoring Dashboard
 
 Query `scrape_runs` table to monitor:
+
 - **Success rate**: `COUNT(*) WHERE status = 'success'` / `COUNT(*)`
 - **Avg duration**: `AVG(durationMs)` per job type
 - **Discovery rate**: `SUM(listingsDiscovered)` over time
@@ -650,9 +668,9 @@ Query `scrape_runs` table to monitor:
   // Scheduled events
   "triggers": {
     "crons": [
-      "*/30 * * * *",  // Discovery: every 30 min
-      "0 */3 * * *",   // Sweep: every 3 hours
-      "0 * * * *"      // Verification: every hour
+      "*/30 * * * *", // Discovery: every 30 min
+      "0 */3 * * *", // Sweep: every 3 hours
+      "0 * * * *" // Verification: every hour
     ]
   },
 
@@ -667,7 +685,7 @@ Query `scrape_runs` table to monitor:
 
   // Resource limits
   "limits": {
-    "cpu_ms": 50000  // 50 seconds max CPU time
+    "cpu_ms": 50000 // 50 seconds max CPU time
   }
 }
 ```
@@ -678,26 +696,26 @@ Query `scrape_runs` table to monitor:
 
 ```typescript
 class ConcurrencyLimiter {
-  private maxConcurrent = 4  // Prevent rate limiting
-  private queue: Promise<any>[] = []
+  private maxConcurrent = 4; // Prevent rate limiting
+  private queue: Promise<any>[] = [];
 
   async fetch(url: string): Promise<Response> {
     while (this.queue.length >= this.maxConcurrent) {
-      await Promise.race(this.queue)
+      await Promise.race(this.queue);
     }
 
     const promise = fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 ...' // Mimic browser
-      }
-    })
+        "User-Agent": "Mozilla/5.0 ...", // Mimic browser
+      },
+    });
 
-    this.queue.push(promise)
+    this.queue.push(promise);
     promise.finally(() => {
-      this.queue = this.queue.filter(p => p !== promise)
-    })
+      this.queue = this.queue.filter((p) => p !== promise);
+    });
 
-    return promise
+    return promise;
   }
 }
 ```
@@ -715,17 +733,20 @@ class ConcurrencyLimiter {
 ### Test Files
 
 Located in [workers/cron-scraper/runs/](../workers/cron-scraper/runs/):
+
 - [discovery.test.ts](../workers/cron-scraper/runs/discovery.test.ts) - End-to-end discovery flow
 - [sweep.test.ts](../workers/cron-scraper/runs/sweep.test.ts) - Sweep logic
 - [verification.test.ts](../workers/cron-scraper/runs/verification.test.ts) - Verification flow
 
 Located in [workers/cron-scraper/sources/willhaben/](../workers/cron-scraper/sources/willhaben/):
+
 - [overview.test.ts](../workers/cron-scraper/sources/willhaben/overview.test.ts) - HTML parsing for search results
 - [detail.test.ts](../workers/cron-scraper/sources/willhaben/detail.test.ts) - HTML parsing for listing details
 
 ### Test Pattern
 
 **Mock HTML Helper**:
+
 ```typescript
 function wrapJson(data: any): string {
   return `
@@ -737,45 +758,48 @@ function wrapJson(data: any): string {
         </script>
       </body>
     </html>
-  `
+  `;
 }
 ```
 
 **Example Test**:
-```typescript
-import { describe, it, expect } from 'vitest'
-import { parseOverview } from './overview'
 
-describe('parseOverview', () => {
-  it('should extract listing items from HTML', () => {
+```typescript
+import { describe, it, expect } from "vitest";
+import { parseOverview } from "./overview";
+
+describe("parseOverview", () => {
+  it("should extract listing items from HTML", () => {
     const html = wrapJson({
       props: {
         pageProps: {
           searchResult: {
             advertSummaryList: {
-              advertSummary: [{
-                id: '123456',
-                description: 'Test Wohnung',
-                attributes: {
-                  attribute: [
-                    { name: 'PRICE', values: ['850'] },
-                    { name: 'ESTATE_SIZE/LIVING_AREA', values: ['65'] }
-                  ]
-                }
-              }]
-            }
-          }
-        }
-      }
-    })
+              advertSummary: [
+                {
+                  id: "123456",
+                  description: "Test Wohnung",
+                  attributes: {
+                    attribute: [
+                      { name: "PRICE", values: ["850"] },
+                      { name: "ESTATE_SIZE/LIVING_AREA", values: ["65"] },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
 
-    const items = parseOverview(html)
+    const items = parseOverview(html);
 
-    expect(items).toHaveLength(1)
-    expect(items[0].price).toBe(850)
-    expect(items[0].area).toBe(65)
-  })
-})
+    expect(items).toHaveLength(1);
+    expect(items[0].price).toBe(850);
+    expect(items[0].area).toBe(65);
+  });
+});
 ```
 
 ### Running Tests
@@ -816,6 +840,7 @@ pnpm run cron:verification
 ```
 
 **How it works**:
+
 - Uses `wrangler dev` to run worker locally
 - Simulates scheduled event with specific cron trigger
 - Connects to local D1 database
@@ -853,6 +878,7 @@ The cron scraper efficiently monitors Willhaben.at using three specialized jobs:
 3. **Verification** (1 hour) - Validates listing status
 
 This architecture:
+
 - ✅ Minimizes redundant fetching (detail pages only for new listings)
 - ✅ Enables fast price updates (overview pages faster than details)
 - ✅ Detects deactivated listings (verification loop)
