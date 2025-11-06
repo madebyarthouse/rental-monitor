@@ -16,8 +16,25 @@ const requestHandler = createRequestHandler(
 
 export default {
   async fetch(request, env, ctx) {
-    return requestHandler(request, {
+    const response = await requestHandler(request, {
       cloudflare: { env, ctx },
     });
+
+    // Add Last-Modified to all successful GET responses
+    if (response.ok && request.method === "GET") {
+      const headers = new Headers(response.headers);
+
+      if (!headers.has("Last-Modified")) {
+        headers.set("Last-Modified", new Date().toUTCString());
+      }
+
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+
+    return response;
   },
 } satisfies ExportedHandler<Env>;
