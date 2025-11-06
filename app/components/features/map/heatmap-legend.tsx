@@ -112,7 +112,7 @@ export function HeatmapLegend({
               return (
                 <div
                   key={r.label}
-                  className="flex items-center gap-2.5 text-sm text-muted-foreground md:flex-row"
+                  className="flex items-center gap-2.5 text-sm text-muted-foreground md:flex-row flex-1"
                 >
                   <div
                     className="relative w-full h-7 min-w-12 md:min-w-14 border border-border/50 shrink-0 flex items-center justify-center px-2"
