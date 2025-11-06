@@ -16,6 +16,7 @@ export function headers() {
   return {
     "Cache-Control": cacheHeader({
       public: true,
+      maxAge: "1d",
       sMaxage: "12h", // 12 hours for shared caches (CDN)
       staleWhileRevalidate: "1w", // 1 week SWR
     }),
