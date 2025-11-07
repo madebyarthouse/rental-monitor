@@ -1,5 +1,3 @@
-DROP TABLE `seller_history`;--> statement-breakpoint
-DROP TABLE `sellers`;--> statement-breakpoint
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
 CREATE TABLE `__new_listings` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -49,3 +47,6 @@ CREATE INDEX `idx_listings_rooms` ON `listings` (`rooms`);--> statement-breakpoi
 CREATE INDEX `idx_listings_platform` ON `listings` (`platform`);--> statement-breakpoint
 CREATE INDEX `idx_listings_district` ON `listings` (`district`);--> statement-breakpoint
 CREATE INDEX `idx_listings_state` ON `listings` (`state`);
+
+DROP TABLE `seller_history`;--> statement-breakpoint
+DROP TABLE `sellers`;--> statement-breakpoint
