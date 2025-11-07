@@ -117,7 +117,6 @@ export const listings = sqliteTable(
   })
 );
 
-// Sellers/Profiles table
 export const priceHistory = sqliteTable(
   "price_history",
   {
