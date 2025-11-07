@@ -47,7 +47,9 @@ export function parseDetail(html: string): UnifiedRentalListing | null {
 
   const isLimited = getAttr(attrs, "DURATION/HASTERMLIMIT") === "befristet";
   const durationText = getAttr(attrs, "DURATION/TERMLIMITTEXT");
-  const months = durationText ? parseInt(durationText.match(/\d+/)?.[0] || "0") * 12 : undefined;
+  const months = durationText
+    ? parseInt(durationText.match(/\d+/)?.[0] || "0") * 12
+    : undefined;
 
   const address = details.advertAddressDetails;
   const rawLoc = {
@@ -58,14 +60,10 @@ export function parseDetail(html: string): UnifiedRentalListing | null {
   };
   const loc = enhanceLocationData(rawLoc, url);
 
+  const isPrivate = details.sellerProfileUserData?.private;
   // Seller extraction
-  const sellerProfile = details.sellerProfileUserData;
-  const org = details.organisationDetails;
-  const platformSellerId =
-    org?.uuid || (org?.id != null ? String(org.id) : undefined) || sellerProfile?.orgUUID || undefined;
-  const organisationWebsite = org?.organisationDetailLinkList?.contextLink?.find(
-    (l) => l.id === "seller.profile"
-  )?.uri;
+  const isCommercialSeller =
+    isPrivate === false ? true : isPrivate === true ? false : undefined;
 
   return {
     id: details.id,
@@ -82,20 +80,6 @@ export function parseDetail(html: string): UnifiedRentalListing | null {
     platform: "willhaben",
     url,
     scrapedAt: new Date().toISOString(),
-    seller: {
-      platformSellerId,
-      name: sellerProfile?.name,
-      isPrivate: sellerProfile?.private,
-      registerDate: sellerProfile?.registerDate,
-      location: sellerProfile?.location,
-      activeAdCount: sellerProfile?.activeAdCount,
-      organisationName: org?.orgName ?? undefined,
-      organisationPhone: org?.orgPhone ?? undefined,
-      organisationEmail: org?.orgEmail ?? undefined,
-      organisationWebsite: organisationWebsite ?? undefined,
-      hasProfileImage: sellerProfile?.hasProfileImage,
-    },
+    isCommercialSeller: isCommercialSeller,
   };
 }
-
-

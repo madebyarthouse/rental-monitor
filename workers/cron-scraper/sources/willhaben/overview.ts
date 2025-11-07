@@ -18,8 +18,7 @@ export interface OverviewItem {
   state?: string;
   latitude?: number;
   longitude?: number;
-  isPrivate?: boolean;
-  platformSellerId?: string;
+  isCommercialSeller?: boolean;
 }
 
 function extractJson(html: string): WillhabenResultPage | null {
@@ -119,8 +118,6 @@ export function parseOverview(html: string): OverviewItem[] {
       ? isPrivateStr === "1" || isPrivateStr.toLowerCase() === "true"
       : undefined;
 
-    const platformSellerId = getAttr(ad, "ORG_UUID");
-
     const normalizedId = String(ad.id).replace(/[^0-9A-Za-z_\-]/g, "");
     if (normalizedId !== ad.id) {
       console.warn(
@@ -141,8 +138,7 @@ export function parseOverview(html: string): OverviewItem[] {
       state,
       latitude,
       longitude,
-      isPrivate,
-      platformSellerId,
+      isCommercialSeller: isPrivate,
     };
   });
 }

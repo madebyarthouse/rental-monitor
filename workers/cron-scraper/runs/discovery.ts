@@ -164,12 +164,6 @@ function buildListingUpsert(
   regionId: number | null,
   now: Date
 ): BatchItem {
-  const isCommercialSeller =
-    d?.seller?.isPrivate === true
-      ? false
-      : d?.seller?.isPrivate === false
-      ? true
-      : null;
   return db
     .insert(listings)
     .values({
@@ -190,7 +184,7 @@ function buildListingUpsert(
       url: it.url,
       externalId: it.id,
       regionId: regionId,
-      isCommercialSeller: isCommercialSeller,
+      isCommercialSeller: d?.isCommercialSeller,
       firstSeenAt: now,
       lastSeenAt: now,
       lastScrapedAt: now,
@@ -213,7 +207,7 @@ function buildListingUpsert(
         isLimited: !!d.duration?.isLimited,
         durationMonths: d.duration?.months ?? null,
         regionId: regionId,
-        isCommercialSeller: isCommercialSeller,
+        isCommercialSeller: d?.isCommercialSeller,
         lastSeenAt: now,
         lastScrapedAt: now,
         isActive: true,
