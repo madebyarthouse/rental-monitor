@@ -46,7 +46,9 @@ export class RunTracker {
       .get();
 
     const id = created?.id ?? 0;
-    console.log(`[runs] start: id=${id} type=${type} at=${startedAt.toISOString()}`);
+    console.log(
+      `[runs] start: id=${id} type=${type} at=${startedAt.toISOString()}`
+    );
     return { id, startedAt };
   }
 
@@ -74,7 +76,9 @@ export class RunTracker {
       .where(eq(scrapeRuns.id, id))
       .run();
     console.log(
-      `[runs] finish: id=${id} status=${status} durationMs=${durationMs}${errorMessage ? ` error=${errorMessage}` : ""}`
+      `[runs] finish: id=${id} status=${status} durationMs=${durationMs}${
+        errorMessage ? ` error=${errorMessage}` : ""
+      }`
     );
   }
 

@@ -28,12 +28,7 @@
       "database_id": "e4edfad2-e2b0-4ace-a9d7-0a73dc96fb07",
       "migrations_dir": "../../drizzle"
     }
-  ],
-  /**
-   * Smart Placement
-   * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-   */
-  "placement": { "mode": "smart" }
+  ]
   /**
    * Bindings
    * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including

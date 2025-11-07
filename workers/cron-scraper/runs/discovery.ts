@@ -1,11 +1,5 @@
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import {
-  listings,
-  priceHistory,
-  sellers,
-  sellerHistory,
-  regions,
-} from "@/db/schema";
+import { listings, priceHistory, regions } from "@/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { RunTracker } from "../run-tracker";
@@ -163,156 +157,19 @@ async function fetchDetailsForNewItems(
   return results;
 }
 
-async function upsertSellers(
-  db: DrizzleD1Database<typeof import("@/db/schema")>,
-  details: Array<{ item: OverviewItem; detail: DetailResult }>,
-  now: Date
-): Promise<Map<string, number>> {
-  const sellerInputs = details
-    .map((nd) => nd.detail?.seller)
-    .filter(
-      (s): s is NonNullable<DetailResult["seller"]> =>
-        !!s && !!s.platformSellerId
-    );
-
-  const sellerByPlatformId = new Map<string, (typeof sellerInputs)[number]>();
-  for (const s of sellerInputs)
-    sellerByPlatformId.set(String(s.platformSellerId), s);
-  const platformSellerIds = Array.from(sellerByPlatformId.keys());
-
-  if (platformSellerIds.length === 0) {
-    return new Map();
-  }
-
-  const sellerUpdateStatements: BatchItem[] = [];
-  const sellerInsertStatements: BatchItem[] = [];
-  const sellerHistoryInsertStatements: BatchItem[] = [];
-
-  const existingSellers = await db
-    .select({ id: sellers.id, platformSellerId: sellers.platformSellerId })
-    .from(sellers)
-    .where(
-      and(
-        eq(sellers.platform, "willhaben"),
-        inArray(sellers.platformSellerId, platformSellerIds)
-      )
-    )
-    .all();
-
-  const existingSellerMap = new Map<string, number>();
-  for (const r of existingSellers)
-    existingSellerMap.set(String(r.platformSellerId), r.id);
-
-  for (const [psid, s] of sellerByPlatformId.entries()) {
-    const sid = existingSellerMap.get(psid);
-    if (sid) {
-      sellerUpdateStatements.push(
-        db
-          .update(sellers)
-          .set({
-            name: s.name ?? undefined,
-            isPrivate: s.isPrivate ?? undefined,
-            registerDate: s.registerDate ?? undefined,
-            location: s.location ?? undefined,
-            activeAdCount: s.activeAdCount ?? undefined,
-            organisationName: s.organisationName ?? undefined,
-            organisationPhone: s.organisationPhone ?? undefined,
-            organisationEmail: s.organisationEmail ?? undefined,
-            organisationWebsite: s.organisationWebsite ?? undefined,
-            hasProfileImage: s.hasProfileImage ?? undefined,
-            lastSeenAt: now,
-            lastUpdatedAt: now,
-          })
-          .where(eq(sellers.id, sid))
-      );
-    } else {
-      sellerInsertStatements.push(
-        db.insert(sellers).values({
-          platformSellerId: s.platformSellerId!,
-          platform: "willhaben",
-          name: s.name ?? null,
-          isPrivate: s.isPrivate ?? null,
-          isVerified: false,
-          registerDate: s.registerDate ?? null,
-          location: s.location ?? null,
-          activeAdCount: s.activeAdCount ?? null,
-          totalAdCount: null,
-          organisationName: s.organisationName ?? null,
-          organisationPhone: s.organisationPhone ?? null,
-          organisationEmail: s.organisationEmail ?? null,
-          organisationWebsite: s.organisationWebsite ?? null,
-          hasProfileImage: s.hasProfileImage ?? null,
-          firstSeenAt: now,
-          lastSeenAt: now,
-          lastUpdatedAt: now,
-        })
-      );
-    }
-  }
-
-  if (sellerUpdateStatements.length > 0) {
-    await runWithRetry(
-      "sellers.update.batch",
-      { count: sellerUpdateStatements.length },
-      // @ts-expect-error - batch item type is weird
-      () => db.batch(sellerUpdateStatements)
-    );
-  }
-  if (sellerInsertStatements.length > 0) {
-    await runWithRetry(
-      "sellers.insert.batch",
-      { count: sellerInsertStatements.length },
-      // @ts-expect-error - batch item type is weird
-      () => db.batch(sellerInsertStatements)
-    );
-  }
-
-  const allSellerRows = await db
-    .select({ id: sellers.id, platformSellerId: sellers.platformSellerId })
-    .from(sellers)
-    .where(
-      and(
-        eq(sellers.platform, "willhaben"),
-        inArray(sellers.platformSellerId, platformSellerIds)
-      )
-    )
-    .all();
-  const sellerIdByPlatformId = new Map<string, number>();
-  for (const r of allSellerRows)
-    sellerIdByPlatformId.set(String(r.platformSellerId), r.id);
-
-  for (const s of sellerInputs) {
-    const sid = sellerIdByPlatformId.get(String(s.platformSellerId));
-    if (!sid || typeof s.activeAdCount !== "number") continue;
-    sellerHistoryInsertStatements.push(
-      db.insert(sellerHistory).values({
-        sellerId: sid,
-        activeAdCount: s.activeAdCount,
-        totalAdCount: null,
-        observedAt: now,
-      })
-    );
-  }
-  if (sellerHistoryInsertStatements.length > 0) {
-    await runWithRetry(
-      "seller_history.insert.batch",
-      { count: sellerHistoryInsertStatements.length },
-      // @ts-expect-error - batch item type is weird
-      () => db.batch(sellerHistoryInsertStatements)
-    );
-  }
-
-  return sellerIdByPlatformId;
-}
-
 function buildListingUpsert(
   db: DrizzleD1Database<typeof import("@/db/schema")>,
   it: OverviewItem,
   d: DetailResult,
-  sellerId: number | null,
   regionId: number | null,
   now: Date
 ): BatchItem {
+  const isCommercialSeller =
+    d?.seller?.isPrivate === true
+      ? false
+      : d?.seller?.isPrivate === false
+      ? true
+      : null;
   return db
     .insert(listings)
     .values({
@@ -333,7 +190,7 @@ function buildListingUpsert(
       url: it.url,
       externalId: it.id,
       regionId: regionId,
-      sellerId: sellerId,
+      isCommercialSeller: isCommercialSeller,
       firstSeenAt: now,
       lastSeenAt: now,
       lastScrapedAt: now,
@@ -356,6 +213,7 @@ function buildListingUpsert(
         isLimited: !!d.duration?.isLimited,
         durationMonths: d.duration?.months ?? null,
         regionId: regionId,
+        isCommercialSeller: isCommercialSeller,
         lastSeenAt: now,
         lastScrapedAt: now,
         isActive: true,
@@ -367,7 +225,6 @@ function buildListingUpsert(
 async function upsertListings(
   db: DrizzleD1Database<typeof import("@/db/schema")>,
   details: Array<{ item: OverviewItem; detail: DetailResult }>,
-  sellerIdByPlatformId: Map<string, number>,
   indices: ReturnType<typeof buildRegionIndicesShared>,
   slugToRegionId: Map<string, number>,
   now: Date
@@ -392,13 +249,7 @@ async function upsertListings(
         } district=${it.district ?? ""} city=${it.city ?? ""}`
       );
     }
-    const sellerId = nd.detail?.seller?.platformSellerId
-      ? sellerIdByPlatformId.get(String(nd.detail.seller.platformSellerId)) ??
-        null
-      : null;
-    listingInsertStatements.push(
-      buildListingUpsert(db, it, d, sellerId, regionId, now)
-    );
+    listingInsertStatements.push(buildListingUpsert(db, it, d, regionId, now));
   }
   if (listingInsertStatements.length > 0) {
     await runWithRetry(
@@ -511,13 +362,10 @@ async function processPage(
 
   const newWithDetail = await fetchDetailsForNewItems(newItems, metrics);
 
-  let sellerIdByPlatformId = new Map<string, number>();
   if (newWithDetail.length > 0) {
-    sellerIdByPlatformId = await upsertSellers(db, newWithDetail, now);
     const platformListingIds = await upsertListings(
       db,
       newWithDetail,
-      sellerIdByPlatformId,
       indices,
       slugToRegionId,
       now
