@@ -61,7 +61,6 @@ export function parseDetail(html: string): UnifiedRentalListing | null {
   const loc = enhanceLocationData(rawLoc, url);
 
   const isPrivate = details.sellerProfileUserData?.private;
-  // Seller extraction
   const isCommercialSeller =
     isPrivate === false ? true : isPrivate === true ? false : undefined;
 
