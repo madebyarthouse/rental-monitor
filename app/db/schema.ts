@@ -4,7 +4,6 @@ import {
   integer,
   real,
   index,
-  uniqueIndex,
   type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
@@ -69,12 +68,10 @@ export const listings = sqliteTable(
     platform: text().notNull(),
     url: text().notNull().unique(),
     externalId: text(), // Platform's original ID
+    isCommercialSeller: integer({ mode: "boolean" }),
 
     // Region reference
     regionId: integer({ mode: "number" }).references(() => regions.id),
-
-    // Seller reference
-    sellerId: integer({ mode: "number" }).references(() => sellers.id),
 
     // Tracking timestamps
     firstSeenAt: integer({ mode: "timestamp" }).notNull(),
@@ -96,7 +93,6 @@ export const listings = sqliteTable(
   },
   (table) => ({
     regionIdx: index("idx_listings_region").on(table.regionId),
-    sellerIdx: index("idx_listings_seller").on(table.sellerId),
     // Frequent equality/range filters + sorts
     activeLastSeenIdx: index("idx_listings_active_last_seen").on(
       table.isActive,
@@ -121,51 +117,6 @@ export const listings = sqliteTable(
   })
 );
 
-// Sellers/Profiles table
-export const sellers = sqliteTable(
-  "sellers",
-  {
-    id: integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
-    platformSellerId: text().notNull(),
-    platform: text().notNull(),
-
-    // Basic info
-    name: text(),
-    isPrivate: integer({ mode: "boolean" }).default(false),
-    isVerified: integer({ mode: "boolean" }).default(false),
-
-    // Profile details
-    registerDate: text(),
-    location: text(),
-    activeAdCount: integer(),
-    totalAdCount: integer(),
-
-    // Organization details (for commercial sellers)
-    organisationName: text(),
-    organisationPhone: text(),
-    organisationEmail: text(),
-    organisationWebsite: text(),
-    hasProfileImage: integer({ mode: "boolean" }).default(false),
-
-    // Tracking
-    firstSeenAt: integer({ mode: "timestamp" }).notNull(),
-    lastSeenAt: integer({ mode: "timestamp" }).notNull(),
-    lastUpdatedAt: integer({ mode: "timestamp" }).notNull(),
-
-    // Metadata
-    createdAt: integer({ mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: integer({ mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
-  },
-  (table) => ({
-    platformIdx: index("idx_sellers_platform").on(table.platform),
-    activeAdsIdx: index("idx_sellers_active_ads").on(table.activeAdCount),
-    nameIdx: index("idx_sellers_name").on(table.name),
-    // Ensure fast upsert/lookup by platform + seller id
-    uniquePlatformSellerIdx: uniqueIndex(
-      "uniq_sellers_platform_platformSeller"
-    ).on(table.platform, table.platformSellerId),
-  })
-);
 export const priceHistory = sqliteTable(
   "price_history",
   {
@@ -179,23 +130,6 @@ export const priceHistory = sqliteTable(
   },
   (table) => ({
     listingIdx: index("idx_price_history_listing").on(table.listingId),
-  })
-);
-
-export const sellerHistory = sqliteTable(
-  "seller_history",
-  {
-    id: integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
-    sellerId: integer({ mode: "number" })
-      .notNull()
-      .references(() => sellers.id, { onDelete: "cascade" }),
-    activeAdCount: integer(),
-    totalAdCount: integer(),
-    observedAt: integer({ mode: "timestamp" }).notNull(),
-    createdAt: integer({ mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
-  },
-  (table) => ({
-    sellerIdx: index("idx_seller_history_seller").on(table.sellerId),
   })
 );
 
@@ -217,17 +151,7 @@ export const listingsRelations = relations(listings, ({ one, many }) => ({
     fields: [listings.regionId],
     references: [regions.id],
   }),
-  seller: one(sellers, {
-    fields: [listings.sellerId],
-    references: [sellers.id],
-  }),
   priceHistory: many(priceHistory),
-}));
-
-// Sellers relations
-export const sellersRelations = relations(sellers, ({ many }) => ({
-  listings: many(listings),
-  history: many(sellerHistory),
 }));
 
 // Price history relations
@@ -235,14 +159,6 @@ export const priceHistoryRelations = relations(priceHistory, ({ one }) => ({
   listing: one(listings, {
     fields: [priceHistory.listingId],
     references: [listings.id],
-  }),
-}));
-
-// Seller history relations
-export const sellerHistoryRelations = relations(sellerHistory, ({ one }) => ({
-  seller: one(sellers, {
-    fields: [sellerHistory.sellerId],
-    references: [sellers.id],
   }),
 }));
 
