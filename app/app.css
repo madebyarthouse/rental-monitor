@@ -199,6 +199,12 @@ body {
   h3 {
     @apply text-xl font-medium leading-snug;
   }
+
+  /* Unified focus-visible style across the app */
+  :focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 2px;
+  }
 }
 
 .dark {
