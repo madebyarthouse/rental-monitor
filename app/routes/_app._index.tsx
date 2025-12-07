@@ -26,11 +26,11 @@ export default function ComingSoon(props: Route.ComponentProps) {
       <div className="min-h-screen flex flex-col bg-background">
         {/* Header */}
         <header className="w-full border-b border-border">
-          <div className="w-[960px] max-w-[calc(100%-40px)] mx-auto border-l border-r border-border flex items-center justify-between max-[350px]:flex-col max-[350px]:items-end max-[350px]:gap-2">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl 2xl:text-5xl 3xl:text-6xl max-[450px]:text-[clamp(18px,6.2vw,22px)] max-[350px]:text-right font-semibold tracking-tight text-foreground p-6 md:p-8 xl:px-10 2xl:px-12">
+          <div className="w-[960px] max-w-[calc(100%-40px)] mx-auto border-l border-r border-border flex items-center justify-between max-[400px]:flex-col max-[400px]:items-end gap-[10px] p-6 md:p-8 xl:px-10 2xl:px-12">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl 2xl:text-5xl 3xl:text-6xl max-[450px]:text-[clamp(18px,6.2vw,22px)] max-[400px]:text-right font-semibold tracking-tight text-foreground">
               Mietmonitor
             </h1>
-            <div className="flex justify-end p-6 md:p-8 xl:px-10 2xl:px-12 max-[350px]:w-full">
+            <div className="flex justify-end max-[400px]:w-full">
               <a
                 href="https://www.momentum-institut.at"
                 target="_blank"
@@ -51,7 +51,7 @@ export default function ComingSoon(props: Route.ComponentProps) {
 
         {/* Main Content */}
         <main className="flex-1 w-full flex flex-col border-b border-border">
-          <div className="w-[960px] h-full grow max-w-[calc(100%-40px)] mx-auto border-l border-r border-border">
+          <div className="w-[960px] h-full grow max-w-[calc(100%-40px)] mx-auto border-l border-r border-border pb-12 md:pb-0">
             <div className="w-full flex flex-col">
               {/* Title Section */}
               <div className="space-y-4  p-6 md:p-8 xl:p-10 2xl:p-12 border-b border-border">
@@ -91,11 +91,11 @@ export default function ComingSoon(props: Route.ComponentProps) {
                     />
                   </div>
                   {/* Content - Right side */}
-                  <div className="flex-1 p-5 sm:p-6 pr-12 relative flex flex-col justify-center text-left space-y-3">
+                  <div className="flex-1 p-5 sm:p-6 relative flex flex-col justify-center text-left space-y-3">
                     <h2 className="text-base sm:text-lg md:text-lg lg:text-xl 2xl:text-2xl 3xl:text-3xl font-semibold text-foreground leading-tight">
                       Befristungs-Monitor: Teuer und unsicher
                     </h2>
-                    <p className="text-sm sm:text-base 2xl:text-lg 3xl:text-xl text-muted-foreground leading-relaxed">
+                    <p className="text-sm sm:text-base 2xl:text-lg 3xl:text-xl text-muted-foreground leading-relaxed mb-0">
                       Wir zeigen mit dem Befristungsmonitor, wo in Österreich
                       besonders viele Wohnungen befristet angeboten werden.
                     </p>
@@ -131,7 +131,7 @@ export default function ComingSoon(props: Route.ComponentProps) {
                 </p>
 
                 {/* Navigation - Right */}
-                <nav className="flex items-center gap-2">
+                <nav className="flex items-center gap-2 text-base sm:text-[20px]">
                   <a
                     href="https://www.momentum-institut.at/impressum/"
                     target="_blank"
