@@ -4,7 +4,7 @@
 
 Made by [Arthouse](https://madebyarthouse.com) in collaboration with [Momentum Institut](https://momentum-institut.at).
 
-Application for analyzing and visualizing Austria’s rental market using data scraped from [Willhaben.at](https://www.willhaben.at). Explore trends by state and district with interactive maps, charts, and statistics.
+Application for analyzing and visualizing Austria's rental market. Explore trends by state and district with interactive maps, charts, and statistics.
 
 ## Stack
 

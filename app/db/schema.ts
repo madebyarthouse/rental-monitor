@@ -66,7 +66,7 @@ export const listings = sqliteTable(
     durationMonths: integer(),
 
     // Platform and URL
-    platform: text().notNull(), // 'willhaben', 'derstandard'
+    platform: text().notNull(),
     url: text().notNull().unique(),
     externalId: text(), // Platform's original ID
 

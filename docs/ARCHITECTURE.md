@@ -41,11 +41,6 @@ graph TB
         D1[(Cloudflare D1<br/>SQLite)]
     end
 
-    subgraph "Data Collection"
-        CRON[Cron Scraper Worker]
-        WILLHABEN[Willhaben.at]
-    end
-
     UI --> ROUTES
     UI --> HOOKS
     ROUTES --> LOADERS
@@ -61,16 +56,12 @@ graph TB
 
     DRIZZLE --> D1
 
-    CRON --> WILLHABEN
-    CRON --> D1
-
     UI -->|loader data| LOADERS
 
     style UI fill:#4ade80
     style LOADERS fill:#60a5fa
     style DRIZZLE fill:#f59e0b
     style D1 fill:#a78bfa
-    style CRON fill:#ef4444
 ```
 
 ### Tech Stack

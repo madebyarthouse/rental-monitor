@@ -21,9 +21,8 @@ export default function Methodik(props: Route.ComponentProps) {
       <meta name="robots" content="index,follow" />
       <div className="max-w-[75ch] w-full mx-auto py-6 lg:py-10 px-4 sm:px-6">
         <p className="text-muted-foreground mb-8">
-          Der Mietmonitor erfasst täglich Mietwohnungsinserate auf Willhaben und
-          analysiert, wie sich Befristung und regionale Lage auf die Mietpreise
-          auswirken.
+          Der Mietmonitor erfasst Mietwohnungsinserate und analysiert, wie sich
+          Befristung und regionale Lage auf die Mietpreise auswirken.
         </p>
 
         <section className="space-y-2 mb-8">
@@ -34,10 +33,9 @@ export default function Methodik(props: Route.ComponentProps) {
             ausgeschlossen.
           </p>
           <p className="text-muted-foreground">
-            Die Erhebung von neuen Daten erfolgt täglich. Als einfach Heuristik
-            werden Inserate über 50.000 € Monatsmiete nicht erfasst, da es sich
-            wahrscheinlich um Kaufinserate handelt die falsch kategorisiert
-            wurden.
+            Als einfache Heuristik werden Inserate über 50.000 € Monatsmiete
+            nicht erfasst, da es sich wahrscheinlich um Kaufinserate handelt die
+            falsch kategorisiert wurden.
           </p>
         </section>
 
@@ -46,9 +44,7 @@ export default function Methodik(props: Route.ComponentProps) {
           <p className="text-muted-foreground">
             Die Daten zeigen Angebotspreise, nicht die tatsächlich vereinbarten
             Mieten. Kurzfristige technische Ausfälle bei der Datenerfassung
-            können zu Lücken führen. Da die Daten täglich upgedated werden kann
-            es zu leichten Abweichungen zwischen Mietmonitor und aktuellen
-            Willhaben-Daten führen.
+            können zu Lücken führen.
           </p>
         </section>
 
@@ -98,18 +94,6 @@ export default function Methodik(props: Route.ComponentProps) {
               rel="noreferrer noopener"
             >
               github.com/madebyarthouse/rental-monitor
-            </a>
-          </p>
-        </section>
-
-        <section className="space-y-2 mb-8">
-          <h2 id="data" className="text-lg font-medium">
-            Datenexport
-          </h2>
-          <p className="text-muted-foreground">
-            Aktueller Export aller aktiven Inserate:
-            <a className="underline ml-2" href="/data/export.csv">
-              export.csv
             </a>
           </p>
         </section>

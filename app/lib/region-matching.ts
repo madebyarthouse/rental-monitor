@@ -8,7 +8,7 @@ export type RegionInput = {
   parentId: string | number | null;
 };
 
-// Explicit normalization for certain Willhaben district names
+// Explicit normalization for certain district names
 // Keys are normalized via looseNormalize, values are internal slugs
 export const DISTRICT_NORMALIZATION: Record<string, string> = {
   braunauaminn: "braunau",

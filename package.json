@@ -24,18 +24,7 @@
 		"db:studio": "drizzle-kit studio",
 		"db:studio:remote": "NODE_ENV=production drizzle-kit studio",
 		"db:import:remote-to-local": "bun app/scripts/db-import-remote-to-local.ts",
-		"db:import:local-to-remote": "bun app/scripts/db-import-local-to-remote.ts",
-		"cron:deploy": "wrangler deploy --config workers/cron-scraper/wrangler.jsonc",
-		"cron:dev": "wrangler dev --config workers/cron-scraper/wrangler.jsonc",
-		"cron:discovery": "curl \"http://localhost:8787/cdn-cgi/handler/scheduled?cron=%2A%2F30+%2A+%2A+%2A+%2A\"",
-		"cron:sweep": "curl \"http://localhost:8787/cdn-cgi/handler/scheduled?cron=0+%2A%2F3+%2A+%2A+%2A\"",
-		"cron:verification": "curl \"http://localhost:8787/cdn-cgi/handler/scheduled?cron=0+%2A%2F6+%2A+%2A+%2A\"",
-		"cron:test": "vitest run",
-		"cron:test:discovery": "vitest run workers/cron-scraper/sources/willhaben/overview.test.ts",
-		"cron:test:sweep": "vitest run workers/cron-scraper/runs/sweep.test.ts",
-		"cron:test:verification": "vitest run workers/cron-scraper/sources/willhaben/detail.test.ts",
-		"cron:db:migrate:local": "wrangler d1 migrations apply rental_monitor --local --config workers/cron-scraper/wrangler.jsonc",
-		"cron:db:copy-local": "mkdir -p workers/cron-scraper/.wrangler/state/v3/d1/miniflare-D1DatabaseObject && cp .wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite workers/cron-scraper/.wrangler/state/v3/d1/miniflare-D1DatabaseObject/"
+		"db:import:local-to-remote": "bun app/scripts/db-import-local-to-remote.ts"
 	},
 	"dependencies": {
 		"@radix-ui/react-accordion": "^1.2.12",

@@ -1,112 +1,40 @@
-import { Link, useLocation, useNavigation } from "react-router";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import DesktopSidebar from "./desktop-sidebar";
-import { cn } from "@/lib/utils";
-import type { RegionHierarchy } from "@/services/region-service";
-import { getTabUrl } from "./utils";
-import { useFilteredUrl } from "@/hooks/use-filtered-url";
-import { useMemo } from "react";
+import { Link, useNavigation } from "react-router";
 
 export default function DesktopLayout({
-  statesWithDistricts,
   children,
 }: {
-  statesWithDistricts: RegionHierarchy;
   children: React.ReactNode;
 }) {
-  const location = useLocation();
-  const isListingsView = location.pathname.includes("/inserate");
-  const isMethodikView = location.pathname === "/methodik";
-  const buildFilteredUrl = useFilteredUrl();
-  const activeTitle = useMemo(() => {
-    const path = location.pathname.replace(/^\/+|\/+$/g, "");
-    if (!path || path === "inserate") return "Österreich";
-    if (path === "methodik") return "Methodik";
-    const parts = path.split("/");
-    const stateSlug = parts[0];
-    const districtSlug =
-      parts[1] && parts[1] !== "inserate" ? parts[1] : undefined;
-    const state = statesWithDistricts.find(
-      (s) => s.state.slug === stateSlug
-    )?.state;
-    if (!state) return "Österreich";
-    if (!districtSlug) return state.name;
-    const dist = statesWithDistricts
-      .find((s) => s.state.slug === stateSlug)
-      ?.districts.find((d) => d.slug === districtSlug);
-    return dist ? `${state.name} — ${dist.name}` : state.name;
-  }, [location.pathname, statesWithDistricts]);
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <DesktopSidebar statesWithDistricts={statesWithDistricts} />
-
-      <SidebarInset className="overflow-y-clip!">
-        <header className="sticky top-0 z-1000 flex h-16 items-center justify-between border-b border-border bg-background pl-4 lg:pl-6">
-          <div className="font-semibold tracking-tight border-r border-border pr-4 h-full flex items-center text-xl md:text-[clamp(1.125rem,2vw,1.5rem)]">
-            {activeTitle}
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-1000 flex h-16 items-center justify-between border-b border-border bg-background px-6">
+        <Link to="/" className="block h-full py-2">
+          <img
+            src="/momentum-institut-logo.png"
+            alt="Momentum Institut"
+            width={1700}
+            height={441}
+            className="h-full w-auto max-w-[220px]"
+          />
+        </Link>
+        <div className="font-semibold tracking-tight text-xl">Mietmonitor</div>
+      </header>
+      <main className="overflow-y-auto">
+        {isLoading ? (
+          <div
+            className="flex items-center justify-center py-20"
+            role="status"
+            aria-label="Lädt"
+          >
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
-          <div className="flex  h-full">
-            <Link
-              to={buildFilteredUrl(getTabUrl("map", location.pathname), {
-                target: "map",
-              })}
-              className={cn(
-                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center active:bg-secondary/50 active:text-secondary-foreground",
-                !isListingsView && !isMethodikView
-                  ? "bg-secondary text-secondary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-              )}
-            >
-              Karte
-            </Link>
-            <Link
-              to={buildFilteredUrl(getTabUrl("listings", location.pathname), {
-                target: "listings",
-              })}
-              className={cn(
-                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center active:bg-secondary/50 active:text-secondary-foreground",
-                isListingsView
-                  ? "bg-secondary text-secondary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-              )}
-            >
-              Inserate
-            </Link>
-            <Link
-              to="/methodik"
-              className={cn(
-                "px-6 py-2 text-base font-medium transition-colors h-full flex items-center active:bg-secondary/50 active:text-secondary-foreground",
-                isMethodikView
-                  ? "bg-secondary text-secondary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-              )}
-            >
-              Methodik
-            </Link>
-          </div>
-        </header>
-        <main className="overflow-y-auto scrollbar-thin scrollbar-track-transparent h-[calc(100dvh-70px)]">
-          {isLoading ? (
-            <div
-              className="flex items-center justify-center py-20"
-              role="status"
-              aria-label="Lädt"
-            >
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            </div>
-          ) : (
-            children
-          )}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+        ) : (
+          children
+        )}
+      </main>
+    </div>
   );
 }
