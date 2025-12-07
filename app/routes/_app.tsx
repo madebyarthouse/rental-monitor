@@ -1,6 +1,5 @@
 import { Outlet } from "react-router";
 import type { Route } from "./+types/_app";
-import AppShell from "@/components/features/layout/app-shell";
 import { cacheHeader } from "pretty-cache-header";
 
 export async function loader(_args: Route.LoaderArgs) {
@@ -19,9 +18,5 @@ export function headers() {
 }
 
 export default function AppLayout(_props: Route.ComponentProps) {
-  return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
-  );
+  return <Outlet />;
 }

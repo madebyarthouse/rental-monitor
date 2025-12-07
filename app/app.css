@@ -166,6 +166,7 @@ body {
 
   --breakpoint-xxs: 320px;
   --breakpoint-xs: 375px;
+  --breakpoint-3xl: 1920px;
 }
 
 /* Desktop typography overrides (md and up) */
