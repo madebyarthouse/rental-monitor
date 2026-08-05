@@ -121,7 +121,7 @@ export default function ComingSoon(props: Route.ComponentProps) {
                 <p className="text-center sm:text-left">
                   Entwickelt von{" "}
                   <a
-                    href="https://github.com/madebyarthouse/rental-monitor"
+                    href="https://www.madebyarthouse.com/?ref=rental-monitor"
                     target="_blank"
                     rel="noreferrer noopener"
                     className="underline hover:text-foreground transition-colors"
